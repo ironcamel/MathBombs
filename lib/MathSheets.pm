@@ -14,11 +14,12 @@ get '/users/:user' => sub {
 
 get '/users/:user/sheets/:sheet_id' => sub {
     my $user = params->{user};
+    debug "Sheet for $user";
     my $sheet_id = params->{sheet_id};
     $user = schema->resultset('User')->find($user);
-    my ($problems, $guesses);
-    debug "user $user";
+    my $problems;
     if (my $s = $user->sheets->find({id => $sheet_id, user_id => $user->id})) {
+        debug "Grabbing problems from db for sheet $sheet_id";
         my @db_problems = $s->problems->search({user_id => $user->id });
         $problems = [ map { from_json($_->json) } @db_problems ];
         for my $i ( 0 .. $#db_problems ) {
@@ -26,9 +27,10 @@ get '/users/:user/sheets/:sheet_id' => sub {
         }
 
     } else {
-        $problems = $user->id eq 'leila' ? gen_multiplication_problems(9, 1000)
-            : gen_addition_problems(9, 1000);
-        debug $problems;
+        debug "Creating new problems for sheet $sheet_id";
+        $problems = $user->id eq 'leila'
+            ? gen_simple_problems(9, 1000, '*')
+            : gen_simple_problems(9, 1000, '+');
         my $sheet = $user->sheets->create({ id => $sheet_id });
         for my $p (@$problems) {
             $sheet->problems->create({
@@ -38,7 +40,8 @@ get '/users/:user/sheets/:sheet_id' => sub {
             });
         }
     }
-    template tmpl_for_user($user->id) => {
+    debug $problems;
+    template sheet => {
         name     => $user->name,
         user_id  => $user->id,
         sheet_id => $sheet_id,
@@ -46,51 +49,32 @@ get '/users/:user/sheets/:sheet_id' => sub {
     };
 };
 
-post '/users/:user/sheets/:sheet_id/problems/:id' => sub {
-    my $user = params->{user};
+post '/users/:user_id/sheets/:sheet_id/problems/:id' => sub {
+    my $user_id = params->{user_id};
     my $sheet_id = params->{sheet_id};
     my $id = params->{id};
     my $guess = params->{guess};
     my $problem = schema->resultset('Problem')->find({
         id       => $id,
         sheet_id => $sheet_id,
-        user_id  => $user,
+        user_id  => $user_id,
     })->update({ guess => $guess });
-    1;
+    return 1;
 };
 
 post '/foo' => sub { debug 'post foo'; debug params->{id}; 1;};
 get '/foo' => sub { template 'foo' };
 
-sub tmpl_for_user {
-    my ($user) = @_;
-    my %templates = (
-        leila => 'multiplication_sheet',
-        ava   => 'addition_sheet',
-    );
-    return $templates{$user};
-}
-
-sub gen_multiplication_problems {
-    my ($cnt, $max) = @_;
+sub gen_simple_problems {
+    my ($cnt, $max, $op) = @_;
     my @problems;
     for my $i (1 .. $cnt) {
         my $n1 = int(rand $max);
         my $n2 = int(rand $max);
-        my $ans = $n1 * $n2;
-        push @problems, { id => $i, n1 => $n1, n2 => $n2, ans => $ans };
-    }
-    return \@problems;
-}
-
-sub gen_addition_problems {
-    my ($cnt, $max) = @_;
-    my @problems;
-    for my $i (1 .. $cnt) {
-        my $n1 = int(rand $max);
-        my $n2 = int(rand $max);
-        my $ans = $n1 + $n2;
-        push @problems, { id => $i, n1 => $n1, n2 => $n2, ans => $ans };
+        my $ans = $op eq '+' ? $n1 + $n2 : $n1 * $n2;
+        $op = '\times' if $op eq '*';
+        my $equation = "$n1 \\; + \\; $n2";
+        push @problems, { id => $i, eqn => $equation, ans => $ans };
     }
     return \@problems;
 }
