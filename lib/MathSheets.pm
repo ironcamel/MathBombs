@@ -73,7 +73,7 @@ sub gen_simple_problems {
         my $n2 = int(rand $max);
         my $ans = $op eq '+' ? $n1 + $n2 : $n1 * $n2;
         $op = '\times' if $op eq '*';
-        my $equation = "$n1 \\; + \\; $n2";
+        my $equation = "$n1 \\; $op \\; $n2";
         push @problems, { id => $i, eqn => $equation, ans => $ans };
     }
     return \@problems;
