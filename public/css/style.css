@@ -207,6 +207,7 @@ div.problem {
     font-size: 2em;
     text-align: center;
     margin: 30px;
+    height: 90px;
 }
 
 .correct-answer {

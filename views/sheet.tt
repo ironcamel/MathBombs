@@ -2,11 +2,11 @@
 [% FOREACH p IN problems %]
 <div class="problem">
 <span style="float:left">[% p.id %])</span>
-<div style="margin:0 auto;">$ [% p.eqn %] $</div>
+<div style="margin:0 auto;">$[% p.eqn %]$</div>
 <hr/>
 <input type="text" class="guess" value="[% p.guess %]" />
-<input type="hidden" class="answer" value="[% p.ans %]">
-<input type="hidden" class="pid" value="[% p.id %]">
+<input type="hidden" class="answer" value="[% p.ans %]" />
+<input type="hidden" class="pid" value="[% p.id %]" />
 </div>
 [% END %]
 
