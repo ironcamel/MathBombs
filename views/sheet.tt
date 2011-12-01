@@ -17,31 +17,53 @@
 </div>
 
 <script>
+
+function check_problems() {
+    var num_wrong = $.grep($(".problem input.guess"), function(n) {
+        return ! $(n).hasClass('correct-answer');
+    }).length;
+    if (num_wrong == 0) {
+        $('.next-link').show();
+        return true;
+    }
+    return false;
+}
+
+$(function() {
     $(".problem input.guess").keyup(function() {
         var ans = $(this).siblings('.answer').val();
         var id = $(this).siblings('.pid').val();
         console.log('ans: ' + ans);
         console.log('this: ' + $(this).val());
-        if (ans == $(this).val())
+        if (ans == $(this).val()) {
             $(this).addClass('correct-answer');
-        else
+            if (check_problems())
+                alert('Great job!');
+        } else {
             $(this).removeClass('correct-answer');
-        $.post('[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id %]/problems/' + id, {
-            guess : $(this).val()
-        });
+        }
+        $.post('[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id %]/problems/' + id, { guess : $(this).val() });
     });
+
     $(".problem input.guess").each(function() {
         var ans = $(this).siblings('.answer').val();
-        if (ans == $(this).val())
+        if (ans == $(this).val()) {
             $(this).addClass('correct-answer');
+        }
     });
+
+    check_problems();
+});
 </script>
 
 <div style="clear:both; margin-top: 20px;" />
+
+[% IF sheet_id > 1 %]
 <span class="prev-link">
-<a href="[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id - 1 %]">&lt;&lt; previous</a>
-<span>
+  <a href="[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id - 1 %]">&lt;&lt; previous</a>
 </span>
-<span class="next-link" style="float:right">
-<a href="[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id + 1 %]">next &gt;&gt;</a>
+[% END %]
+
+<span class="next-link" style="float:right;display:none">
+  <a href="[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id + 1 %]">next &gt;&gt;</a>
 </span>
