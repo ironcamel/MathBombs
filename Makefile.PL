@@ -7,15 +7,11 @@ WriteMakefile(
     AUTHOR              => q{YOUR NAME <youremail@example.com>},
     VERSION_FROM        => 'lib/MathSheets.pm',
     ABSTRACT            => 'YOUR APPLICATION ABSTRACT',
-    ($ExtUtils::MakeMaker::VERSION >= 6.3002
-      ? ('LICENSE'=> 'perl')
-      : ()),
-    PL_FILES            => {},
+    LICENSE             => 'perl',
     PREREQ_PM => {
-        'Test::More' => 0,
-        'YAML'       => 0,
-        'Dancer'     => 1.3014,
+        'Dancer'               => 1.3014,
+        'JSON'                 => 0,
+        'Math::Random::Secure' => 0,
+        'YAML'                 => 0,
     },
-    dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean               => { FILES => 'MathSheets-*' },
 );

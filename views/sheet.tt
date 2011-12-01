@@ -1,4 +1,8 @@
-<h1 id="title">[% name %]'s Workbook</h1>
+
+<h1 id="title" style="display:inline">[% name %]'s Workbook</h1>
+<h3 style="display:inline;margin:0 10px"> Sheet #[% sheet_id %] </h3>
+
+<div id="problems" style="clear:both">
 [% FOREACH p IN problems %]
 <div class="problem">
 <span style="float:left">[% p.id %])</span>
@@ -10,6 +14,8 @@
 </div>
 [% END %]
 
+</div>
+
 <script>
     $(".problem input.guess").keyup(function() {
         var ans = $(this).siblings('.answer').val();
@@ -20,7 +26,7 @@
             $(this).addClass('correct-answer');
         else
             $(this).removeClass('correct-answer');
-        $.post('/users/[% user_id %]/sheets/[% sheet_id %]/problems/' + id, {
+        $.post('[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id %]/problems/' + id, {
             guess : $(this).val()
         });
     });
@@ -32,3 +38,10 @@
 </script>
 
 <div style="clear:both; margin-top: 20px;" />
+<span class="prev-link">
+<a href="[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id - 1 %]">&lt;&lt; previous</a>
+<span>
+</span>
+<span class="next-link" style="float:right">
+<a href="[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id + 1 %]">next &gt;&gt;</a>
+</span>

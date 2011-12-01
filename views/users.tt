@@ -1,6 +1,6 @@
 <h2>
-<a href="[% request.url_base %]/users/leila">Leila's Workbook</a>
+<a href="[% request.uri_base %]/users/leila">Leila's Workbook</a>
 </h2>
 <h2>
-<a href="[% request.url_base %]/users/ava">Ava's Workbook</a>
+<a href="[% request.uri_base %]/users/ava/sheets/3">Ava's Workbook</a>
 </h2>

@@ -1,9 +1,11 @@
 package MathSheets;
 use Dancer ':syntax';
 use Dancer::Plugin::DBIC;
-use 5.12.0;
 
-our $VERSION = '0.1';
+use 5.12.0;
+use Math::Random::Secure qw(irand);
+
+our $VERSION = '0.0001';
 
 get '/' => sub { template 'users' };
 
@@ -25,12 +27,11 @@ get '/users/:user/sheets/:sheet_id' => sub {
         for my $i ( 0 .. $#db_problems ) {
             $problems->[$i]{guess} = $db_problems[$i]->guess
         }
-
     } else {
         debug "Creating new problems for sheet $sheet_id";
         $problems = $user->id eq 'leila'
             ? gen_simple_problems(9, 1000, '*')
-            : gen_simple_problems(9, 1000, '+');
+            : subtraction(9, 1000);
         my $sheet = $user->sheets->create({ id => $sheet_id });
         for my $p (@$problems) {
             $sheet->problems->create({
@@ -69,11 +70,24 @@ sub gen_simple_problems {
     my ($cnt, $max, $op) = @_;
     my @problems;
     for my $i (1 .. $cnt) {
-        my $n1 = int(rand $max);
-        my $n2 = int(rand $max);
+        my $n1 = irand($max);
+        my $n2 = irand($max);
         my $ans = $op eq '+' ? $n1 + $n2 : $n1 * $n2;
         $op = '\times' if $op eq '*';
         my $equation = "$n1 \\; $op \\; $n2";
+        push @problems, { id => $i, eqn => $equation, ans => $ans };
+    }
+    return \@problems;
+}
+
+sub subtraction {
+    my ($cnt, $max) = @_;
+    my @problems;
+    for my $i (1 .. $cnt) {
+        my $n1 = irand(int $max/2) + int $max/2;
+        my $n2 = irand(int $max/2);
+        my $ans = $n1 - $n2;
+        my $equation = "$n1 \\; - \\; $n2";
         push @problems, { id => $i, eqn => $equation, ans => $ans };
     }
     return \@problems;
