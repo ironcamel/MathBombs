@@ -1,5 +1,5 @@
 
-<h1 id="title" style="display:inline">[% name %]'s Workbook</h1>
+<h1 style="display:inline">[% name %]'s Workbook</h1>
 <h3 style="display:inline;margin:0 10px"> Sheet #[% sheet_id %] </h3>
 
 <div id="problems" style="clear:both">
@@ -13,7 +13,6 @@
 <input type="hidden" class="pid" value="[% p.id %]" />
 </div>
 [% END %]
-
 </div>
 
 <script>
@@ -37,8 +36,13 @@ $(function() {
         console.log('this: ' + $(this).val());
         if (ans == $(this).val()) {
             $(this).addClass('correct-answer');
-            if (check_problems())
-                alert('Great job!');
+            if (check_problems()) {
+                var msg = 'Great job!';
+                [% IF settings.msgs.$user_id.$sheet_id %]
+                var msg = "[% settings.msgs.$user_id.$sheet_id %]";
+                [% END %]
+                alert(msg);
+            }
         } else {
             $(this).removeClass('correct-answer');
         }

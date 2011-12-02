@@ -31,7 +31,8 @@ get '/users/:user/sheets/:sheet_id' => sub {
         debug "Creating new problems for sheet $sheet_id";
         $problems = $user->id eq 'leila'
             ? gen_simple_problems(9, 1000, '*')
-            : subtraction(9, 1000);
+            : gen_simple_problems(9, 1000, '*');
+            #: subtraction(9, 1000);
         my $sheet = $user->sheets->create({ id => $sheet_id });
         for my $p (@$problems) {
             $sheet->problems->create({

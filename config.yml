@@ -10,7 +10,12 @@ engines:
     end_tag:   '%]'
 
 plugins:
-    DBIC:
-        math_problems:
-            schema_class: MathSheets::Schema
-            dsn: dbi:SQLite:dbname=/home/naveed/projects/MathSheets/data/math.db
+  DBIC:
+    math_problems:
+      schema_class: MathSheets::Schema
+      dsn: dbi:SQLite:dbname=/home/naveed/projects/MathSheets/data/math.db
+
+msgs:
+  ava:
+    4: 'Your reward is 10 booses!'
+    5: 'Your reward is 1 candy from 7-11!'
