@@ -1,4 +1,6 @@
-appname: "MathSheets"
+# Rename this file to config.yml.
+
+appname: "Math Time"
 layout: "main"
 charset: "UTF-8"
 
@@ -13,9 +15,9 @@ plugins:
   DBIC:
     math_problems:
       schema_class: MathSheets::Schema
-      dsn: dbi:SQLite:dbname=/home/naveed/projects/MathSheets/data/math.db
+      dsn: dbi:SQLite:dbname=/path/to/math.db
 
 msgs:
-  ava:
-    4: 'Your reward is 10 booses!'
-    5: 'Your reward is 1 candy from 7-11!'
+  leila:
+    1: 'Great job! You are on your way to becoming a math genius!'
+    3: 'Your reward is 1 candy from 7-11!'
