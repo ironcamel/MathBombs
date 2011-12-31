@@ -7,7 +7,18 @@ use Math::Random::Secure qw(irand);
 
 our $VERSION = '0.0001';
 
-get '/' => sub { template 'users' };
+#$ENV{DBIC_TRACE} = '1=/tmp/dbic_trace';
+get '/' => sub {
+    my @users = schema->resultset('User')->search(undef, {
+        '+select' => [ { max => 'sheets.id' } ],
+        '+as' => 'last_sheet',
+        join => 'sheets',
+        group_by => [qw(me.id)],
+    });
+    template users => {
+        users => \@users,
+    };
+};
 
 get '/users/:user' => sub {
     my $user = params->{user};
@@ -29,10 +40,15 @@ get '/users/:user/sheets/:sheet_id' => sub {
         }
     } else {
         debug "Creating new problems for sheet $sheet_id";
-        $problems = $user->id eq 'leila'
-            ? gen_simple_problems(9, 1000, '*')
-            : gen_simple_problems(9, 1000, '*');
-            #: subtraction(9, 1000);
+        my $problems;
+        if ($user->id eq 'leila') {
+            $problems = dec_multiplication(6, 10_000);
+        } elsif ($user->id eq 'ava') {
+            $problems = gen_simple_problems(9, 1000, '*');
+            #$problems = subtraction(20, 1000);
+        } else {
+            $problems = gen_simple_problems(9, 10, '+')
+        }
         my $sheet = $user->sheets->create({ id => $sheet_id });
         for my $p (@$problems) {
             $sheet->problems->create({
@@ -76,6 +92,22 @@ sub gen_simple_problems {
         my $ans = $op eq '+' ? $n1 + $n2 : $n1 * $n2;
         $op = '\times' if $op eq '*';
         my $equation = "$n1 \\; $op \\; $n2";
+        push @problems, { id => $i, eqn => $equation, ans => $ans };
+    }
+    return \@problems;
+}
+
+#10_000
+sub dec_multiplication {
+    my ($cnt, $max) = @_;
+    my @problems;
+    for my $i (1 .. $cnt) {
+        my $n1 = irand($max);
+        my $n2 = irand($max);
+        substr($n1, int(rand() * (length($n1)-1)), 1) = '.';
+        substr($n2, int(rand() * (length($n2)-1)), 1) = '.';
+        my $ans = $n1 * $n2;
+        my $equation = "$n1 \\; \\times \\; $n2";
         push @problems, { id => $i, eqn => $equation, ans => $ans };
     }
     return \@problems;

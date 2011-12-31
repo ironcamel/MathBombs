@@ -1,6 +1,8 @@
+
+[% FOR user IN users %]
+[% last_sheet = user.get_column('last_sheet') %]
+  <a href="[% request.uri_base %]/users/[% user.id %]/sheets/[% user.get_column('last_sheet') %]">[% user.name %]'s Workbook</a>
+(sheet [% last_sheet %])
 <h2>
-  <a href="[% request.uri_base %]/users/leila">Leila's Workbook</a>
 </h2>
-<h2>
-  <a href="[% request.uri_base %]/users/ava/sheets/4">Ava's Workbook</a>
-</h2>
+[% END %]

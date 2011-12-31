@@ -4,7 +4,7 @@
 
 <div id="problems" style="clear:both">
 [% FOREACH p IN problems %]
-<div class="problem">
+<div class="problem" [% 'style="clear:both"' IF (loop.count - 1) % 3 == 0 %]>
 <span style="float:left">[% p.id %])</span>
 <div style="margin:0 auto;">$[% p.eqn %]$</div>
 <hr/>
@@ -39,7 +39,7 @@ $(function() {
             if (check_problems()) {
                 var msg = 'Great job!';
                 [% IF settings.msgs.$user_id.$sheet_id %]
-                var msg = "[% settings.msgs.$user_id.$sheet_id %]";
+                msg = "[% settings.msgs.$user_id.$sheet_id %]";
                 [% END %]
                 alert(msg);
             }
