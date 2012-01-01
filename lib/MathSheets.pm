@@ -44,12 +44,14 @@ get '/users/:user/sheets/:sheet_id' => sub {
     } else {
         debug "Creating new problems for sheet $sheet_id";
         if ($user->id eq 'leila') {
-            $problems = dec_multiplication(6, 10_000);
+            #$problems = dec_multiplication(6, 10_000);
+            $problems = division(9, 50)
         } elsif ($user->id eq 'ava') {
-            $problems = gen_simple_problems(9, 1000, '*');
+            #$problems = gen_simple_problems(9, 1000, '*');
             #$problems = subtraction(20, 1000);
+            $problems = division(9, 20)
         } elsif ($user->id eq 'test') {
-            $problems = gen_simple_problems(1, 10, '+')
+            $problems = division(9, 20)
         } else {
             $problems = gen_simple_problems(9, 10, '+')
         }
@@ -107,8 +109,8 @@ sub dec_multiplication {
     for my $i (1 .. $cnt) {
         my $n1 = irand($max);
         my $n2 = irand($max);
-        substr($n1, int(rand() * (length($n1)-1)), 1) = '.';
-        substr($n2, int(rand() * (length($n2)-1)), 1) = '.';
+        substr($n1, irand(length($n1)-1), 1) = '.';
+        substr($n2, irand(length($n2)-1), 1) = '.';
         my $ans = $n1 * $n2;
         my $equation = "$n1 \\; \\times \\; $n2";
         push @problems, { id => $i, eqn => $equation, ans => $ans };
@@ -124,6 +126,20 @@ sub subtraction {
         my $n2 = irand(int $max/2);
         my $ans = $n1 - $n2;
         my $equation = "$n1 \\; - \\; $n2";
+        push @problems, { id => $i, eqn => $equation, ans => $ans };
+    }
+    return \@problems;
+}
+
+# A $max of 100 makes problems like 9900 / 100 = 99
+sub division {
+    my ($cnt, $max) = @_;
+    my @problems;
+    for my $i (1 .. $cnt) {
+        my $n2 = irand($max) + 1;
+        my $ans = irand($max);
+        my $n1 = $n2 * $ans;
+        my $equation = "$n1 \\; / \\; $n2";
         push @problems, { id => $i, eqn => $equation, ans => $ans };
     }
     return \@problems;
