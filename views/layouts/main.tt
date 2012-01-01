@@ -20,7 +20,8 @@
 
 </head>
 
-<body>
+<body style="background-image: url('[% request.uri_base %]/images/pleiades.jpg')">
+    
 
 <div id="title">
    Math Time!  

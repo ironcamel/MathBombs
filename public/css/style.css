@@ -5,6 +5,7 @@ body {
     margin-bottom: 25px;
     padding: 0;
     background-color: #ddd;
+    background-image: url("/images/pleiades.jpg"); 
     /*
     background-image: url("/images/perldancer-bg.jpg"); 
     background-repeat: no-repeat;
@@ -72,5 +73,6 @@ div.problem {
     font-size:2em;
     font-weight:bold;
     font-family:sans;
+    color: #ddd;
 }
 
