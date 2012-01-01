@@ -24,6 +24,7 @@ create table problem (
 insert into user values ('leila', 'Leila');
 insert into user values ('ava', 'Ava');
 insert into user values ('arianna', 'Arianna');
+insert into user values ('test', 'Test');
 
 --insert into sheet (id, user_id) values (1, 'leila');
 --insert into sheet (id, user_id) values (1, 'ava');

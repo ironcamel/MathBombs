@@ -1,35 +1,38 @@
 package MathSheets;
 use Dancer ':syntax';
-use Dancer::Plugin::DBIC;
 
-use 5.12.0;
+use v5.12;
+use Dancer::Plugin::DBIC;
 use Math::Random::Secure qw(irand);
 
 our $VERSION = '0.0001';
 
 #$ENV{DBIC_TRACE} = '1=/tmp/dbic_trace';
 get '/' => sub {
-    my @users = schema->resultset('User')->search(undef, {
-        '+select' => [ { max => 'sheets.id' } ],
-        '+as' => 'last_sheet',
-        join => 'sheets',
-        group_by => [qw(me.id)],
-    });
     template users => {
-        users => \@users,
+        users => [
+            schema->resultset('User')->search(undef, {
+                '+select' => [ { max => 'sheets.id' } ],
+                '+as'     => 'last_sheet',
+                join      => 'sheets',
+                group_by  => [ 'me.id' ],
+            })
+        ]
     };
 };
 
 get '/users/:user' => sub {
-    my $user = params->{user};
-    redirect "/users/$user/sheets/1";
+    my $user_id = param 'user';
+    my $sheet_id = schema->resultset('Sheet')->search({user_id => $user_id})
+        ->get_column('id')->max;
+    redirect "/users/$user_id/sheets/$sheet_id";
 };
 
 get '/users/:user/sheets/:sheet_id' => sub {
-    my $user = params->{user};
-    debug "Sheet for $user";
+    my $user_id = param 'user';
+    debug "Sheet for $user_id";
     my $sheet_id = params->{sheet_id};
-    $user = schema->resultset('User')->find($user);
+    my $user = schema->resultset('User')->find($user_id);
     my $problems;
     if (my $s = $user->sheets->find({id => $sheet_id, user_id => $user->id})) {
         debug "Grabbing problems from db for sheet $sheet_id";
@@ -40,12 +43,13 @@ get '/users/:user/sheets/:sheet_id' => sub {
         }
     } else {
         debug "Creating new problems for sheet $sheet_id";
-        my $problems;
         if ($user->id eq 'leila') {
             $problems = dec_multiplication(6, 10_000);
         } elsif ($user->id eq 'ava') {
             $problems = gen_simple_problems(9, 1000, '*');
             #$problems = subtraction(20, 1000);
+        } elsif ($user->id eq 'test') {
+            $problems = gen_simple_problems(1, 10, '+')
         } else {
             $problems = gen_simple_problems(9, 10, '+')
         }
@@ -58,7 +62,6 @@ get '/users/:user/sheets/:sheet_id' => sub {
             });
         }
     }
-    debug $problems;
     template sheet => {
         name     => $user->name,
         user_id  => $user->id,
