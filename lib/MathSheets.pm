@@ -1,7 +1,7 @@
 package MathSheets;
 use Dancer ':syntax';
 
-use v5.12;
+use v5.10;
 use Dancer::Plugin::DBIC;
 use Math::Random::Secure qw(irand);
 
@@ -47,9 +47,9 @@ get '/users/:user/sheets/:sheet_id' => sub {
             #$problems = dec_multiplication(6, 10_000);
             $problems = division(9, 50)
         } elsif ($user->id eq 'ava') {
-            #$problems = gen_simple_problems(9, 1000, '*');
+            #$problems = gen_simple_problems(6, 1000, '*');
             #$problems = subtraction(20, 1000);
-            $problems = division(9, 20)
+            $problems = division(6, 50)
         } elsif ($user->id eq 'test') {
             $problems = division(9, 20)
         } else {
@@ -139,7 +139,12 @@ sub division {
         my $n2 = irand($max) + 1;
         my $ans = irand($max);
         my $n1 = $n2 * $ans;
-        my $equation = "$n1 \\; / \\; $n2";
+        my $equation;
+        given (irand(3)) {
+            when (0) { $equation = "$n1 \\; / \\; $n2"     }
+            when (1) { $equation = "$n1 \\; \\div \\; $n2" }
+            when (2) { $equation = "\\frac{$n1}{$n2}"      }
+        }
         push @problems, { id => $i, eqn => $equation, ans => $ans };
     }
     return \@problems;
