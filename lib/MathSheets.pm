@@ -3,6 +3,9 @@ use Dancer ':syntax';
 
 use v5.10;
 use Dancer::Plugin::DBIC;
+use Email::Sender::Simple qw(sendmail);
+use Email::Simple;
+use Math::BigInt qw(bgcd);
 use Math::Random::Secure qw(irand);
 
 our $VERSION = '0.0001';
@@ -43,17 +46,21 @@ get '/users/:user/sheets/:sheet_id' => sub {
         }
     } else {
         debug "Creating new problems for sheet $sheet_id";
-        if ($user->id eq 'leila') {
-            #$problems = dec_multiplication(6, 10_000);
-            $problems = division(9, 50)
-        } elsif ($user->id eq 'ava') {
-            #$problems = gen_simple_problems(6, 1000, '*');
-            #$problems = subtraction(20, 1000);
-            $problems = division(6, 50)
-        } elsif ($user->id eq 'test') {
-            $problems = division(9, 20)
-        } else {
-            $problems = gen_simple_problems(9, 10, '+')
+        given ($user->id) {
+            when ('leila') {
+                #$problems = dec_multiplication(6, 10_000);
+                #$problems = division(9, 50);
+                $problems = simplification(9, 12);
+            } when ('ava') {
+                #$problems = gen_simple_problems(6, 1000, '*');
+                #$problems = subtraction(20, 1000);
+                #$problems = division(6, 50);
+                $problems = simplification(6, 12);
+            } when ('test') {
+                $problems = simplification(1, 12);
+            } default {
+                $problems = gen_simple_problems(9, 10, '+');
+            }
         }
         my $sheet = $user->sheets->create({ id => $sheet_id });
         for my $p (@$problems) {
@@ -83,6 +90,20 @@ post '/users/:user_id/sheets/:sheet_id/problems/:id' => sub {
         user_id  => $user_id,
     })->update({ guess => $guess });
     return 1;
+};
+
+post '/ajax/email' => sub {
+    my $email_alerts = config->{email_alerts} or return;
+    my $email = Email::Simple->create(
+        header => [
+            from    => $email_alerts->{from},
+            to      => $email_alerts->{to},
+            subject => sprintf('MathSheets: %s completed sheet %s ',
+                param('user_id'), param('sheet_id')),
+        ],
+        #body => "hello",
+    );
+    sendmail($email);
 };
 
 post '/foo' => sub { debug 'post foo'; debug params->{id}; 1;};
@@ -145,6 +166,24 @@ sub division {
             when (1) { $equation = "$n1 \\; \\div \\; $n2" }
             when (2) { $equation = "\\frac{$n1}{$n2}"      }
         }
+        push @problems, { id => $i, eqn => $equation, ans => $ans };
+    }
+    return \@problems;
+}
+
+# $max is the max gcf
+sub simplification {
+    my ($cnt, $max) = @_;
+    my @problems;
+    for my $i (1 .. $cnt) {
+        my ($n1, $n2) = (2, 4);
+        while(bgcd($n1, $n2) > 1) {
+            ($n1, $n2) = sort {$a <=> $b } map { irand(12) + 1 } 1 .. 2;
+        }
+        my $ans = "$n1/$n2";
+        my $gcf = irand($max) + 1;
+        $_ *= $gcf for $n1, $n2;
+        my $equation = "\\frac{$n1}{$n2}";
         push @problems, { id => $i, eqn => $equation, ans => $ans };
     }
     return \@problems;

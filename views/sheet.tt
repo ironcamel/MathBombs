@@ -42,6 +42,10 @@ $(function() {
                 msg = "[% settings.msgs.$user_id.$sheet_id %]";
                 [% END %]
                 alert(msg);
+                $.post('[% request.uri_base %]/ajax/email', {
+                    user_id  : '[% user_id %]',
+                    sheet_id : '[% sheet_id %]'
+                });
             }
         } else {
             $(this).removeClass('correct-answer');
