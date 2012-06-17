@@ -53,7 +53,7 @@ __PACKAGE__->has_many(
   "sheets",
   "MathSheets::Schema::Result::Sheet",
   { "foreign.user_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+  { cascade_copy => 1, cascade_delete => 1 },
 );
 
 =head2 problems
@@ -68,12 +68,12 @@ __PACKAGE__->has_many(
   "problems",
   "MathSheets::Schema::Result::Problem",
   { "foreign.user_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+  { cascade_copy => 1, cascade_delete => 1 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-04-28 01:05:40
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IOprOToYANKWyqd4dRmIEg
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2012-06-17 05:05:22
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tbZCiazkDq55DuPksjvGVw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

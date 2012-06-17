@@ -6,6 +6,7 @@ create table user (
 create table sheet (
     id INT,
     user_id TEXT,
+    finished DATE,
     PRIMARY KEY (id, user_id),
     FOREIGN KEY (user_id) REFERENCES user (id)
 );
@@ -28,3 +29,6 @@ insert into user values ('test', 'Test');
 
 --insert into sheet (id, user_id) values (1, 'leila');
 --insert into sheet (id, user_id) values (1, 'ava');
+.schema
+.schema sheet
+.schema sheet

@@ -3,6 +3,7 @@ use Dancer ':syntax';
 
 use v5.10;
 use Dancer::Plugin::DBIC;
+use DateTime;
 use Email::Sender::Simple qw(sendmail);
 use Email::Simple;
 use Math::BigInt qw(bgcd);
@@ -57,8 +58,8 @@ get '/users/:user/sheets/:sheet_id' => sub {
                 #$problems = division(9, 100, 1000);
                 $problems = simplification(9, 100);
             } when ('test') {
-                #$problems = simplification(1, 12);
-                $problems = division(12, 12, 1000);
+                $problems = gen_simple_problems(1, 10, '+');
+                #$problems = division(12, 12, 1000);
             } default {
                 $problems = gen_simple_problems(9, 10, '+');
             }
@@ -93,22 +94,56 @@ post '/users/:user_id/sheets/:sheet_id/problems/:id' => sub {
     return 1;
 };
 
-post '/ajax/email' => sub {
+post '/ajax/finished_sheet' => sub {
+    my $sheet_id = param 'sheet_id';
+    my $user_id = param 'user_id';
+    my $sheet = schema->resultset('Sheet')->find({
+        id      => $sheet_id,
+        user_id => $user_id,
+    });
+    my $now = DateTime->now();
+    $sheet->update({ finished => $now->ymd }) unless $sheet->finished;
+    my $past_week = schema->resultset('Sheet')->search({
+        finished => { '>' => $now->subtract(days => 7)->ymd }
+    })->count;
+    my $past_month = schema->resultset('Sheet')->search({
+        finished => { '>' => $now->subtract(days => 30)->ymd }
+    })->count;
+    send_email(
+        sheet_id   => $sheet_id,
+        user_id    => $user_id,
+        past_week  => $past_week,
+        past_month => $past_month,
+    );
+    return 1;
+};
+
+post '/foo' => sub { info 'post foo'; info params->{id}; 1;};
+get '/foo' => sub { info 'get /foo'; template 'foo' };
+
+sub send_email {
+    my %args = @_;
+    my $sheet_id = $args{sheet_id};
+    my $user_id = $args{user_id};
+    my $past_week = $args{past_week};
+    my $past_month = $args{past_month};
     my $email_alerts = config->{email_alerts} or return;
     my $email = Email::Simple->create(
         header => [
             from    => $email_alerts->{from},
             to      => $email_alerts->{to},
-            subject => sprintf('MathSheets: %s completed sheet %s ',
-                param('user_id'), param('sheet_id')),
+            subject => "MathSheets: $user_id completed sheet $sheet_id,"
+                . " past week: $past_week, past month: $past_month",
         ],
-        #body => "hello",
+        body => join("\n",
+            "$user_id completed sheet $sheet_id.",
+            "past week: $past_week",
+            "past month: $past_month",
+            uri_for("/users/$user_id/sheets/$sheet_id"),
+        ),
     );
     sendmail($email);
 };
-
-post '/foo' => sub { debug 'post foo'; debug params->{id}; 1;};
-get '/foo' => sub { template 'foo' };
 
 sub gen_simple_problems {
     my ($cnt, $max, $op) = @_;

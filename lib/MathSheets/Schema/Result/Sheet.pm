@@ -30,6 +30,11 @@ __PACKAGE__->table("sheet");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 finished
+
+  data_type: 'date'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -37,6 +42,8 @@ __PACKAGE__->add_columns(
   { data_type => "int", is_nullable => 0 },
   "user_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "finished",
+  { data_type => "date", is_nullable => 1 },
 );
 __PACKAGE__->set_primary_key("id", "user_id");
 
@@ -69,12 +76,12 @@ __PACKAGE__->has_many(
   "problems",
   "MathSheets::Schema::Result::Problem",
   { "foreign.sheet_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+  { cascade_copy => 1, cascade_delete => 1 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-04-28 01:05:40
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SG+2exPAV7ruUUtOyHhMeA
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2012-06-17 05:05:22
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lG0sKthw6rTK5enI4VKzqQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

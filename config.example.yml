@@ -17,6 +17,10 @@ plugins:
       schema_class: MathSheets::Schema
       dsn: dbi:SQLite:dbname=/path/to/math.db
 
+email_alerts:
+  from: 'mathsheets@foo.com'
+  to: 'mathcoach@foo.com'
+
 msgs:
   leila:
     1: 'Great job! You are on your way to becoming a math genius!'
