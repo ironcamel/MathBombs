@@ -27,7 +27,7 @@ a:hover {
 
 #page {
     background-color: #ddd;
-    width: 960px;
+    width: 990px;
     margin: 10px auto;
     padding-left: 0px;
 
@@ -58,6 +58,7 @@ div.problem {
     padding: 15px;
     background-color: #fff;
     border: 3px solid #888;
+    border: 0;
     font-size: 2em;
     text-align: center;
     margin: 30px;

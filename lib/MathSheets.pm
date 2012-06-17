@@ -50,14 +50,15 @@ get '/users/:user/sheets/:sheet_id' => sub {
             when ('leila') {
                 #$problems = dec_multiplication(6, 10_000);
                 #$problems = division(9, 50);
-                $problems = simplification(9, 12);
+                $problems = simplification(9, 100);
             } when ('ava') {
                 #$problems = gen_simple_problems(6, 1000, '*');
                 #$problems = subtraction(20, 1000);
-                #$problems = division(6, 50);
-                $problems = simplification(6, 12);
+                #$problems = division(9, 100, 1000);
+                $problems = simplification(9, 100);
             } when ('test') {
-                $problems = simplification(1, 12);
+                #$problems = simplification(1, 12);
+                $problems = division(12, 12, 1000);
             } default {
                 $problems = gen_simple_problems(9, 10, '+');
             }
@@ -154,19 +155,19 @@ sub subtraction {
 
 # A $max of 100 makes problems like 9900 / 100 = 99
 sub division {
-    my ($cnt, $max) = @_;
+    my ($cnt, $divisor_max, $quotient_max) = @_;
     my @problems;
     for my $i (1 .. $cnt) {
-        my $n2 = irand($max) + 1;
-        my $ans = irand($max);
-        my $n1 = $n2 * $ans;
+        my $divisor = irand($divisor_max) + 1;
+        my $quotient = irand($quotient_max);
+        my $dividend = $divisor * $quotient;
         my $equation;
         given (irand(3)) {
-            when (0) { $equation = "$n1 \\; / \\; $n2"     }
-            when (1) { $equation = "$n1 \\; \\div \\; $n2" }
-            when (2) { $equation = "\\frac{$n1}{$n2}"      }
+            when (0) { $equation = "$dividend \\; / \\; $divisor"     }
+            when (1) { $equation = "$dividend \\; \\div \\; $divisor" }
+            when (2) { $equation = "\\frac{$dividend}{$divisor}"      }
         }
-        push @problems, { id => $i, eqn => $equation, ans => $ans };
+        push @problems, { id => $i, eqn => $equation, ans => $quotient };
     }
     return \@problems;
 }
