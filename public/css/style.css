@@ -1,70 +1,32 @@
 
-body {
-    margin: 0;
-    margin-top: 10px;
-    margin-bottom: 25px;
-    padding: 0;
-    background-color: #ddd;
-    /*
-    background-image: url("/images/perldancer-bg.jpg"); 
-    background-repeat: no-repeat;
-    background-position: top left;
-    */
-    font-family: 'Linux Libertine', Palatino, 'Palatino Linotype',
-        'Book Antiqua', Georgia, 'Times New Roman', serif;
-    font-family: "Lucida Grande", "Bitstream Vera Sans", "Verdana";
-    font-size: 13px;
-    color: #333;
-}
-
-a  {color: #03c}
-a:hover {
-    background-color: #03c;
-    color: white;
-    text-decoration: none;
-}
-
 
 #page {
-    background-color: #ddd;
+    /*
     width: 990px;
-    margin: 10px auto;
-    padding-left: 0px;
-
-    background-color: white;
     border: 3px solid #aaa;
+    */
     padding: 25px;
-}
-
-#content {
+    margin: 40px auto;
     background-color: white;
-    border: 3px solid #aaa;
-    border-top: none;
-    padding: 25px;
-    width: 500px;
-}
-
-#footer {
-    clear: both;
-    padding-top: 2em;
-    text-align: center;
-    padding-right: 160px;
-    font-family: sans-serif;
-    font-size: 10px;
 }
 
 div.problem {
+    /*
+    border: 3px solid #888;
+    */
+    margin: 20px;
     float: left;
     padding: 15px;
     background-color: #fff;
-    border: 3px solid #888;
     border: 0;
-    font-size: 2em;
     text-align: center;
-    margin: 30px;
 }
 
-.correct-answer {
+div.eqn {
+    font-size: 2em;
+}
+
+input.correct-answer {
     background-color: #afa;
 }
 
@@ -73,6 +35,6 @@ div.problem {
     font-size:2em;
     font-weight:bold;
     font-family:sans;
-    color: #ddd;
+    color: #fff;
 }
 

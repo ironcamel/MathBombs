@@ -1,6 +1,0 @@
-<div id="page">
-<div id="content">
-<a href="[% request.uri_base %]/users/leila">Leila</a>
-<a href="[% request.uri_base %]/users/ava">Ava</a>
-</div>
-</div>
