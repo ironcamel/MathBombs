@@ -104,9 +104,11 @@ post '/ajax/finished_sheet' => sub {
     my $now = DateTime->now();
     $sheet->update({ finished => $now->ymd }) unless $sheet->finished;
     my $past_week = schema->resultset('Sheet')->search({
+        user_id  => $user_id,
         finished => { '>' => $now->subtract(days => 7)->ymd }
     })->count;
     my $past_month = schema->resultset('Sheet')->search({
+        user_id  => $user_id,
         finished => { '>' => $now->subtract(days => 30)->ymd }
     })->count;
     send_email(
@@ -123,6 +125,7 @@ get '/foo' => sub { info 'get /foo'; template 'foo' };
 
 sub send_email {
     my %args = @_;
+    info 'sending email: ', \%args;
     my $sheet_id = $args{sheet_id};
     my $user_id = $args{user_id};
     my $past_week = $args{past_week};
