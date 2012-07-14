@@ -1,7 +1,6 @@
 # configuration file for production environment
 
-# only log warning and error messsages
-log: "info"
+log: "debug"
 
 # log message to a file in logs/
 logger: "file"

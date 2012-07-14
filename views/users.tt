@@ -1,8 +1,23 @@
 
-[% FOR user IN users %]
-[% last_sheet = user.get_column('last_sheet') || 1 %]
-  <a href="[% request.uri_base %]/users/[% user.id %]/sheets/[% last_sheet %]">[% user.name %]'s Workbook</a>
-(sheet [% last_sheet %])
-<h2>
-</h2>
-[% END %]
+<table class="table span4">
+
+  <thead>
+    <th>Student</th>
+    <th>Sheet</th>
+  </thead>
+
+  [% FOR user IN users %]
+  [% last_sheet = user.get_column('last_sheet') || 1 %]
+  <tr>
+    <td>
+      <a href="[% request.uri_base %]/users/[% user.id %]/sheets/[% last_sheet %]">[% user.name %]</a>
+    </td>
+    <td> [% last_sheet %] </td>
+    <td>
+      <a href="[% request.uri_base %]/users/[% user.id %]/report">view progress</a>
+    </td>
+  </tr>
+  [% END %]
+
+</table>
+

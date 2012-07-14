@@ -56,7 +56,7 @@ get '/users/:user/sheets/:sheet_id' => sub {
                 #$problems = gen_simple_problems(6, 1000, '*');
                 #$problems = subtraction(20, 1000);
                 #$problems = division(9, 100, 1000);
-                $problems = simplification(9, 100);
+                $problems = simplification(6, 100);
             } when ('test') {
                 $problems = gen_simple_problems(1, 10, '+');
                 #$problems = division(12, 12, 1000);
@@ -118,6 +118,42 @@ post '/ajax/finished_sheet' => sub {
         past_month => $past_month,
     );
     return 1;
+};
+
+get '/users/:user_id/report' => sub {
+    my $user_id = param 'user_id';
+    my $user = schema->resultset('User')->find($user_id)
+        or send_error "No such user", 404;
+    my $now = DateTime->now();
+    my $past_week = schema->resultset('Sheet')->count({
+        user_id  => $user_id,
+        finished => { '>' => $now->subtract(days => 7)->ymd }
+    });
+    my $past_month = schema->resultset('Sheet')->count({
+        user_id  => $user_id,
+        finished => { '>' => $now->subtract(days => 30)->ymd }
+    });
+    template report => {
+        user_id    => $user_id,
+        user_name  => $user->name || $user_id,
+        past_week  => $past_week,
+        past_month => $past_month,
+    }
+};
+
+get '/ajax/report' => sub {
+    my $user_id = param 'user_id';
+    my @sheets = schema->resultset('Sheet')->search({
+        user_id  => $user_id,
+        finished => { '>' => DateTime->now->subtract(days => 30)->ymd }
+    });
+    my %data = map { DateTime->now->subtract(days => $_)->ymd => 0 } 0 .. 30;
+    for my $sheet (@sheets) {
+        $data{$sheet->finished}++;
+    }
+    my @data = [ 'Day', 'Sheets' ];
+    push @data, map [ $_, $data{$_} ], sort keys %data;
+    return to_json \@data;
 };
 
 post '/foo' => sub { info 'post foo'; info params->{id}; 1;};

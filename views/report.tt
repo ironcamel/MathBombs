@@ -1,0 +1,37 @@
+
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script type="text/javascript">
+
+google.load("visualization", "1", { packages: ["corechart"] });
+google.setOnLoadCallback(drawChart);
+
+function drawChart() {
+  var user_id = '[% user_id %]';
+  var req_data = { user_id: user_id };
+  $.getJSON("[% request.uri_base %]/ajax/report", req_data, function(data) {
+    console.log(data);
+    data = google.visualization.arrayToDataTable(data);
+
+    var options = {
+      title: 'Math Sheets Completed',
+      vAxis: {title: 'Day',  titleTextStyle: {color: 'black'}}
+    };
+
+    var chart = new google.visualization.BarChart(
+      document.getElementById('chart_div'));
+    chart.draw(data, options);
+  });
+}
+
+</script>
+
+<h1> [% user_name %] </h1>
+<hr/>
+<h2> past week: [% past_week %] </h2>
+<h2> past month: [% past_month %] </h2>
+
+<!--
+<div id="chart_div" style="width: 900px; height: 500px;"></div>
+-->
+<div id="chart_div" class="span12" style="height: 1000px;"></div>
+
