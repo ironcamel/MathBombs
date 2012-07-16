@@ -3,11 +3,11 @@ use Dancer ':syntax';
 
 use v5.10;
 use Dancer::Plugin::DBIC;
+use Dancer::Plugin::Email;
 use DateTime;
-use Email::Sender::Simple qw(sendmail);
-use Email::Simple;
 use Math::BigInt qw(bgcd);
 use Math::Random::Secure qw(irand);
+use Try::Tiny;
 
 our $VERSION = '0.0001';
 
@@ -111,12 +111,20 @@ post '/ajax/finished_sheet' => sub {
         user_id  => $user_id,
         finished => { '>' => $now->subtract(days => 30)->ymd }
     })->count;
-    send_email(
-        sheet_id   => $sheet_id,
+    send_progress_email(
         user_id    => $user_id,
+        sheet_id   => $sheet_id,
         past_week  => $past_week,
         past_month => $past_month,
     );
+    my $msg = config->{msgs}{$user_id}{$sheet_id};
+    if ($msg) {
+        send_msg_email(
+            user_id  => $user_id,
+            sheet_id => $sheet_id,
+            msg      => $msg,
+        );
+    }
     return 1;
 };
 
@@ -159,30 +167,48 @@ get '/ajax/report' => sub {
 post '/foo' => sub { info 'post foo'; info params->{id}; 1;};
 get '/foo' => sub { info 'get /foo'; template 'foo' };
 
-sub send_email {
+sub send_progress_email {
     my %args = @_;
-    info 'sending email: ', \%args;
+    info 'Sending progress email: ', \%args;
     my $sheet_id = $args{sheet_id};
     my $user_id = $args{user_id};
     my $past_week = $args{past_week};
     my $past_month = $args{past_month};
-    my $email_alerts = config->{email_alerts} or return;
-    my $email = Email::Simple->create(
-        header => [
-            from    => $email_alerts->{from},
-            to      => $email_alerts->{to},
-            subject => "MathSheets: $user_id completed sheet $sheet_id,"
-                . " past week: $past_week, past month: $past_month",
-        ],
-        body => join("\n",
-            "$user_id completed sheet $sheet_id.",
-            "past week: $past_week",
-            "past month: $past_month",
-            uri_for("/users/$user_id/sheets/$sheet_id"),
-        ),
-    );
-    sendmail($email);
+    my $subject = "MathSheets: $user_id completed sheet $sheet_id,"
+        . " past week: $past_week, past month: $past_month";
+    $subject = "MathSheets: " . localtime;
+    my $body = join "\n",
+        "$user_id completed sheet $sheet_id.",
+        "past week: $past_week",
+        "past month: $past_month",
+        uri_for("/users/$user_id/sheets/$sheet_id");
+    try {
+        email { subject => $subject, body => $body };
+        info 'Sent email: ', \%args;
+    } catch {
+        error "Could not send progress email: $_";
+    };
 };
+
+sub send_msg_email {
+    my %args = @_;
+    my $to = config->{special_msg_email} or return;
+    info 'Sending msg email: ', \%args;
+    my $sheet_id = $args{sheet_id};
+    my $user_id = $args{user_id};
+    my $user = schema->resultset('User')->find($user_id)
+        or die "No such user with id $user_id";
+    my $msg = $args{msg};
+    my $subject = "MathSheets: message for $user_id #$sheet_id";
+    my $body = "Congratulations @{[$user->name]}!!!\n\n"
+        . "Math sheet #$sheet_id has a special message for you:\n\n$msg";
+    try {
+        email { to => $to, subject => $subject, body => $body };
+        info 'Sent msg email: ', \%args;
+    } catch {
+        error "Could not send msg email: $_";
+    };
+}
 
 sub gen_simple_problems {
     my ($cnt, $max, $op) = @_;
