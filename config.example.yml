@@ -1,6 +1,6 @@
 # Rename this file to config.yml.
 
-appname: "Math Time"
+appname: "Math Sheets"
 layout: "main"
 charset: "UTF-8"
 
@@ -24,4 +24,4 @@ email_alerts:
 msgs:
   leila:
     1: 'Great job! You are on your way to becoming a math genius!'
-    3: 'Your reward is 1 candy from 7-11!'
+    3: 'Your reward is 1 candy bar from 7-11!'

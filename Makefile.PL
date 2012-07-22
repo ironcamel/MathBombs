@@ -4,14 +4,16 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
     NAME                => 'MathSheets',
-    AUTHOR              => q{YOUR NAME <youremail@example.com>},
+    AUTHOR              => 'naveedm9@gmail.com',
     VERSION_FROM        => 'lib/MathSheets.pm',
-    ABSTRACT            => 'YOUR APPLICATION ABSTRACT',
     LICENSE             => 'perl',
     PREREQ_PM => {
         'Dancer'               => 1.3014,
+        'DateTime'             => 0,
         'JSON'                 => 0,
         'Math::Random::Secure' => 0,
+        'Number::Fraction'     => 0,
+        'Try::Tiny'            => 0,
         'YAML'                 => 0,
     },
 );

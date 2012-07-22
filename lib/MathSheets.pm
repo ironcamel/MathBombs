@@ -7,6 +7,7 @@ use Dancer::Plugin::Email;
 use DateTime;
 use Math::BigInt qw(bgcd);
 use Math::Random::Secure qw(irand);
+use Number::Fraction;
 use Try::Tiny;
 
 our $VERSION = '0.0001';
@@ -51,15 +52,18 @@ get '/users/:user/sheets/:sheet_id' => sub {
             when ('leila') {
                 #$problems = dec_multiplication(6, 10_000);
                 #$problems = division(9, 50);
-                $problems = simplification(9, 100);
+                #$problems = simplification(9, 100);
+                $problems = adding_fractions(9, 12);
             } when ('ava') {
                 #$problems = gen_simple_problems(6, 1000, '*');
                 #$problems = subtraction(20, 1000);
                 #$problems = division(9, 100, 1000);
-                $problems = simplification(6, 100);
+                #$problems = simplification(6, 100);
+                $problems = adding_fractions(3, 12);
             } when ('test') {
-                $problems = gen_simple_problems(1, 10, '+');
+                #$problems = gen_simple_problems(1, 10, '+');
                 #$problems = division(12, 12, 1000);
+                $problems = adding_fractions(12, 12);
             } default {
                 $problems = gen_simple_problems(9, 10, '+');
             }
@@ -153,14 +157,14 @@ get '/ajax/report' => sub {
     my $user_id = param 'user_id';
     my @sheets = schema->resultset('Sheet')->search({
         user_id  => $user_id,
-        finished => { '>' => DateTime->now->subtract(days => 30)->ymd }
+        finished => { '>' => DateTime->today->subtract(days => 30)->ymd }
     });
-    my %data = map { DateTime->now->subtract(days => $_)->ymd => 0 } 0 .. 30;
+    my %data = map { DateTime->today->subtract(days => $_)->ymd => 0 } 0 .. 30;
     for my $sheet (@sheets) {
         $data{$sheet->finished}++;
     }
     my @data = [ 'Day', 'Sheets' ];
-    push @data, map [ $_, $data{$_} ], sort keys %data;
+    push @data, map [ $_, $data{$_} ], reverse sort keys %data;
     return to_json \@data;
 };
 
@@ -286,6 +290,19 @@ sub simplification {
         $_ *= $gcf for $n1, $n2;
         my $equation = "\\frac{$n1}{$n2}";
         push @problems, { id => $i, eqn => $equation, ans => $ans };
+    }
+    return \@problems;
+}
+
+sub adding_fractions {
+    my ($cnt, $max) = @_;
+    my @problems;
+    for my $i (1 .. $cnt) {
+        my ($n1, $n2, $n3, $n4) = map irand($max) + 1, 1 .. 4;
+        my $ans = Number::Fraction->new($n1, $n2)
+            + Number::Fraction->new($n3, $n4);
+        my $equation = "\\frac{$n1}{$n2} \\; + \\; \\frac{$n3}{$n4}";
+        push @problems, { id => $i, eqn => $equation, ans => "$ans" };
     }
     return \@problems;
 }
