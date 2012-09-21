@@ -4,7 +4,7 @@
 
 <div id="problems" style="clear:both">
   [% FOREACH p IN problems %]
-  <div class="problem" [% 'style="clear:both"' IF (loop.count - 1) % 3 == 0 %]>
+  <div class="problem" style="[% 'clear:both; ' IF (loop.count - 1) % 3 == 0 %]>"
     <span style="float:left">[% p.id %])</span>
     <div class="eqn" style="margin:0 auto;">$[% p.eqn %]$</div>
     <hr/>
@@ -15,6 +15,17 @@
   [% END %]
 </div>
 
+<div style="clear:both; margin-top: 20px;" />
+
+[% IF sheet_id > 1 %]
+<span class="prev-link">
+  <a href="[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id - 1 %]">&lt;&lt; previous</a>
+</span>
+[% END %]
+
+<span class="next-link" style="float:right;display:none">
+  <a href="[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id + 1 %]">next &gt;&gt;</a>
+</span>
 <script>
 
 function check_problems() {
@@ -59,17 +70,15 @@ $(".problem input.guess").each(function() {
     }
 });
 
+/*
+$(".problem").click(function() {
+  $(this).killWithFire({image_path: '[% request.uri_base %]/images/'});
+});
+
+var $problems = $('.problem').addClass('problem-targetable');
+$problems.click(function() { $problems.removeClass('problem-targetable') });
+*/
+
 check_problems();
 </script>
 
-<div style="clear:both; margin-top: 20px;" />
-
-[% IF sheet_id > 1 %]
-<span class="prev-link">
-  <a href="[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id - 1 %]">&lt;&lt; previous</a>
-</span>
-[% END %]
-
-<span class="next-link" style="float:right;display:none">
-  <a href="[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id + 1 %]">next &gt;&gt;</a>
-</span>

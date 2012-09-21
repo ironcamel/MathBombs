@@ -20,6 +20,7 @@ div.problem {
     background-color: #fff;
     border: 0;
     text-align: center;
+    position: relative;
 }
 
 div.eqn {
@@ -38,3 +39,8 @@ input.correct-answer {
     color: #fff;
 }
 
+.problem-targetable:hover {
+    cursor: crosshair;
+    padding: 13px;
+    border: 2px solid #DDD;
+}

@@ -59,7 +59,7 @@ get '/users/:user/sheets/:sheet_id' => sub {
                 #$problems = subtraction(20, 1000);
                 #$problems = division(9, 100, 1000);
                 #$problems = simplification(6, 100);
-                $problems = adding_fractions(3, 12);
+                $problems = adding_fractions(6, 12);
             } when ('test') {
                 #$problems = gen_simple_problems(1, 10, '+');
                 #$problems = division(12, 12, 1000);
@@ -188,7 +188,7 @@ sub send_progress_email {
         uri_for("/users/$user_id/sheets/$sheet_id");
     try {
         email { subject => $subject, body => $body };
-        info 'Sent email: ', \%args;
+        info 'Sent email.';
     } catch {
         error "Could not send progress email: $_";
     };
@@ -208,7 +208,7 @@ sub send_msg_email {
         . "Math sheet #$sheet_id has a special message for you:\n\n$msg";
     try {
         email { to => $to, subject => $subject, body => $body };
-        info 'Sent msg email: ', \%args;
+        info 'Sent email.';
     } catch {
         error "Could not send msg email: $_";
     };

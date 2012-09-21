@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 use Dancer ':syntax';
 use FindBin '$RealBin';
 use Plack::Runner;
