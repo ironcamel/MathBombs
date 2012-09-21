@@ -19,12 +19,12 @@ div.problem {
     padding: 15px;
     background-color: #fff;
     border: 0;
-    text-align: center;
     position: relative;
 }
 
 div.eqn {
     font-size: 2em;
+    text-align: center;
 }
 
 input.correct-answer {
