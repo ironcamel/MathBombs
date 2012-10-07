@@ -13,6 +13,10 @@ use Try::Tiny;
 our $VERSION = '0.0001';
 
 #$ENV{DBIC_TRACE} = '1=/tmp/dbic_trace';
+
+get '/uidesign'      => sub { template 'uidesign' };
+get '/uidesign/:num' => sub { template 'uidesign_' . param 'num' };
+
 get '/' => sub {
     template users => {
         users => [

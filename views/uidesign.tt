@@ -1,0 +1,27 @@
+
+<div class="hero-unit" style="clear:both">
+  <h1>User Interface Designs</h1>
+  <p>Initial mockups for MathSheets</p>
+
+  <br/>
+
+  <p>
+    <a class="btn btn-primary btn-large"
+        href="[% request.uri_base %]/uidesign/1">Power Ups!</a>
+    Inspired by 
+    <a href="http://kickassapp.com">asteroids</a>,
+    <a href="http://www.google.com/search?q=power+up&hl=en&rls=ig&prmd=imvns&source=lnms&tbm=isch&sa=X&ei=KxNcUN7sBob88gTA6IDYAQ&ved=0CAcQ_AUoAQ&biw=1918&bih=663#hl=en&rls=ig&tbm=isch&sa=1&q=tetris&oq=tetris&gs_l=img.3..0l10.40550.41440.0.41662.6.5.0.1.1.0.71.305.5.5.0...0.0...1c.1.WPi6ukXq_Ss&pbx=1&bav=on.2,or.r_gc.r_pw.r_qf.&fp=461174527e9658d&biw=1918&bih=663">tetris</a>,
+    <a href="http://www.google.com/search?q=power+up&hl=en&rls=ig&prmd=imvns&source=lnms&tbm=isch&sa=X&ei=KxNcUN7sBob88gTA6IDYAQ&ved=0CAcQ_AUoAQ&biw=1918&bih=663#hl=en&rls=ig&tbm=isch&sa=1&q=breakout+game&oq=breakout+game&gs_l=img.3..0l2j0i5j0i24l7.2641.3261.4.3323.5.5.0.0.0.0.109.360.3j1.4.0...0.0...1c.1.VQkFuF_qO28&pbx=1&bav=on.2,or.r_gc.r_pw.r_qf.&fp=461174527e9658d&biw=1918&bih=663">breakout</a>
+
+  </p>
+
+  <br/>
+
+  <p>
+    <a class="btn btn-primary btn-large"
+        href="[% request.uri_base %]/uidesign/2">Student Management</a>
+    Example of a teacher managing students
+  </p>
+</div>
+
+

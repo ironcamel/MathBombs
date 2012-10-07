@@ -1,0 +1,124 @@
+
+<h1 style="display:inline">Demo Workbook</h1>
+<h3 style="display:inline;margin:0 10px"> Sheet #42 </h3>
+
+<div id="problems" style="clear:both">
+  
+  <div class="problem" style="clear:both; ">
+    <span class="problem_number">1)</span>
+    <div class="eqn">$9 \; + \; 4$</div>
+    <hr/>
+    <input type="text" class="guess" value="" />
+    <input type="hidden" class="answer" value="13" />
+    <input type="hidden" class="pid" value="1" />
+  </div>
+  
+  <div class="problem" style="">
+    <span class="problem_number">2)</span>
+    <div class="eqn">$12 \; \times \; 7$</div>
+    <hr/>
+    <input type="text" class="guess" value="" />
+    <input type="hidden" class="answer" value="84" />
+    <input type="hidden" class="pid" value="2" />
+  </div>
+  
+  <div class="problem" style="">
+    <span class="problem_number">3)</span>
+    <div class="eqn">$63 \; \div \; 9$</div>
+    <hr/>
+    <input type="text" class="guess" value="" />
+    <input type="hidden" class="answer" value="7" />
+    <input type="hidden" class="pid" value="3" />
+  </div>
+
+  <div class="problem" style="clear:both;">
+    <span class="problem_number">4)</span>
+    <div class="eqn">$99 \; \times \; 99$</div>
+    <hr/>
+    <input type="text" class="guess" value="" />
+    <input type="hidden" class="answer" value="9801" />
+    <input type="hidden" class="pid" value="2" />
+  </div>
+  
+  <div class="problem" style="">
+    <span class="problem_number">5)</span>
+    <div class="eqn">$\frac{256}{1024}$</div>
+    <hr/>
+    <input type="text" class="guess" value="" />
+    <input type="hidden" class="answer" value="1/4" />
+    <input type="hidden" class="pid" value="1" />
+  </div>
+  
+  <div class="problem" style="">
+    <span class="problem_number">6)</span>
+    <div class="eqn">$\frac{219}{966} \; + \; \frac{442}{483}$</div>
+    <hr/>
+    <input type="text" class="guess" value="" />
+    <input type="hidden" class="answer" value="1103/966" />
+    <input type="hidden" class="pid" value="1" />
+  </div>
+  
+</div>
+
+<div style="clear:both">
+
+[% BLOCK popup %]
+
+<button type="button" class="btn pow" data-toggle="modal" data-target="#modal[% num %]">Power-Up [% num %]</button>
+
+<div id="modal[% num %]" class="modal hide fade">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3>Congratulations! You got the [% bomb_name%]!</h3>
+  </div>
+  <div class="modal-body">
+    <p style="text-align:center">
+      <img src="[% request.uri_base %]/uidesign-images/[% img %]" />
+    </p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn" data-dismiss="modal">Save for later</button>
+    <button type="button" class="btn btn-primary" data-dismiss="modal">Boom!</button>
+  </div>
+</div>
+[% END %]
+
+[% PROCESS popup num=1 img='bomb-48.png' bomb_name='bomb' %]
+[% PROCESS popup num=2 img='bomb-128.png' bomb_name='super bomb' %]
+[% PROCESS popup num=3 img='nuclear.gif' bomb_name='mega bomb' %]
+
+</div>
+
+<script>
+$(".problem input.guess").keyup(function() {
+    var ans = $(this).siblings('.answer').val();
+    var id = $(this).siblings('.pid').val();
+    console.log('ans: ' + ans);
+    console.log('this: ' + $(this).val());
+    if (ans == $(this).val()) {
+        $(this).addClass('correct-answer');
+    } else {
+        $(this).removeClass('correct-answer');
+    }
+});
+
+$(".problem input.guess").each(function() {
+    var ans = $(this).siblings('.answer').val();
+    if (ans == $(this).val()) {
+        $(this).addClass('correct-answer');
+    }
+});
+
+var powed = false;
+$('.pow').click(function() {
+  if (powed) return;
+  powed = true;
+  $(".problem").click(function() {
+    $(this).killWithFire({image_path: '[% request.uri_base %]/images/'});
+  });
+
+  var $problems = $('.problem').addClass('problem-targetable');
+});
+
+</script>
+
