@@ -42,6 +42,10 @@ get '/users/:user/sheets/:sheet_id' => sub {
     debug "Sheet for $user_id";
     my $sheet_id = params->{sheet_id};
     my $user = schema->resultset('User')->find($user_id);
+    if ($sheet_id > $user->last_sheet + 1) {
+        return send_error "You cannot skip ahead", 404;
+    }
+
     my $problems;
     if (my $s = $user->sheets->find({id => $sheet_id, user_id => $user->id})) {
         debug "Grabbing problems from db for sheet $sheet_id";
@@ -65,9 +69,9 @@ get '/users/:user/sheets/:sheet_id' => sub {
                 #$problems = simplification(6, 100);
                 $problems = adding_fractions(6, 12);
             } when ('test') {
-                #$problems = gen_simple_problems(1, 10, '+');
+                $problems = gen_simple_problems(1, 10, '+');
                 #$problems = division(12, 12, 1000);
-                $problems = adding_fractions(12, 12);
+                #$problems = adding_fractions(12, 12);
             } default {
                 $problems = gen_simple_problems(9, 10, '+');
             }
@@ -109,6 +113,10 @@ post '/ajax/finished_sheet' => sub {
         id      => $sheet_id,
         user_id => $user_id,
     });
+    my $user = $sheet->user;
+    if ($sheet_id > $user->last_sheet) {
+        $user->update({ last_sheet => $sheet_id });
+    }
     my $now = DateTime->now();
     $sheet->update({ finished => $now->ymd }) unless $sheet->finished;
     my $past_week = schema->resultset('Sheet')->search({

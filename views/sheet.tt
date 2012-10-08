@@ -34,7 +34,15 @@ function check_problems() {
         return ! $(n).hasClass('correct-answer');
     }).length;
     if (num_wrong == 0) {
-        $('.next-link').show();
+        $.ajax({
+            type: 'POST',
+            url: '[% request.uri_base %]/ajax/finished_sheet',
+            data: {
+                user_id  : '[% user_id %]',
+                sheet_id : '[% sheet_id %]'
+            },
+            success: function() { $('.next-link').show() },
+        });
         return true;
     }
     return false;
@@ -52,10 +60,6 @@ $(".problem input.guess").keyup(function() {
             [% IF settings.msgs.$user_id.$sheet_id %]
             msg = "[% settings.msgs.$user_id.$sheet_id %]";
             [% END %]
-            $.post('[% request.uri_base %]/ajax/finished_sheet', {
-                user_id  : '[% user_id %]',
-                sheet_id : '[% sheet_id %]'
-            });
             alert(msg);
         }
     } else {
