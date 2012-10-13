@@ -37,8 +37,8 @@ get '/users/:user' => sub {
     redirect "/users/$user_id/sheets/$sheet_id";
 };
 
-get '/users/:user/sheets/:sheet_id' => sub {
-    my $user_id = param 'user';
+get '/users/:user_id/sheets/:sheet_id' => sub {
+    my $user_id = param 'user_id';
     debug "Sheet for $user_id";
     my $sheet_id = params->{sheet_id};
     my $user = schema->resultset('User')->find($user_id);
@@ -86,10 +86,12 @@ get '/users/:user/sheets/:sheet_id' => sub {
         }
     }
     template sheet => {
-        name     => $user->name,
-        user_id  => $user->id,
-        sheet_id => $sheet_id,
-        problems => $problems,
+        name       => $user->name,
+        user_id    => $user->id,
+        sheet_id   => $sheet_id,
+        problems   => $problems,
+        past_week  => past_week(),
+        past_month => past_month(),
     };
 };
 
@@ -119,19 +121,11 @@ post '/ajax/finished_sheet' => sub {
     }
     my $now = DateTime->now();
     $sheet->update({ finished => $now->ymd }) unless $sheet->finished;
-    my $past_week = schema->resultset('Sheet')->search({
-        user_id  => $user_id,
-        finished => { '>' => $now->subtract(days => 7)->ymd }
-    })->count;
-    my $past_month = schema->resultset('Sheet')->search({
-        user_id  => $user_id,
-        finished => { '>' => $now->subtract(days => 30)->ymd }
-    })->count;
     send_progress_email(
         user_id    => $user_id,
         sheet_id   => $sheet_id,
-        past_week  => $past_week,
-        past_month => $past_month,
+        past_week  => past_week(),
+        past_month => past_month(),
     );
     my $msg = config->{msgs}{$user_id}{$sheet_id};
     if ($msg) {
@@ -148,20 +142,11 @@ get '/users/:user_id/report' => sub {
     my $user_id = param 'user_id';
     my $user = schema->resultset('User')->find($user_id)
         or send_error "No such user", 404;
-    my $now = DateTime->now();
-    my $past_week = schema->resultset('Sheet')->count({
-        user_id  => $user_id,
-        finished => { '>' => $now->subtract(days => 7)->ymd }
-    });
-    my $past_month = schema->resultset('Sheet')->count({
-        user_id  => $user_id,
-        finished => { '>' => $now->subtract(days => 30)->ymd }
-    });
     template report => {
         user_id    => $user_id,
         user_name  => $user->name || $user_id,
-        past_week  => $past_week,
-        past_month => $past_month,
+        past_week  => past_week(),
+        past_month => past_month(),
     }
 };
 
@@ -182,6 +167,18 @@ get '/ajax/report' => sub {
 
 post '/foo' => sub { info 'post foo'; info params->{id}; 1;};
 get '/foo' => sub { info 'get /foo'; template 'foo' };
+
+sub past_sheets {
+    my ($days) = @_;
+    my $user_id = param 'user_id';
+    my $now = DateTime->now();
+    return schema->resultset('Sheet')->count({
+        user_id  => $user_id,
+        finished => { '>' => $now->subtract(days => $days)->ymd }
+    });
+}
+sub past_week  { past_sheets(7 ) }
+sub past_month { past_sheets(30) }
 
 sub send_progress_email {
     my %args = @_;

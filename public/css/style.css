@@ -3,8 +3,9 @@
     /*
     width: 990px;
     border: 3px solid #aaa;
-    */
     padding: 25px;
+    */
+    padding-top: 25px;
     margin: 40px auto;
     background-color: white;
 }
@@ -15,10 +16,10 @@ div.problem {
     */
     margin: 20px;
     float: left;
+    position: relative;
     padding: 15px;
     background-color: #fff;
-    border: 0;
-    position: relative;
+    height: 120px;
 }
 
 div.eqn {
