@@ -7,7 +7,7 @@
 
 <div id="problems" class="row" style="">
 
-  [% BLOCK problem %]
+  [% BLOCK problem_block %]
   <div class="problem" style="">
     <span class="problem_number">[% p.id %])</span>
     <div class="eqn">$[% p.eqn %]$</div>
@@ -21,51 +21,65 @@
   <div class="span5">
   [% FOREACH p IN problems %]
     [% IF loop.count % 2 == 1 %]
-      [% PROCESS problem %]
+      [% PROCESS problem_block %]
     [% END %]
   [% END %]
   </div>
   <div class="span5">
   [% FOREACH p IN problems %]
     [% IF loop.count % 2 == 0 %]
-      [% PROCESS problem %]
+      [% PROCESS problem_block %]
     [% END %]
   [% END %]
   </div>
-  <div class="span2" style="">
-    <h3> Past week: [% past_week %]</h3>
-    <h3> Past month: [% past_month %]</h3>
+  <div class="span2" style="border:0px black solid">
+    <p>
+      Past week: [% past_week %]
+    </p>
+    <p>
+      Past month: [% past_month %]
+    </p>
   </div>
 </div>
 
-<div style="clear:both; margin-top: 20px;" />
+<div class="row">
+  <div class="span12">
+    <div class="prev-next">
+      
+    [% IF sheet_id > 1 %]
+    <span class="prev-link" style="">
+      <a class="btn btn-small" href="[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id - 1 %]">&lt;&lt; previous</a>
+    </span>
+    [% END %]
 
-[% IF sheet_id > 1 %]
-<span class="prev-link">
-  <a href="[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id - 1 %]">&lt;&lt; previous</a>
-</span>
-[% END %]
+    <span class="next-link pull-right" style="display:none">
+      <a class="btn btn-small btn-success" href="[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id + 1 %]">next &gt;&gt;</a>
+    </span>
 
-<span class="next-link" style="float:right;display:none">
-  <a href="[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id + 1 %]">next &gt;&gt;</a>
-</span>
+    </div>
+  </div>
+</div>
 
 <script>
 
-function check_problems() {
+function check_problems(tell_server) {
     var num_wrong = $.grep($(".problem input.guess"), function(n) {
         return ! $(n).hasClass('correct-answer');
     }).length;
     if (num_wrong == 0) {
-        $.ajax({
-            type: 'POST',
-            url: '[% request.uri_base %]/ajax/finished_sheet',
-            data: {
-                user_id  : '[% user_id %]',
-                sheet_id : '[% sheet_id %]'
-            },
-            success: function() { $('.next-link').show() },
-        });
+        if (tell_server) {
+            $.ajax({
+                type: 'POST',
+                url: '[% request.uri_base %]/ajax/finished_sheet',
+                data: {
+                    user_id  : '[% user_id %]',
+                    sheet_id : '[% sheet_id %]'
+                },
+                success: function() { $('.next-link').show() },
+            });
+        } else {
+            $('.next-link').show();
+        }
         return true;
     }
     return false;
@@ -78,7 +92,7 @@ $(".problem input.guess").keyup(function() {
     console.log('this: ' + $(this).val());
     if (ans == $(this).val()) {
         $(this).addClass('correct-answer');
-        if (check_problems()) {
+        if (check_problems(true)) {
             var msg = 'Great job!';
             [% IF settings.msgs.$user_id.$sheet_id %]
             msg = "[% settings.msgs.$user_id.$sheet_id %]";
@@ -107,6 +121,7 @@ var $problems = $('.problem').addClass('problem-targetable');
 $problems.click(function() { $problems.removeClass('problem-targetable') });
 */
 
-check_problems();
+check_problems(false);
+
 </script>
 

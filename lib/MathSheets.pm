@@ -187,9 +187,8 @@ sub send_progress_email {
     my $user_id = $args{user_id};
     my $past_week = $args{past_week};
     my $past_month = $args{past_month};
-    my $subject = "MathSheets: $user_id completed sheet $sheet_id,"
-        . " past week: $past_week, past month: $past_month";
-    $subject = "MathSheets: " . localtime;
+    my $subject = "MathSheets: $user_id completed sheet $sheet_id"
+        . " ($past_week/7 $past_month/30)";
     my $body = join "\n",
         "$user_id completed sheet $sheet_id.",
         "past week: $past_week",

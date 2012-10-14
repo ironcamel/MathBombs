@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+[% home = request.uri_base %]
 
 <head>
 
@@ -25,17 +26,21 @@
 
 </head>
 
-<body
-    style="background-image: url('[% request.uri_base %]/images/pleiades.jpg')">
+<body style="background-image: url('[% request.uri_base %]/images/pleiades.jpg')">
 
-<!--
-  <div id="title">Math Sheets</div>
-    <h1>Math Sheets</h1>
-  -->
+  <div class="container well" id="page">
 
-  <div class="container" id="page">
-    <a class="pull-right" href="[% request.uri_base %]">Home</a>
+    <div class="navbar">
+      <div class="navbar-inner">
+        <a class="brand" href="[% home %]">[% settings.appname %]</a>
+        <ul class="nav">
+          <li class=""><a href="[% home %]">Home</a></li>
+        </ul>
+      </div>
+    </div>
+
     [% content %]
+
   </div>
 
 </body>
