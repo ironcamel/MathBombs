@@ -1,25 +1,27 @@
-create table user (
-    id TEXT primary key,
-    name TEXT
+CREATE TABLE user (
+    id VARCHAR(100) PRIMARY KEY,
+    name TEXT,
+    email TEXT,
+    password TEXT,
+    last_sheet INT DEFAULT 0
 );
-
-create table sheet (
+CREATE TABLE sheet (
     id INT,
-    user_id TEXT,
+    user_id varchar(100) NOT NULL,
     finished DATE,
     PRIMARY KEY (id, user_id),
     FOREIGN KEY (user_id) REFERENCES user (id)
+        ON DELETE CASCADE ON UPDATE CASCADE
 );
-
-create table problem (
+CREATE TABLE problem (
     id INT NOT NULL,
     sheet_id INT NOT NULL,
-    user_id TEXT NOT NULL,
+    user_id varchar(100) NOT NULL,
     json TEXT,
     guess TEXT,
     PRIMARY KEY (id, sheet_id, user_id),
-    FOREIGN KEY (sheet_id) REFERENCES sheet (id),
-    FOREIGN KEY (user_id) REFERENCES user (id)
+    FOREIGN KEY (sheet_id, user_id) REFERENCES sheet (id, user_id)
+        ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 insert into user values ('leila', 'Leila');

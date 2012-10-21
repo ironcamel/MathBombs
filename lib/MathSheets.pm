@@ -19,28 +19,22 @@ get '/uidesign/:num' => sub { template 'uidesign_' . param 'num' };
 
 get '/' => sub {
     template users => {
-        users => [
-            schema->resultset('User')->search(undef, {
-                '+select' => [ { max => 'sheets.id' } ],
-                '+as'     => 'last_sheet',
-                join      => 'sheets',
-                group_by  => [ 'me.id' ],
-            })
-        ]
+        users => [ schema->resultset('User')->all ]
     };
 };
 
-get '/users/:user' => sub {
-    my $user_id = param 'user';
-    my $sheet_id = schema->resultset('Sheet')->search({user_id => $user_id})
-        ->get_column('id')->max;
+get '/users/:user_id' => sub {
+    my $user_id = param 'user_id';
+    my $user = schema->resultset('User')->find($user_id)
+        or return send_error "No such user", 404;
+    my $sheet_id = $user->last_sheet + 1;
     redirect "/users/$user_id/sheets/$sheet_id";
 };
 
 get '/users/:user_id/sheets/:sheet_id' => sub {
     my $user_id = param 'user_id';
-    debug "Sheet for $user_id";
-    my $sheet_id = params->{sheet_id};
+    my $sheet_id = param 'sheet_id';
+    debug "Sheet $sheet_id for $user_id";
     my $user = schema->resultset('User')->find($user_id);
     if ($sheet_id > $user->last_sheet + 1) {
         return send_error "You cannot skip ahead", 404;
@@ -61,17 +55,17 @@ get '/users/:user_id/sheets/:sheet_id' => sub {
                 #$problems = dec_multiplication(6, 10_000);
                 #$problems = division(9, 50);
                 #$problems = simplification(9, 100);
-                $problems = adding_fractions(9, 12);
+                $problems = adding_fractions(9, 12, 3);
             } when ('ava') {
                 #$problems = gen_simple_problems(6, 1000, '*');
                 #$problems = subtraction(20, 1000);
                 #$problems = division(9, 100, 1000);
                 #$problems = simplification(6, 100);
-                $problems = adding_fractions(6, 12);
+                $problems = adding_fractions(6, 12, 3);
             } when ('test') {
-                $problems = gen_simple_problems(1, 10, '+');
+                #$problems = gen_simple_problems(1, 10, '+');
                 #$problems = division(12, 12, 1000);
-                #$problems = adding_fractions(12, 12);
+                $problems = adding_fractions(2, 3, 2);
             } default {
                 $problems = gen_simple_problems(9, 10, '+');
             }
@@ -194,12 +188,11 @@ sub send_progress_email {
         "past week: $past_week",
         "past month: $past_month",
         uri_for("/users/$user_id/sheets/$sheet_id");
-    try {
+    eval {
         email { subject => $subject, body => $body };
-        info 'Sent email.';
-    } catch {
-        error "Could not send progress email: $_";
+        info "Sent email subject => $subject";
     };
+    error "Could not send progress email: $@" if $@;
 };
 
 sub send_msg_email {
@@ -214,12 +207,11 @@ sub send_msg_email {
     my $subject = "MathSheets: message for $user_id #$sheet_id";
     my $body = "Congratulations @{[$user->name]}!!!\n\n"
         . "Math sheet #$sheet_id has a special message for you:\n\n$msg";
-    try {
+    eval {
         email { to => $to, subject => $subject, body => $body };
-        info 'Sent email.';
-    } catch {
-        error "Could not send msg email: $_";
+        info "Sent email to => $to, subject => $subject";
     };
+    error "Could not send msg email: $@" if $@;
 }
 
 sub gen_simple_problems {
@@ -303,16 +295,22 @@ sub simplification {
 }
 
 sub adding_fractions {
-    my ($cnt, $max) = @_;
+    my ($cnt, $max, $num_fractions) = @_;
+    $num_fractions ||= 2;
     my @problems;
     for my $i (1 .. $cnt) {
-        my ($n1, $n2, $n3, $n4) = map irand($max) + 1, 1 .. 4;
-        my $ans = Number::Fraction->new($n1, $n2)
-            + Number::Fraction->new($n3, $n4);
-        my $equation = "\\frac{$n1}{$n2} \\; + \\; \\frac{$n3}{$n4}";
+        my @values = map { irand($max) + 1 } 1 .. ($num_fractions * 2);
+        my ($x, $y) = (pop(@values), pop(@values));
+        my $ans = Number::Fraction->new($x, $y);
+        my $equation = "\\frac{$x}{$y}";
+        while (@values) {
+            ($x, $y) = (pop(@values), pop(@values));
+            $ans += Number::Fraction->new($x, $y);
+            $equation .= " \\; + \\; \\frac{$x}{$y}";
+        }
         push @problems, { id => $i, eqn => $equation, ans => "$ans" };
     }
     return \@problems;
 }
 
-true;
+1;
