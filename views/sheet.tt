@@ -1,7 +1,7 @@
 
 <div class="row">
   <h1 class="offset1">
-    [% name %]'s Workbook <small> Sheet #[% sheet_id %] </small>
+    [% name %]'s Workbook <small> sheet [% sheet_id %] </small>
   </h1>
 </div>
 
@@ -34,10 +34,22 @@
   </div>
   <div class="span2" style="border:0px black solid">
     <p>
-      Past week: [% past_week %]
+      7 day goal: [% past_week %] / 7
+      <div class="progress">
+        <div class="bar bar-success"
+            style="width: [% past_week / 7 * 100 %]%;"></div>
+        <!--
+        <div class="bar bar-warning" style="width: 20%;"></div>
+        <div class="bar bar-danger" style="width: 10%;"></div>
+        -->
+      </div>
     </p>
     <p>
-      Past month: [% past_month %]
+      30 day goal: [% past_month %] / 30
+      <div class="progress">
+        <div class="bar bar-success"
+            style="width: [% past_month / 30 * 100 %]%;"></div>
+      </div>
     </p>
   </div>
 </div>
