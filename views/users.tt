@@ -7,12 +7,11 @@
   </thead>
 
   [% FOR user IN users %]
-  [% sheet_num = user.last_sheet + 1 %]
   <tr>
     <td>
-      <a href="[% request.uri_base %]/users/[% user.id %]/sheets/[% sheet_num %]">[% user.name %]</a>
+      <a href="[% request.uri_base %]/users/[% user.id %]">[% user.name %]</a>
     </td>
-    <td> [% sheet_num %] </td>
+    <td> [% user.last_sheet %] </td>
     <td>
       <a href="[% request.uri_base %]/users/[% user.id %]/report">view progress</a>
     </td>
