@@ -65,7 +65,7 @@ get '/users/:user_id/sheets/:sheet_id' => sub {
             } when ('test') {
                 #$problems = gen_simple_problems(1, 10, '+');
                 #$problems = division(12, 12, 1000);
-                $problems = adding_fractions(2, 3, 2);
+                $problems = adding_fractions(6, 3, 2);
             } default {
                 $problems = gen_simple_problems(9, 10, '+');
             }
@@ -79,6 +79,10 @@ get '/users/:user_id/sheets/:sheet_id' => sub {
             });
         }
     }
+    my $powerups = {
+        map { $_->powerup_id => $_ } $user->user_powerups->all
+    };
+    debug "powerups: ", $powerups;
     template sheet => {
         name       => $user->name,
         user_id    => $user->id,
@@ -86,6 +90,7 @@ get '/users/:user_id/sheets/:sheet_id' => sub {
         problems   => $problems,
         past_week  => past_week(),
         past_month => past_month(),
+        powerups   => $powerups,
     };
 };
 
@@ -132,6 +137,18 @@ post '/ajax/finished_sheet' => sub {
     return 1;
 };
 
+post '/ajax/used_powerup' => sub {
+    my $user_id = param 'user_id';
+    my $powerup_id = param 'powerup_id';
+    my $user_powerups = schema->resultset('UserPowerup')->find({
+        user_id    => $user_id,
+        powerup_id => $powerup_id,
+    });
+    my $count = $user_powerups->count;
+    $user_powerups->update({ count => --$count });
+    return 1;
+};
+
 get '/users/:user_id/report' => sub {
     my $user_id = param 'user_id';
     my $user = schema->resultset('User')->find($user_id)
@@ -142,6 +159,21 @@ get '/users/:user_id/report' => sub {
         past_week  => past_week(),
         past_month => past_month(),
     }
+};
+
+get '/users/:user_id/add-pp' => sub {
+    my $user_id = param 'user_id';
+    my $user = schema->resultset('User')->find($user_id)
+        or return send_error "No such user", 404;
+    my $user_powerups = schema->resultset('UserPowerup')->find_or_create({
+        user_id    => $user_id,
+        powerup_id => 1,
+    });
+    my $count = $user_powerups->count;
+    $user_powerups->update({ count => ++$count });
+    return qq{
+        Added $count powerups
+    };
 };
 
 get '/ajax/report' => sub {

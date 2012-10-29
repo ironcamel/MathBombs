@@ -94,9 +94,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 1, cascade_delete => 1 },
 );
 
+=head2 user_powerups
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2012-10-07 08:40:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:78Nf2zWRCLA3Cgbs5ZRkcw
+Type: has_many
+
+Related object: L<MathSheets::Schema::Result::UserPowerup>
+
+=cut
+
+__PACKAGE__->has_many(
+  "user_powerups",
+  "MathSheets::Schema::Result::UserPowerup",
+  { "foreign.user_id" => "self.id" },
+  { cascade_copy => 1, cascade_delete => 1 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2012-10-29 01:44:38
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8lGcAahQfgdyOKb+AsXVnQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

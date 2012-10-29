@@ -32,7 +32,10 @@
     [% END %]
   [% END %]
   </div>
+
   <div class="span2" style="border:0px black solid">
+
+    <h4> Progress </h4>
     <p>
       7 day goal: [% past_week %] / 7
       <div class="progress">
@@ -44,6 +47,7 @@
         -->
       </div>
     </p>
+
     <p>
       30 day goal: [% past_month %] / 30
       <div class="progress">
@@ -51,7 +55,15 @@
             style="width: [% past_month / 30 * 100 %]%;"></div>
       </div>
     </p>
+
+    <hr />
+
+    <h4> Power-Ups </h4>
+    <img src="[% request.uri_base %]/images/bomb-64.png" id="pu1" />
+    &times; <span id="pu1_label">[% powerups.1.count || 0 %]</span>
+
   </div>
+
 </div>
 
 <div class="row">
@@ -65,7 +77,7 @@
     [% END %]
 
     <span class="next-link pull-right" style="display:none">
-      <a class="btn btn-small btn-success" href="[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id + 1 %]">next &gt;&gt;</a>
+      <a class="btn btn-small btn-primary" href="[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id + 1 %]">next &gt;&gt;</a>
     </span>
 
     </div>
@@ -73,6 +85,7 @@
 </div>
 
 <script>
+var POWERUPS = [% powerups.1.count || 0 %];
 
 function check_problems(tell_server) {
     var num_wrong = $.grep($(".problem input.guess"), function(n) {
@@ -124,14 +137,27 @@ $(".problem input.guess").each(function() {
     }
 });
 
-/*
-$(".problem").click(function() {
-  $(this).killWithFire({image_path: '[% request.uri_base %]/images/'});
-});
+function blowup1() {
+    var ans = $(this).find('.answer').val();
+    $(this).find('input.guess').val(ans).keyup();
+    $(this).killWithFire({image_path: '[% request.uri_base %]/images/'});
+    $(".problem").off('click').removeClass('problem-targetable');
+    $.ajax({
+        type: 'POST',
+        url: '[% request.uri_base %]/ajax/used_powerup',
+        data: {
+            user_id    : '[% user_id %]',
+            powerup_id : 1,
+        },
+    });
+}
 
-var $problems = $('.problem').addClass('problem-targetable');
-$problems.click(function() { $problems.removeClass('problem-targetable') });
-*/
+$('#pu1').click(function() {
+    if (POWERUPS-- <= 0) return;
+    $('#pu1_label').html(POWERUPS);
+    $('.problem').addClass('problem-targetable');
+    $(".problem").click(blowup1);
+});
 
 check_problems(false);
 

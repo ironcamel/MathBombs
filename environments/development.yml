@@ -1,7 +1,7 @@
 # configuration file for development environment
 
-#logger: "console"
-logger: "file"
+logger: "console"
+#logger: "file"
 
 # core is the lowest, it shows Dancer's core log messages as well as yours
 # (core, debug, warning and error)
