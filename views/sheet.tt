@@ -60,7 +60,7 @@
 
     <h4> Power-Ups </h4>
     <img src="[% request.uri_base %]/images/bomb-64.png" id="pu1" />
-    &times; <span id="pu1_label">[% powerups.1.count || 0 %]</span>
+    &times; <span id="pu_count1">[% powerups.1.count || 0 %]</span>
 
   </div>
 
@@ -83,6 +83,29 @@
     </div>
   </div>
 </div>
+
+[% BLOCK popup %]
+<div id="modal[% num %]" class="modal hide fade">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal"
+        aria-hidden="true">&times;</button>
+    <h3>You got the [% bomb_name%]!</h3>
+  </div>
+  <div class="modal-body">
+    <p style="text-align:center">
+      <img src="[% request.uri_base %]/uidesign-images/[% img %]" />
+    </p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn" data-dismiss="modal">Save for later</button>
+    <button type="button" class="btn btn-primary" data-dismiss="modal">Boom!</button>
+  </div>
+</div>
+[% END %]
+
+[% PROCESS popup num=1 img='bomb-48.png' bomb_name='bomb' %]
+[% PROCESS popup num=2 img='bomb-128.png' bomb_name='super bomb' %]
+[% PROCESS popup num=3 img='nuclear.gif' bomb_name='mega bomb' %]
 
 <script>
 var POWERUPS = [% powerups.1.count || 0 %];
@@ -110,12 +133,28 @@ function check_problems(tell_server) {
     return false;
 }
 
+function award_powerup() {
+    var rand = Math.floor((Math.random() * 100));
+    if (rand < 90) return;
+    $('#modal2').modal();
+    $.ajax({
+        type: 'POST',
+        url: '[% request.uri_base %]/ajax/add_powerup',
+        data: {
+            user_id  : '[% user_id %]',
+            powerup_id : 1,
+        },
+        success: function() { inc_powerup('1') },
+    });
+}
+
 $(".problem input.guess").keyup(function() {
     var ans = $(this).siblings('.answer').val();
     var id = $(this).siblings('.pid').val();
     console.log('ans: ' + ans);
     console.log('this: ' + $(this).val());
     if (ans == $(this).val()) {
+        award_powerup();
         $(this).addClass('correct-answer');
         if (check_problems(true)) {
             var msg = 'Great job!';
@@ -152,9 +191,17 @@ function blowup1() {
     });
 }
 
+function dec_powerup(powerup_id) {
+    $('#pu_count' + powerup_id).html(--POWERUPS);
+}
+
+function inc_powerup(powerup_id) {
+    $('#pu_count' + powerup_id).html(++POWERUPS);
+}
+
 $('#pu1').click(function() {
-    if (POWERUPS-- <= 0) return;
-    $('#pu1_label').html(POWERUPS);
+    if (POWERUPS <= 0) return;
+    dec_powerup('1');
     $('.problem').addClass('problem-targetable');
     $(".problem").click(blowup1);
 });

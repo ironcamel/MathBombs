@@ -52,10 +52,10 @@ get '/users/:user_id/sheets/:sheet_id' => sub {
         debug "Creating new problems for sheet $sheet_id";
         given ($user->id) {
             when ('leila') {
-                #$problems = dec_multiplication(6, 10_000);
+                $problems = dec_multiplication(6, 10_000);
                 #$problems = division(9, 50);
                 #$problems = simplification(9, 100);
-                $problems = adding_fractions(9, 12, 3);
+                #$problems = adding_fractions(9, 12, 3);
             } when ('ava') {
                 #$problems = gen_simple_problems(6, 1000, '*');
                 #$problems = subtraction(20, 1000);
@@ -63,9 +63,9 @@ get '/users/:user_id/sheets/:sheet_id' => sub {
                 #$problems = simplification(6, 100);
                 $problems = adding_fractions(6, 12, 3);
             } when ('test') {
-                #$problems = gen_simple_problems(1, 10, '+');
+                $problems = gen_simple_problems(10, 10, '+');
                 #$problems = division(12, 12, 1000);
-                $problems = adding_fractions(6, 3, 2);
+                #$problems = adding_fractions(6, 3, 2);
             } default {
                 $problems = gen_simple_problems(9, 10, '+');
             }
@@ -161,19 +161,21 @@ get '/users/:user_id/report' => sub {
     }
 };
 
-get '/users/:user_id/add-pp' => sub {
+get '/users/:user_id/add-pp' => \&add_powerup;
+post '/ajax/add_powerup' => \&add_powerup;
+
+sub add_powerup {
     my $user_id = param 'user_id';
+    my $powerup_id = param('powerup_id') || 1;
     my $user = schema->resultset('User')->find($user_id)
         or return send_error "No such user", 404;
     my $user_powerups = schema->resultset('UserPowerup')->find_or_create({
         user_id    => $user_id,
-        powerup_id => 1,
+        powerup_id => $powerup_id,
     });
     my $count = $user_powerups->count;
     $user_powerups->update({ count => ++$count });
-    return qq{
-        Added $count powerups
-    };
+    return { powerups => $count };
 };
 
 get '/ajax/report' => sub {
