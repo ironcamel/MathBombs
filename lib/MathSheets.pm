@@ -34,7 +34,7 @@ get '/users/:user_id' => sub {
 get '/users/:user_id/sheets/:sheet_id' => sub {
     my $user_id = param 'user_id';
     my $sheet_id = param 'sheet_id';
-    debug "Sheet $sheet_id for $user_id";
+    debug "Getting sheet $sheet_id for $user_id";
     my $user = schema->resultset('User')->find($user_id);
     if ($sheet_id > $user->last_sheet + 1) {
         return send_error "You cannot skip ahead", 404;
@@ -52,20 +52,21 @@ get '/users/:user_id/sheets/:sheet_id' => sub {
         debug "Creating new problems for sheet $sheet_id";
         given ($user->id) {
             when ('leila') {
-                $problems = dec_multiplication(6, 10_000);
-                #$problems = division(9, 50);
+                #$problems = dec_multiplication(6, 10_000);
+                $problems = division(8, 100, 1000);
                 #$problems = simplification(9, 100);
                 #$problems = adding_fractions(9, 12, 3);
             } when ('ava') {
                 #$problems = gen_simple_problems(6, 1000, '*');
-                #$problems = subtraction(20, 1000);
+                #$problems = subtraction(12, 1000);
                 #$problems = division(9, 100, 1000);
                 #$problems = simplification(6, 100);
                 $problems = adding_fractions(6, 12, 3);
             } when ('test') {
-                $problems = gen_simple_problems(10, 10, '+');
+                $problems = gen_simple_problems(6, 10, '+');
                 #$problems = division(12, 12, 1000);
                 #$problems = adding_fractions(6, 3, 2);
+                #$problems = division(1, 100, 1000);
             } default {
                 $problems = gen_simple_problems(9, 10, '+');
             }
@@ -80,7 +81,9 @@ get '/users/:user_id/sheets/:sheet_id' => sub {
         }
     }
     my $powerups = {
-        map { $_->powerup_id => $_ } $user->user_powerups->all
+        1 => 0,
+        2 => 0,
+        map { $_->powerup_id => $_->count } $user->user_powerups->all
     };
     debug "powerups: ", $powerups;
     template sheet => {
@@ -95,10 +98,10 @@ get '/users/:user_id/sheets/:sheet_id' => sub {
 };
 
 post '/users/:user_id/sheets/:sheet_id/problems/:id' => sub {
-    my $user_id = params->{user_id};
-    my $sheet_id = params->{sheet_id};
-    my $id = params->{id};
-    my $guess = params->{guess};
+    my $user_id  = param 'user_id';
+    my $sheet_id = param 'sheet_id';
+    my $id       = param 'id';
+    my $guess    = param 'guess';
     my $problem = schema->resultset('Problem')->find({
         id       => $id,
         sheet_id => $sheet_id,

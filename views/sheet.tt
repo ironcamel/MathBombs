@@ -62,13 +62,13 @@
 
 <p>
     <img src="[% request.uri_base %]/images/bomb-64.png" id="pu1" />
-    &times; <span id="pu_count1">[% powerups.1.count || 0 %]</span>
+    &times; <span id="pu_count1">[% powerups.1 %]</span>
 
 </p>
 <p>
-    <img src="[% request.uri_base %]/images/nuclear.gif" id="pu3"
+    <img src="[% request.uri_base %]/images/nuclear.gif" id="pu2"
         style="width:64px"/>
-    &times; <span id="pu_count3">[% powerups.3.count || 0 %]</span>
+    &times; <span id="pu_count2">[% powerups.2 %]</span>
 </p>
 
 
@@ -113,49 +113,73 @@
 </div>
 [% END %]
 
-[% PROCESS popup num=1 img='bomb-48.png' bomb_name='bomb' %]
-[% PROCESS popup num=2 img='bomb-128.png' bomb_name='super bomb' %]
-[% PROCESS popup num=3 img='nuclear.gif' bomb_name='mega bomb' %]
+[% PROCESS popup num=1 img='bomb-128.png' bomb_name='Bomb' %]
+[% PROCESS popup num=2 img='nuclear.gif' bomb_name='Super Bomb' %]
 
 <script>
-var POWERUPS = [% powerups.1.count || 0 %];
+var POWERUPS = {
+    1 : [% powerups.1 %],
+    2 : [% powerups.2 %]
+}
 
 function check_problems(tell_server) {
-    var num_wrong = $.grep($(".problem input.guess"), function(n) {
-        return ! $(n).hasClass('correct-answer');
+    var num_wrong = $.grep($(".problem input.guess"), function(guess) {
+        var ans = $(guess).siblings('.answer').val();
+        return ans != $(guess).val();
+        //return ! $(n).hasClass('correct-answer');
     }).length;
-    if (num_wrong == 0) {
-        if (tell_server) {
-            $.ajax({
-                type: 'POST',
-                url: '[% request.uri_base %]/ajax/finished_sheet',
-                data: {
-                    user_id  : '[% user_id %]',
-                    sheet_id : '[% sheet_id %]'
-                },
-                success: function() { $('.next-link').show() },
-            });
-        } else {
-            $('.next-link').show();
-        }
-        return true;
+    if (num_wrong > 0) return false;
+    if (tell_server) {
+        $.ajax({
+            type: 'POST',
+            url: '[% request.uri_base %]/ajax/finished_sheet',
+            data: {
+                user_id  : '[% user_id %]',
+                sheet_id : '[% sheet_id %]'
+            },
+            success: function() { $('.next-link').show() }
+        });
+    } else {
+        $('.next-link').show();
     }
-    return false;
+    var msg = 'Great job!';
+    [% IF settings.msgs.$user_id.$sheet_id %]
+    msg = "[% settings.msgs.$user_id.$sheet_id %]";
+    [% END %]
+    alert(msg);
+    return true;
 }
 
 function award_powerup() {
     var rand = Math.floor((Math.random() * 100));
-    if (rand < 90) return;
-    $('#modal2').modal();
-    $.ajax({
-        type: 'POST',
-        url: '[% request.uri_base %]/ajax/add_powerup',
-        data: {
-            user_id  : '[% user_id %]',
-            powerup_id : 1,
-        },
-        success: function() { inc_powerup('1') },
-    });
+    if (rand < 80) return;
+    if (rand >= 90) {
+        $('#modal2').modal();
+        $.ajax({
+            type: 'POST',
+            url: '[% request.uri_base %]/ajax/add_powerup',
+            data: {
+                user_id  : '[% user_id %]',
+                powerup_id : 2,
+            },
+            success: function() { inc_powerup(2) },
+        });
+    } else {
+        $('#modal1').modal();
+        $.ajax({
+            type: 'POST',
+            url: '[% request.uri_base %]/ajax/add_powerup',
+            data: {
+                user_id  : '[% user_id %]',
+                powerup_id : 1,
+            },
+            success: function() { inc_powerup(1) },
+        });
+    }
+}
+
+function save_answer(pid, val) {
+    $.post('[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id %]/problems/' + pid, { guess : val });
 }
 
 $(".problem input.guess").keyup(function() {
@@ -166,17 +190,11 @@ $(".problem input.guess").keyup(function() {
     if (ans == $(this).val()) {
         award_powerup();
         $(this).addClass('correct-answer');
-        if (check_problems(true)) {
-            var msg = 'Great job!';
-            [% IF settings.msgs.$user_id.$sheet_id %]
-            msg = "[% settings.msgs.$user_id.$sheet_id %]";
-            [% END %]
-            alert(msg);
-        }
+        check_problems(true);
     } else {
         $(this).removeClass('correct-answer');
     }
-    $.post('[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id %]/problems/' + id, { guess : $(this).val() });
+    save_answer(id, $(this).val());
 });
 
 $(".problem input.guess").each(function() {
@@ -198,27 +216,53 @@ function blowup1() {
         url: '[% request.uri_base %]/ajax/used_powerup',
         data: {
             user_id    : '[% user_id %]',
-            powerup_id : 1,
+            powerup_id : 1
         },
     });
 }
 
+function blowup_all() {
+    $(".problem input.guess").each(function() {
+        var ans = $(this).siblings('.answer').val();
+        var pid = $(this).siblings('.pid').val();
+        $(this).val(ans);
+        save_answer(pid, ans);
+        $(this).parents('.problem').killWithFire(
+            { image_path : '[% request.uri_base %]/images/' });
+    });
+    $.ajax({
+        type: 'POST',
+        url: '[% request.uri_base %]/ajax/used_powerup',
+        data: {
+            user_id    : '[% user_id %]',
+            powerup_id : 2
+        }
+    });
+    window.setTimeout(function() { check_problems(true) }, 5000);
+}
+
 function dec_powerup(powerup_id) {
-    $('#pu_count' + powerup_id).html(--POWERUPS);
+    $('#pu_count' + powerup_id).html(--POWERUPS[powerup_id]);
 }
 
 function inc_powerup(powerup_id) {
-    $('#pu_count' + powerup_id).html(++POWERUPS);
+    $('#pu_count' + powerup_id).html(++POWERUPS[powerup_id]);
 }
 
 $('#pu1').click(function() {
-    if (POWERUPS <= 0) return;
-    dec_powerup('1');
+    if (POWERUPS[1] <= 0) return;
+    dec_powerup(1);
     $('.problem').addClass('problem-targetable');
     $('body').css('cursor',
         'url([% request.uri_base %]/images/crosshair.png), crosshair');
     //$('input.guess').prop('disabled', true);
     $('.problem').click(blowup1);
+});
+
+$('#pu2').click(function() {
+    if (POWERUPS[2] <= 0) return;
+    dec_powerup(2);
+    blowup_all();
 });
 
 check_problems(false);
