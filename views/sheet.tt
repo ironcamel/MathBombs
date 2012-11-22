@@ -59,8 +59,18 @@
     <hr />
 
     <h4> Power-Ups </h4>
+
+<p>
     <img src="[% request.uri_base %]/images/bomb-64.png" id="pu1" />
     &times; <span id="pu_count1">[% powerups.1.count || 0 %]</span>
+
+</p>
+<p>
+    <img src="[% request.uri_base %]/images/nuclear.gif" id="pu3"
+        style="width:64px"/>
+    &times; <span id="pu_count3">[% powerups.3.count || 0 %]</span>
+</p>
+
 
   </div>
 
@@ -181,6 +191,8 @@ function blowup1() {
     $(this).find('input.guess').val(ans).keyup();
     $(this).killWithFire({image_path: '[% request.uri_base %]/images/'});
     $(".problem").off('click').removeClass('problem-targetable');
+    //$('input.guess').prop('disabled', false);
+    $('body').css('cursor', 'auto');
     $.ajax({
         type: 'POST',
         url: '[% request.uri_base %]/ajax/used_powerup',
@@ -203,7 +215,10 @@ $('#pu1').click(function() {
     if (POWERUPS <= 0) return;
     dec_powerup('1');
     $('.problem').addClass('problem-targetable');
-    $(".problem").click(blowup1);
+    $('body').css('cursor',
+        'url([% request.uri_base %]/images/crosshair.png), crosshair');
+    //$('input.guess').prop('disabled', true);
+    $('.problem').click(blowup1);
 });
 
 check_problems(false);

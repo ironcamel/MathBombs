@@ -42,7 +42,6 @@ input.correct-answer {
 }
 
 .problem-targetable:hover {
-    cursor: crosshair;
     padding: 13px;
     border: 2px solid #DDD;
 }
