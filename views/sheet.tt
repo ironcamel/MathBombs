@@ -179,7 +179,16 @@ function award_powerup() {
 }
 
 function save_answer(pid, val) {
-    $.post('[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id %]/problems/' + pid, { guess : val });
+    $.ajax({
+        type: 'POST',
+        url: '[% request.uri_base %]/ajax/save_answer',
+        data: {
+            user_id  : '[% user_id %]',
+            sheet_id : '[% sheet_id %]',
+            pid      : pid,
+            guess    : val,
+        }
+    });
 }
 
 $(".problem input.guess").keyup(function() {

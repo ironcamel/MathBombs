@@ -14,9 +14,6 @@ our $VERSION = '0.0001';
 
 #$ENV{DBIC_TRACE} = '1=/tmp/dbic_trace';
 
-get '/uidesign'      => sub { template 'uidesign' };
-get '/uidesign/:num' => sub { template 'uidesign_' . param 'num' };
-
 get '/' => sub {
     template users => {
         users => [ schema->resultset('User')->all ]
@@ -97,13 +94,13 @@ get '/users/:user_id/sheets/:sheet_id' => sub {
     };
 };
 
-post '/users/:user_id/sheets/:sheet_id/problems/:id' => sub {
+post '/ajax/save_answer' => sub {
     my $user_id  = param 'user_id';
     my $sheet_id = param 'sheet_id';
-    my $id       = param 'id';
+    my $pid      = param 'pid';
     my $guess    = param 'guess';
     my $problem = schema->resultset('Problem')->find({
-        id       => $id,
+        id       => $pid,
         sheet_id => $sheet_id,
         user_id  => $user_id,
     })->update({ guess => $guess });
@@ -112,7 +109,7 @@ post '/users/:user_id/sheets/:sheet_id/problems/:id' => sub {
 
 post '/ajax/finished_sheet' => sub {
     my $sheet_id = param 'sheet_id';
-    my $user_id = param 'user_id';
+    my $user_id  = param 'user_id';
     my $sheet = schema->resultset('Sheet')->find({
         id      => $sheet_id,
         user_id => $user_id,
@@ -191,13 +188,16 @@ get '/ajax/report' => sub {
     for my $sheet (@sheets) {
         $data{$sheet->finished}++;
     }
-    my @data = [ 'Day', 'Sheets' ];
-    push @data, map [ $_, $data{$_} ], reverse sort keys %data;
-    return to_json \@data;
+    return to_json [
+        [ 'Day', 'Sheets' ],
+        map [ $_, $data{$_} ], reverse sort keys %data
+    ];
 };
 
 post '/foo' => sub { info 'post foo'; info params->{id}; 1;};
-get '/foo' => sub { info 'get /foo'; template 'foo' };
+get  '/foo' => sub { info 'get /foo'; template 'foo' };
+get '/uidesign'      => sub { template 'uidesign' };
+get '/uidesign/:num' => sub { template 'uidesign_' . param 'num' };
 
 sub past_sheets {
     my ($days) = @_;
