@@ -213,20 +213,27 @@ $(".problem input.guess").each(function() {
     }
 });
 
+var TARGETING = false;
+
+function untarget() {
+    TARGETING = false;
+    $(".problem").off('click').removeClass('problem-targetable');
+    $('body').css('cursor', 'auto');
+}
+
 function blowup1() {
+    dec_powerup(1);
     var ans = $(this).find('.answer').val();
     $(this).find('input.guess').val(ans).keyup();
     $(this).killWithFire({image_path: '[% request.uri_base %]/images/'});
-    $(".problem").off('click').removeClass('problem-targetable');
-    //$('input.guess').prop('disabled', false);
-    $('body').css('cursor', 'auto');
+    untarget();
     $.ajax({
         type: 'POST',
         url: '[% request.uri_base %]/ajax/used_powerup',
         data: {
             user_id    : '[% user_id %]',
             powerup_id : 1
-        },
+        }
     });
 }
 
@@ -260,7 +267,7 @@ function inc_powerup(powerup_id) {
 
 $('#pu1').click(function() {
     if (POWERUPS[1] <= 0) return;
-    dec_powerup(1);
+    TARGETING = true;
     $('.problem').addClass('problem-targetable');
     $('body').css('cursor',
         'url([% request.uri_base %]/images/crosshair.png), crosshair');
@@ -272,6 +279,12 @@ $('#pu2').click(function() {
     if (POWERUPS[2] <= 0) return;
     dec_powerup(2);
     blowup_all();
+});
+
+$(document).keyup(function(e) {
+    if (e.keyCode == 27) { // esc
+        untarget();
+    }
 });
 
 check_problems(false);
