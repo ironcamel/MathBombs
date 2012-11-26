@@ -4,6 +4,7 @@ use Dancer ':syntax';
 use v5.10;
 use Dancer::Plugin::DBIC qw(schema);
 use Dancer::Plugin::Email;
+use Dancer::Plugin::Passphrase;
 use Dancer::Plugin::Res;
 use DateTime;
 use Math::BigInt qw(bgcd);
@@ -192,6 +193,35 @@ get '/' => sub {
 
 get '/login' => sub {
     template login => {
+    };
+};
+
+sub login_error {
+    my ($err) = @_;
+    error "Login failed: $err";
+    session teacher => undef;
+    return template login => { err => $err };
+}
+
+post '/login' => sub {
+    my $email = param 'email'
+        or return login_error 'Email is required';
+    my $password = param 'password'
+        or return login_error 'Password is required';
+    my $teacher = schema->resultset('Teacher')->find({ email => $email })
+        or return login_error 'No such email exists in the system';
+    return login_error 'Invalid password'
+        unless passphrase($password)->matches($teacher->pw_hash);
+    session teacher => $teacher->email;
+    return redirect uri_for '/students';
+};
+
+get '/students' => sub {
+    my $email = session 'teacher'
+        or return login_error 'You must be logged to access your students';
+    my $teacher = schema->resultset('Teacher')->find({ email => $email });
+    template users => {
+        users => [ $teacher->students->all ]
     };
 };
 

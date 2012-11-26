@@ -1,0 +1,15 @@
+
+[% IF err %]
+<div class="alert alert-error">
+  <button type="button" class="close" data-dismiss="alert">×</button>
+  <strong>Error!</strong> [% err %]
+</div>
+[% END %]
+
+<form class="form-inline" method="post" accept-charset="utf-8">
+  <input name='email' type="text" value="[% params.email %]"
+      placeholder="Email" />
+  <input name='password' type="password" class="input-small"
+      placeholder="Password" />
+  <button type="submit" class="btn">Sign in</button>
+</form>
