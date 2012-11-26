@@ -15,12 +15,6 @@ our $VERSION = '0.0001';
 
 #$ENV{DBIC_TRACE} = '1=/tmp/dbic_trace';
 
-get '/' => sub {
-    template users => {
-        users => [ schema->resultset('Student')->all ]
-    };
-};
-
 get '/users/:user_id' => sub {
     my $student_id = param 'user_id';
     my $user = schema->resultset('Student')->find($student_id)
@@ -188,6 +182,17 @@ get '/ajax/report' => sub {
         [ 'Day', 'Sheets' ],
         map [ $_, $data{$_} ], reverse sort keys %data
     ];
+};
+
+get '/' => sub {
+    template users => {
+        users => [ schema->resultset('Student')->all ]
+    };
+};
+
+get '/login' => sub {
+    template login => {
+    };
 };
 
 post '/foo' => sub { info 'post foo'; info params->{id}; 1;};

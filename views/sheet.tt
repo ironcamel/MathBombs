@@ -139,14 +139,14 @@ function check_problems(tell_server) {
             },
             success: function() { $('.next-link').show() }
         });
+        var msg = 'Great job!';
+        [% IF settings.msgs.$user_id.$sheet_id %]
+        msg = "[% settings.msgs.$user_id.$sheet_id %]";
+        [% END %]
+        alert(msg);
     } else {
         $('.next-link').show();
     }
-    var msg = 'Great job!';
-    [% IF settings.msgs.$user_id.$sheet_id %]
-    msg = "[% settings.msgs.$user_id.$sheet_id %]";
-    [% END %]
-    alert(msg);
     return true;
 }
 
@@ -282,7 +282,7 @@ $('#pu2').click(function() {
 });
 
 $(document).keyup(function(e) {
-    if (e.keyCode == 27) { // esc
+    if (e.which == 27) { // esc
         untarget();
     }
 });
