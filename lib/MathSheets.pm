@@ -2,8 +2,9 @@ package MathSheets;
 use Dancer ':syntax';
 
 use v5.10;
-use Dancer::Plugin::DBIC;
+use Dancer::Plugin::DBIC qw(schema);
 use Dancer::Plugin::Email;
+use Dancer::Plugin::Res;
 use DateTime;
 use Math::BigInt qw(bgcd);
 use Math::Random::Secure qw(irand);
@@ -16,43 +17,39 @@ our $VERSION = '0.0001';
 
 get '/' => sub {
     template users => {
-        users => [ schema->resultset('User')->all ]
+        users => [ schema->resultset('Student')->all ]
     };
 };
 
 get '/users/:user_id' => sub {
-    my $user_id = param 'user_id';
-    my $user = schema->resultset('User')->find($user_id)
+    my $student_id = param 'user_id';
+    my $user = schema->resultset('Student')->find($student_id)
         or return send_error "No such user", 404;
     my $sheet_id = $user->last_sheet + 1;
-    redirect "/users/$user_id/sheets/$sheet_id";
+    redirect "/users/$student_id/sheets/$sheet_id";
 };
 
 get '/users/:user_id/sheets/:sheet_id' => sub {
-    my $user_id = param 'user_id';
+    my $student_id = param 'user_id';
     my $sheet_id = param 'sheet_id';
-    debug "Getting sheet $sheet_id for $user_id";
-    my $user = schema->resultset('User')->find($user_id);
-    if ($sheet_id > $user->last_sheet + 1) {
+    debug "Getting sheet $sheet_id for $student_id";
+    my $student = schema->resultset('Student')->find($student_id);
+    if ($sheet_id > $student->last_sheet + 1) {
         return send_error "You cannot skip ahead", 404;
     }
 
     my $problems;
-    if (my $s = $user->sheets->find({id => $sheet_id, user_id => $user->id})) {
+    if (my $sheet = $student->sheets->find({ id => $sheet_id })) {
         debug "Grabbing problems from db for sheet $sheet_id";
-        my @db_problems = $s->problems->search({user_id => $user->id });
-        $problems = [ map { from_json($_->json) } @db_problems ];
-        for my $i ( 0 .. $#db_problems ) {
-            $problems->[$i]{guess} = $db_problems[$i]->guess
-        }
+        $problems = [ $sheet->problems->all ];
     } else {
         debug "Creating new problems for sheet $sheet_id";
-        given ($user->id) {
+        given ($student_id) {
             when ('leila') {
                 #$problems = dec_multiplication(6, 10_000);
-                $problems = division(8, 100, 1000);
+                #$problems = division(8, 100, 1000);
                 #$problems = simplification(9, 100);
-                #$problems = adding_fractions(9, 12, 3);
+                $problems = adding_fractions(8, 12, 3);
             } when ('ava') {
                 #$problems = gen_simple_problems(6, 1000, '*');
                 #$problems = subtraction(12, 1000);
@@ -68,24 +65,24 @@ get '/users/:user_id/sheets/:sheet_id' => sub {
                 $problems = gen_simple_problems(9, 10, '+');
             }
         }
-        my $sheet = $user->sheets->create({ id => $sheet_id });
+        my $sheet = $student->sheets->create({ id => $sheet_id });
         for my $p (@$problems) {
             $sheet->problems->create({
-                id => $p->{id},
-                user_id => $user->id,
-                json => to_json($p)
+                %$p,
+                id      => $p->{id},
+                student => $student_id,
             });
         }
     }
     my $powerups = {
         1 => 0,
         2 => 0,
-        map { $_->powerup_id => $_->count } $user->user_powerups->all
+        map { $_->id => $_->cnt } $student->powerups->all
     };
     debug "powerups: ", $powerups;
     template sheet => {
-        name       => $user->name,
-        user_id    => $user->id,
+        name       => $student->name,
+        user_id    => $student_id,
         sheet_id   => $sheet_id,
         problems   => $problems,
         past_week  => past_week(),
@@ -95,41 +92,41 @@ get '/users/:user_id/sheets/:sheet_id' => sub {
 };
 
 post '/ajax/save_answer' => sub {
-    my $user_id  = param 'user_id';
-    my $sheet_id = param 'sheet_id';
-    my $pid      = param 'pid';
-    my $guess    = param 'guess';
+    my $student_id = param 'user_id';
+    my $sheet_id   = param 'sheet_id';
+    my $pid        = param 'pid';
+    my $guess      = param 'guess';
     my $problem = schema->resultset('Problem')->find({
-        id       => $pid,
-        sheet_id => $sheet_id,
-        user_id  => $user_id,
+        id      => $pid,
+        sheet   => $sheet_id,
+        student => $student_id,
     })->update({ guess => $guess });
     return 1;
 };
 
 post '/ajax/finished_sheet' => sub {
     my $sheet_id = param 'sheet_id';
-    my $user_id  = param 'user_id';
+    my $student_id = param 'user_id';
     my $sheet = schema->resultset('Sheet')->find({
         id      => $sheet_id,
-        user_id => $user_id,
+        student => $student_id,
     });
-    my $user = $sheet->user;
+    my $user = $sheet->student;
     if ($sheet_id > $user->last_sheet) {
         $user->update({ last_sheet => $sheet_id });
     }
     my $now = DateTime->now();
     $sheet->update({ finished => $now->ymd }) unless $sheet->finished;
     send_progress_email(
-        user_id    => $user_id,
+        user_id    => $student_id,
         sheet_id   => $sheet_id,
         past_week  => past_week(),
         past_month => past_month(),
     );
-    my $msg = config->{msgs}{$user_id}{$sheet_id};
+    my $msg = config->{msgs}{$student_id}{$sheet_id};
     if ($msg) {
         send_msg_email(
-            user_id  => $user_id,
+            user_id  => $student_id,
             sheet_id => $sheet_id,
             msg      => $msg,
         );
@@ -140,18 +137,18 @@ post '/ajax/finished_sheet' => sub {
 post '/ajax/used_powerup' => sub {
     my $user_id = param 'user_id';
     my $powerup_id = param 'powerup_id';
-    my $user_powerups = schema->resultset('UserPowerup')->find({
-        user_id    => $user_id,
-        powerup_id => $powerup_id,
+    my $user_powerups = schema->resultset('Powerup')->find({
+        id      => $powerup_id,
+        student => $user_id,
     });
-    my $count = $user_powerups->count;
-    $user_powerups->update({ count => --$count });
+    my $count = $user_powerups->cnt;
+    $user_powerups->update({ cnt => --$count });
     return 1;
 };
 
 get '/users/:user_id/report' => sub {
     my $user_id = param 'user_id';
-    my $user = schema->resultset('User')->find($user_id)
+    my $user = schema->resultset('Student')->find($user_id)
         or send_error "No such user", 404;
     template report => {
         user_id    => $user_id,
@@ -161,27 +158,26 @@ get '/users/:user_id/report' => sub {
     }
 };
 
-get '/users/:user_id/add-pp' => \&add_powerup;
-post '/ajax/add_powerup' => \&add_powerup;
-
-sub add_powerup {
-    my $user_id = param 'user_id';
-    my $powerup_id = param('powerup_id') || 1;
-    my $user = schema->resultset('User')->find($user_id)
+any '/ajax/add_powerup' => sub {
+    my $student_id = param 'student_id';
+    my $powerup_id = param 'powerup_id';
+    return res 400, { error => 'student_id is required' } unless $student_id;
+    return res 400, { error => 'powerup_id is required' } unless $powerup_id;
+    my $user = schema->resultset('Student')->find($student_id)
         or return send_error "No such user", 404;
-    my $user_powerups = schema->resultset('UserPowerup')->find_or_create({
-        user_id    => $user_id,
-        powerup_id => $powerup_id,
+    my $powerups = schema->resultset('Powerup')->find_or_create({
+        id      => $powerup_id,
+        student => $student_id,
     });
-    my $count = $user_powerups->count;
-    $user_powerups->update({ count => ++$count });
+    my $count = $powerups->cnt;
+    $powerups->update({ cnt => ++$count });
     return { powerups => $count };
 };
 
 get '/ajax/report' => sub {
     my $user_id = param 'user_id';
     my @sheets = schema->resultset('Sheet')->search({
-        user_id  => $user_id,
+        student  => $user_id,
         finished => { '>' => DateTime->today->subtract(days => 30)->ymd }
     });
     my %data = map { DateTime->today->subtract(days => $_)->ymd => 0 } 0 .. 30;
@@ -204,7 +200,7 @@ sub past_sheets {
     my $user_id = param 'user_id';
     my $now = DateTime->now();
     return schema->resultset('Sheet')->count({
-        user_id  => $user_id,
+        student  => $user_id,
         finished => { '>' => $now->subtract(days => $days)->ymd }
     });
 }
@@ -260,7 +256,7 @@ sub gen_simple_problems {
         my $ans = $op eq '+' ? $n1 + $n2 : $n1 * $n2;
         $op = '\times' if $op eq '*';
         my $equation = "$n1 \\; $op \\; $n2";
-        push @problems, { id => $i, eqn => $equation, ans => $ans };
+        push @problems, { id => $i, question => $equation, answer => $ans };
     }
     return \@problems;
 }
@@ -276,7 +272,7 @@ sub dec_multiplication {
         substr($n2, irand(length($n2)-1), 1) = '.';
         my $ans = $n1 * $n2;
         my $equation = "$n1 \\; \\times \\; $n2";
-        push @problems, { id => $i, eqn => $equation, ans => $ans };
+        push @problems, { id => $i, question => $equation, answer => $ans };
     }
     return \@problems;
 }
@@ -289,7 +285,7 @@ sub subtraction {
         my $n2 = irand(int $max/2);
         my $ans = $n1 - $n2;
         my $equation = "$n1 \\; - \\; $n2";
-        push @problems, { id => $i, eqn => $equation, ans => $ans };
+        push @problems, { id => $i, question => $equation, answer => $ans };
     }
     return \@problems;
 }
@@ -308,7 +304,7 @@ sub division {
             when (1) { $equation = "$dividend \\; \\div \\; $divisor" }
             when (2) { $equation = "\\frac{$dividend}{$divisor}"      }
         }
-        push @problems, { id => $i, eqn => $equation, ans => $quotient };
+        push @problems, { id => $i, question => $equation, answer => $quotient };
     }
     return \@problems;
 }
@@ -326,7 +322,7 @@ sub simplification {
         my $gcf = irand($max) + 1;
         $_ *= $gcf for $n1, $n2;
         my $equation = "\\frac{$n1}{$n2}";
-        push @problems, { id => $i, eqn => $equation, ans => $ans };
+        push @problems, { id => $i, question => $equation, answer => $ans };
     }
     return \@problems;
 }
@@ -345,7 +341,7 @@ sub adding_fractions {
             $ans += Number::Fraction->new($x, $y);
             $equation .= " \\; + \\; \\frac{$x}{$y}";
         }
-        push @problems, { id => $i, eqn => $equation, ans => "$ans" };
+        push @problems, { id => $i, question => $equation, answer => "$ans" };
     }
     return \@problems;
 }

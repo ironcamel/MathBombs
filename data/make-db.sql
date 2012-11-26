@@ -1,50 +1,43 @@
-
-CREATE TABLE user (
-    id VARCHAR(100) PRIMARY KEY,
-    name TEXT,
-    email TEXT,
-    password TEXT,
-    last_sheet INT DEFAULT 0
+CREATE TABLE "powerup" (
+    id      INT NOT NULL,
+    student VARCHAR(100) NOT NULL,
+    cnt     NOT NULL DEFAULT 0,
+    PRIMARY KEY (id, student),
+    FOREIGN KEY (student) REFERENCES student (id)
+        ON DELETE CASCADE ON UPDATE CASCADE
 );
-CREATE TABLE sheet (
+CREATE TABLE "problem" (
+    id        INT NOT NULL,
+    sheet     INT NOT NULL,
+    student   VARCHAR(100)  NOT NULL,
+    question  VARCHAR(1000) NOT NULL,
+    answer    VARCHAR(100)  NOT NULL,
+    guess     VARCHAR(100),
+    is_solved INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (id, sheet, student),
+    FOREIGN KEY (sheet, student) REFERENCES sheet (id, student)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE TABLE "sheet" (
     id INT,
-    user_id varchar(100) NOT NULL,
+    student VARCHAR(100) NOT NULL,
     finished DATE,
-    PRIMARY KEY (id, user_id),
-    FOREIGN KEY (user_id) REFERENCES user (id)
+    PRIMARY KEY (id, student),
+    FOREIGN KEY (student) REFERENCES student (id)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
-CREATE TABLE problem (
-    id INT NOT NULL,
-    sheet_id INT NOT NULL,
-    user_id varchar(100) NOT NULL,
-    json TEXT,
-    guess TEXT,
-    PRIMARY KEY (id, sheet_id, user_id),
-    FOREIGN KEY (sheet_id, user_id) REFERENCES sheet (id, user_id)
+CREATE TABLE student (
+    id         VARCHAR(100) PRIMARY KEY,
+    name       VARCHAR(100) NOT NULL,
+    last_sheet INT NOT NULL DEFAULT 0,
+    teacher_id INT NOT NULL,
+    FOREIGN KEY (teacher_id) REFERENCES teacher (id)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
-CREATE TABLE powerup (
-    id INT PRIMARY KEY,
-    name varchar(100) NOT NULL,
-    filepath varchar(1000) NOT NULL
-);
-drop table user_powerup;
-CREATE TABLE user_powerup (
-    user_id varchar(100) NOT NULL,
-    powerup_id INT NOT NULL,
-    count NOT NULL DEFAULT 0,
-    PRIMARY KEY (user_id, powerup_id),
-    FOREIGN KEY (user_id) REFERENCES user (id)
-        ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (powerup_id) REFERENCES powerup (id)
-        ON DELETE CASCADE ON UPDATE CASCADE
+CREATE TABLE teacher (
+    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    name    VARCHAR(100) NOT NULL,
+    email   VARCHAR(100) NOT NULL UNIQUE,
+    pw_hash TEXT
 );
 
-insert into powerup values (1, 'Bomb', 'bomb-96.png');
-insert into user values ('leila', 'Leila');
-insert into user values ('ava', 'Ava');
-insert into user values ('arianna', 'Arianna');
-insert into user values ('test', 'Test');
---insert into sheet (id, user_id) values (1, 'leila');
---insert into sheet (id, user_id) values (1, 'ava');

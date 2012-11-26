@@ -10,10 +10,10 @@
   [% BLOCK problem_block %]
   <div class="problem" style="">
     <span class="problem_number">[% p.id %])</span>
-    <div class="eqn">$[% p.eqn %]$</div>
+    <div class="eqn">$[% p.question %]$</div>
     <hr/>
     <input type="text" class="guess" value="[% p.guess %]" />
-    <input type="hidden" class="answer" value="[% p.ans %]" />
+    <input type="hidden" class="answer" value="[% p.answer %]" />
     <input type="hidden" class="pid" value="[% p.id %]" />
   </div>
   [% END %]
@@ -159,10 +159,10 @@ function award_powerup() {
             type: 'POST',
             url: '[% request.uri_base %]/ajax/add_powerup',
             data: {
-                user_id  : '[% user_id %]',
                 powerup_id : 2,
+                student_id : '[% user_id %]'
             },
-            success: function() { inc_powerup(2) },
+            success: function() { inc_powerup(2) }
         });
     } else {
         $('#modal1').modal();
@@ -170,10 +170,10 @@ function award_powerup() {
             type: 'POST',
             url: '[% request.uri_base %]/ajax/add_powerup',
             data: {
-                user_id  : '[% user_id %]',
                 powerup_id : 1,
+                student_id : '[% user_id %]'
             },
-            success: function() { inc_powerup(1) },
+            success: function() { inc_powerup(1) }
         });
     }
 }

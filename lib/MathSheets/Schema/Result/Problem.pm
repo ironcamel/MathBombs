@@ -28,42 +28,60 @@ __PACKAGE__->table("problem");
   data_type: 'int'
   is_nullable: 0
 
-=head2 sheet_id
+=head2 sheet
 
   data_type: 'int'
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 user_id
+=head2 student
 
   data_type: 'varchar'
   is_foreign_key: 1
   is_nullable: 0
   size: 100
 
-=head2 json
+=head2 question
 
-  data_type: 'text'
-  is_nullable: 1
+  data_type: 'varchar'
+  is_nullable: 0
+  size: 1000
+
+=head2 answer
+
+  data_type: 'varchar'
+  is_nullable: 0
+  size: 100
 
 =head2 guess
 
-  data_type: 'text'
+  data_type: 'varchar'
   is_nullable: 1
+  size: 100
+
+=head2 is_solved
+
+  data_type: 'int'
+  default_value: 0
+  is_nullable: 0
 
 =cut
 
 __PACKAGE__->add_columns(
   "id",
   { data_type => "int", is_nullable => 0 },
-  "sheet_id",
+  "sheet",
   { data_type => "int", is_foreign_key => 1, is_nullable => 0 },
-  "user_id",
+  "student",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 100 },
-  "json",
-  { data_type => "text", is_nullable => 1 },
+  "question",
+  { data_type => "varchar", is_nullable => 0, size => 1000 },
+  "answer",
+  { data_type => "varchar", is_nullable => 0, size => 100 },
   "guess",
-  { data_type => "text", is_nullable => 1 },
+  { data_type => "varchar", is_nullable => 1, size => 100 },
+  "is_solved",
+  { data_type => "int", default_value => 0, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -72,15 +90,15 @@ __PACKAGE__->add_columns(
 
 =item * L</id>
 
-=item * L</sheet_id>
+=item * L</sheet>
 
-=item * L</user_id>
+=item * L</student>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("id", "sheet_id", "user_id");
+__PACKAGE__->set_primary_key("id", "sheet", "student");
 
 =head1 RELATIONS
 
@@ -95,13 +113,13 @@ Related object: L<MathSheets::Schema::Result::Sheet>
 __PACKAGE__->belongs_to(
   "sheet",
   "MathSheets::Schema::Result::Sheet",
-  { id => "sheet_id", user_id => "user_id" },
+  { id => "sheet", student => "student" },
   { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2012-10-07 08:40:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bP6yttOpkYqIOHAD7xr6wQ
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2012-11-26 04:34:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:S+7W/V/DZYq0YQZzf+E8ig
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
