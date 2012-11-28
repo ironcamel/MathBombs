@@ -6,6 +6,7 @@ use Dancer::Plugin::DBIC qw(schema);
 use Dancer::Plugin::Email;
 use Dancer::Plugin::Passphrase;
 use Dancer::Plugin::Res;
+use Data::UUID;
 use DateTime;
 use Math::BigInt qw(bgcd);
 use Math::Random::Secure qw(irand);
@@ -187,7 +188,7 @@ get '/ajax/report' => sub {
 
 get '/' => sub {
     template users => {
-        users => [ schema->resultset('Student')->all ]
+        students => [ schema->resultset('Student')->all ]
     };
 };
 
@@ -220,10 +221,31 @@ get '/students' => sub {
     my $email = session 'teacher'
         or return login_error 'You must be logged to access your students';
     my $teacher = schema->resultset('Teacher')->find({ email => $email });
-    template users => {
-        users => [ $teacher->students->all ]
-    };
+    return students_template($teacher);
 };
+
+post '/students' => sub {
+    my $email = session 'teacher'
+        or return login_error 'You must be logged to add a student';
+    my $name = param 'name';
+    info "Adding student $name";
+    my $teacher = schema->resultset('Teacher')->find({ email => $email });
+    if ($teacher->students->single({ name => $name })) {
+        info my $err = "Student $name already exists";
+        return students_template($teacher, $err);
+    }
+    my $uuid = Data::UUID->new->create_str;
+    $teacher->add_to_students({ name => $name, id => $uuid });
+    return students_template($teacher);
+};
+
+sub students_template {
+    my ($teacher, $err) = @_;
+    return template users => {
+        err      => $err,
+        students => [ $teacher->students->all ],
+    };
+}
 
 post '/foo' => sub { info 'post foo'; info params->{id}; 1;};
 get  '/foo' => sub { info 'get /foo'; template 'foo' };
