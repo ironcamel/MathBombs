@@ -187,14 +187,15 @@ get '/ajax/report' => sub {
 };
 
 get '/' => sub {
-    template users => {
-        students => [ schema->resultset('Student')->all ]
-    };
+    return redirect uri_for '/students' if session 'teacher';
+    return redirect uri_for '/login';
 };
 
-get '/login' => sub {
-    template login => {
-    };
+get '/login' => sub { template 'login' };
+
+get '/logout' => sub {
+    session teacher => undef;
+    return redirect uri_for '/login';
 };
 
 sub login_error {

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-[% home = request.uri_base %]
+[% base = request.uri_base %]
 
 <head>
 
@@ -32,10 +32,20 @@
 
     <div class="navbar">
       <div class="navbar-inner">
-        <a class="brand" href="[% home %]">[% settings.appname %]</a>
+        <a class="brand" href="[% base %]">[% settings.appname %]</a>
         <ul class="nav">
-          <li class=""><a href="[% home %]">Home</a></li>
+          <li class=""><a href="[% base %]">Home</a></li>
         </ul>
+        [% IF session.teacher %]
+        <ul class="nav pull-right">
+          <li id="fat-menu" class="dropdown">
+            <a href="#" id="drop1" role="button" class="dropdown-toggle" data-toggle="dropdown">[% session.teacher %] <b class="caret"></b></a>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="drop1">
+              <li><a tabindex="-1" href="[% base %]/logout">Logout</a></li>
+            </ul>
+          </li>
+        </ul>
+        [% END %]
       </div>
     </div>
 
