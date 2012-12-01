@@ -220,29 +220,39 @@ post '/login' => sub {
 
 get '/students' => sub {
     my $email = session 'teacher'
-        or return login_error 'You must be logged to access your students';
+        or return login_error 'You must be logged in to access your students';
     my $teacher = schema->resultset('Teacher')->find({ email => $email });
     return students_template($teacher);
 };
 
 post '/students' => sub {
     my $email = session 'teacher'
-        or return login_error 'You must be logged to add a student';
+        or return login_error 'You must be logged in to add a student';
     my $name = param 'name';
     info "Adding student $name";
     my $teacher = schema->resultset('Teacher')->find({ email => $email });
-    if ($teacher->students->single({ name => $name })) {
-        info my $err = "Student $name already exists";
-        return students_template($teacher, $err);
-    }
+    return students_template($teacher, "Invalid name")
+        if  !$name or $name !~ /^\w[\w\s]*\w$/;
+    return students_template($teacher, "Student $name already exists")
+        if $teacher->students->single({ name => $name });
     my $uuid = Data::UUID->new->create_str;
     $teacher->add_to_students({ name => $name, id => $uuid });
     return students_template($teacher);
 };
 
+post '/teacher_ajax/delete_student' => sub {
+    my $email = session 'teacher' or return;
+    my $student_id = param 'student_id';
+    info "$email is deleting $student_id";
+    my $teacher = schema->resultset('Teacher')->find({ email => $email });
+    $teacher->students({ id => $student_id })->delete_all;
+    return;
+};
+
 sub students_template {
     my ($teacher, $err) = @_;
-    return template users => {
+    error "Students list page error: $err" if $err;
+    return template students => {
         err      => $err,
         students => [ $teacher->students->all ],
     };

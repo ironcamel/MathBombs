@@ -11,10 +11,13 @@
 
 <div class="row">
   <div class="span12">
-    <table class="table">
+    <input type="hidden" name="foo" value="bar" />
+    <table class="table table-hover">
       <thead>
         <th>Student</th>
         <th>Sheet</th>
+        <th>Progress</th>
+        <th>Delete</th>
       </thead>
       <tbody>
         [% FOR student IN students %]
@@ -25,6 +28,11 @@
           <td> [% student.last_sheet %] </td>
           <td>
             <a href="[% base %]/users/[% student.id %]/report">view progress</a>
+          </td>
+          <td>
+            <button class="delete" type="button"
+                data-student_name="[% student.name %]"
+                data-student_id="[% student.id %]">&times;</button>
           </td>
         </tr>
         [% END %]
@@ -46,6 +54,7 @@
 </div>
 
 <script type="text/javascript" charset="utf-8">
+
 $('#add_form').submit(function() {
     var name = $.trim($('#new_name').val());
     if (!name) {
@@ -54,5 +63,22 @@ $('#add_form').submit(function() {
     }
     $('#new_name').val(name);
 });
+
+$('button.delete').click(function() {
+    var student_name = $(this).data('student_name');
+    if (!confirm('Are you sure you want to delete ' + student_name + '?'))
+      return;
+    var student_id = $(this).data('student_id');
+    var row = $(this).parents('tr');
+    $.ajax({
+        type: 'POST',
+        url: '[% base %]/teacher_ajax/delete_student',
+        data: {
+            student_id : student_id
+        },
+        success: function() { row.hide('slow') }
+    });
+});
+
 </script>
 
