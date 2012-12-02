@@ -1,5 +1,4 @@
 
-[% USE HTML %]
 [% base = request.uri_base %]
 
 [% IF err %]
@@ -12,7 +11,7 @@
 <div class="row">
   <div class="span12">
     <input type="hidden" name="foo" value="bar" />
-    <table class="table table-hover">
+    <table id="students_tbl" class="table table-hover">
       <thead>
         <th>Student</th>
         <th>Sheet</th>
@@ -22,12 +21,30 @@
       <tbody>
         [% FOR student IN students %]
         <tr>
+          <td> [% student.name %] </td>
           <td>
-            <a href="[% base %]/users/[% student.id %]">[% HTML.escape(student.name) %]</a>
+            <a href="[% base %]/users/[% student.id %]">[% student.last_sheet %]</a>
           </td>
-          <td> [% student.last_sheet %] </td>
           <td>
-            <a href="[% base %]/users/[% student.id %]/report">view progress</a>
+            [% student_id = student.id %]
+            [% past_week = progress.$student_id.past_week %]
+            [% past_month = progress.$student_id.past_month %]
+            <div>
+              <a href="[% base %]/users/[% student.id %]/report">
+                <div class="progress pull-left">
+                  <div class="bar bar-success" style="width: [% past_week / 7 * 100 %]%;"></div>
+                </div>
+                [% past_week %] / 7
+              </a>
+            </div>
+            <div style="clear:both">
+              <a href="[% base %]/users/[% student.id %]/report">
+                <div class="progress pull-left">
+                  <div class="bar bar-success" style="width: [% past_month / 30 * 100 %]%;"></div>
+                </div>
+                [% past_month %] / 30
+              </a>
+            </div>
           </td>
           <td>
             <button class="delete" type="button"

@@ -191,53 +191,52 @@ get '/' => sub {
     return redirect uri_for '/login';
 };
 
-get '/login' => sub { template 'login' };
-
 get '/logout' => sub {
     session teacher => undef;
     return redirect uri_for '/login';
 };
 
-sub login_error {
-    my ($err) = @_;
-    error "Login failed: $err";
-    session teacher => undef;
-    return template login => { err => $err };
-}
+get '/login' => sub { login_tmpl() };
 
 post '/login' => sub {
     my $email = param 'email'
-        or return login_error 'Email is required';
+        or return login_tmpl('Email is required');
     my $password = param 'password'
-        or return login_error 'Password is required';
+        or return login_tmpl('Password is required');
     my $teacher = schema->resultset('Teacher')->find({ email => $email })
-        or return login_error 'No such email exists in the system';
-    return login_error 'Invalid password'
+        or return login_tmpl('No such email exists in the system');
+    return login_tmpl('Invalid password')
         unless passphrase($password)->matches($teacher->pw_hash);
     session teacher => $teacher->email;
     return redirect uri_for '/students';
 };
 
 get '/students' => sub {
-    my $email = session 'teacher'
-        or return login_error 'You must be logged in to access your students';
+    my $email = session 'teacher';
+    if (not $email) {
+        session login_err => 'You must be logged in to access your students';
+        return redirect uri_for '/login';
+    }
     my $teacher = schema->resultset('Teacher')->find({ email => $email });
-    return students_template($teacher);
+    return students_tmpl($teacher);
 };
 
 post '/students' => sub {
-    my $email = session 'teacher'
-        or return login_error 'You must be logged in to add a student';
+    my $email = session 'teacher';
+    if (not $email) {
+        session login_err => 'You must be logged in to add a student';
+        return redirect uri_for '/login';
+    }
     my $name = param 'name';
     info "Adding student $name";
     my $teacher = schema->resultset('Teacher')->find({ email => $email });
-    return students_template($teacher, "Invalid name")
+    return students_tmpl($teacher, "Invalid name")
         if  !$name or $name !~ /^\w[\w\s]*\w$/;
-    return students_template($teacher, "Student $name already exists")
+    return students_tmpl($teacher, "Student $name already exists")
         if $teacher->students->single({ name => $name });
     my $uuid = Data::UUID->new->create_str;
     $teacher->add_to_students({ name => $name, id => $uuid });
-    return students_template($teacher);
+    return students_tmpl($teacher);
 };
 
 post '/teacher_ajax/delete_student' => sub {
@@ -249,12 +248,34 @@ post '/teacher_ajax/delete_student' => sub {
     return;
 };
 
-sub students_template {
+sub login_tmpl {
+    my ($err) = @_;
+    $err ||= session 'login_err';
+    error "Login failed: $err" if $err;
+    session teacher => undef;
+    session login_err => undef;
+    return template login => { err => $err };
+}
+
+sub students_tmpl {
     my ($teacher, $err) = @_;
     error "Students list page error: $err" if $err;
+    my @students = $teacher->students->all;
+    my %progress = map
+        {
+            $_->id => {
+                past_week  => past_sheets(7,  $_->id),
+                past_month => past_sheets(30, $_->id),
+            }
+        } @students;
+    @students = sort
+        { $progress{$a->id}{past_month} <=> $progress{$b->id}{past_month} }
+        @students;
+    debug \%progress;
     return template students => {
         err      => $err,
-        students => [ $teacher->students->all ],
+        students => \@students,
+        progress => \%progress,
     };
 }
 
@@ -264,11 +285,11 @@ get '/uidesign'      => sub { template 'uidesign' };
 get '/uidesign/:num' => sub { template 'uidesign_' . param 'num' };
 
 sub past_sheets {
-    my ($days) = @_;
-    my $user_id = param 'user_id';
+    my ($days, $student_id) = @_;
+    $student_id ||= param 'user_id';
     my $now = DateTime->now();
     return schema->resultset('Sheet')->count({
-        student  => $user_id,
+        student  => $student_id,
         finished => { '>' => $now->subtract(days => $days)->ymd }
     });
 }
