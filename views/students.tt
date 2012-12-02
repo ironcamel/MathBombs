@@ -14,6 +14,7 @@
     <table id="students_tbl" class="table table-hover">
       <thead>
         <th>Student</th>
+        <th class="pw_col">Password</th>
         <th>Sheet</th>
         <th>Progress</th>
         <th>Delete</th>
@@ -22,6 +23,12 @@
         [% FOR student IN students %]
         <tr>
           <td> [% student.name %] </td>
+          <th class="pw_col">
+<div class="input-append">
+            <input class="input-mini" type="text" name="pw" value="[% loop.count * 17 + 100 %]" />
+            <button class="btn" type="button">Update</button>
+            </div>
+          </th>
           <td>
             <a href="[% base %]/users/[% student.id %]">[% student.last_sheet %]</a>
           </td>
@@ -55,11 +62,17 @@
         [% END %]
       </tbody>
     </table>
-  </div>
-</div>
+
+    <label class="checkbox">
+      <input id="pw_chk" type="checkbox"> Enable passwords
+    </label>
+
+  </div> <!-- span12 -->
+</div> <!-- row -->
 
 <div class="row">
   <div class="span12">
+
     <form id="add_form" class="form-inline" method="post">
       <fieldset>
         <legend>Add Student</legend>
@@ -71,6 +84,10 @@
 </div>
 
 <script type="text/javascript" charset="utf-8">
+
+$('#pw_chk').click(function () {
+    $('.pw_col').toggle(this.checked);
+});
 
 $('#add_form').submit(function() {
     var name = $.trim($('#new_name').val());
