@@ -1,4 +1,6 @@
 
+[% base = request.uri_base %]
+
 <div class="row">
   <h1 class="offset1">
     [% name %]'s Workbook <small> sheet [% sheet_id %] </small>
@@ -61,12 +63,12 @@
     <h4> Power-Ups </h4>
 
 <p>
-    <img src="[% request.uri_base %]/images/bomb-64.png" id="pu1" />
+    <img src="[% base %]/images/bomb-64.png" id="pu1" />
     &times; <span id="pu_count1">[% powerups.1 %]</span>
 
 </p>
 <p>
-    <img src="[% request.uri_base %]/images/nuclear.gif" id="pu2"
+    <img src="[% base %]/images/nuclear.gif" id="pu2"
         style="width:64px"/>
     &times; <span id="pu_count2">[% powerups.2 %]</span>
 </p>
@@ -82,12 +84,12 @@
       
     [% IF sheet_id > 1 %]
     <span class="prev-link" style="">
-      <a class="btn btn-small" href="[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id - 1 %]">&lt;&lt; previous</a>
+      <a class="btn btn-small" href="[% base %]/students/[% student_id %]/sheets/[% sheet_id - 1 %]">&lt;&lt; previous</a>
     </span>
     [% END %]
 
     <span class="next-link pull-right" style="display:none">
-      <a class="btn btn-small btn-primary" href="[% request.uri_base %]/users/[% user_id %]/sheets/[% sheet_id + 1 %]">next &gt;&gt;</a>
+      <a class="btn btn-small btn-primary" href="[% base %]/students/[% student_id %]/sheets/[% sheet_id + 1 %]">next &gt;&gt;</a>
     </span>
 
     </div>
@@ -103,7 +105,7 @@
   </div>
   <div class="modal-body">
     <p style="text-align:center">
-      <img src="[% request.uri_base %]/uidesign-images/[% img %]" />
+      <img src="[% base %]/uidesign-images/[% img %]" />
     </p>
   </div>
   <div class="modal-footer">
@@ -132,16 +134,16 @@ function check_problems(tell_server) {
     if (tell_server) {
         $.ajax({
             type: 'POST',
-            url: '[% request.uri_base %]/ajax/finished_sheet',
+            url: '[% base %]/ajax/finished_sheet',
             data: {
-                user_id  : '[% user_id %]',
-                sheet_id : '[% sheet_id %]'
+                student_id : '[% student_id %]',
+                sheet_id   : '[% sheet_id %]'
             },
             success: function() { $('.next-link').show() }
         });
         var msg = 'Great job!';
-        [% IF settings.msgs.$user_id.$sheet_id %]
-        msg = "[% settings.msgs.$user_id.$sheet_id %]";
+        [% IF settings.msgs.$student_id.$sheet_id %]
+        msg = "[% settings.msgs.$student_id.$sheet_id %]";
         [% END %]
         alert(msg);
     } else {
@@ -157,10 +159,10 @@ function award_powerup() {
         $('#modal2').modal();
         $.ajax({
             type: 'POST',
-            url: '[% request.uri_base %]/ajax/add_powerup',
+            url: '[% base %]/ajax/add_powerup',
             data: {
                 powerup_id : 2,
-                student_id : '[% user_id %]'
+                student_id : '[% student_id %]'
             },
             success: function() { inc_powerup(2) }
         });
@@ -168,10 +170,10 @@ function award_powerup() {
         $('#modal1').modal();
         $.ajax({
             type: 'POST',
-            url: '[% request.uri_base %]/ajax/add_powerup',
+            url: '[% base %]/ajax/add_powerup',
             data: {
                 powerup_id : 1,
-                student_id : '[% user_id %]'
+                student_id : '[% student_id %]'
             },
             success: function() { inc_powerup(1) }
         });
@@ -181,12 +183,12 @@ function award_powerup() {
 function save_answer(pid, val) {
     $.ajax({
         type: 'POST',
-        url: '[% request.uri_base %]/ajax/save_answer',
+        url: '[% base %]/ajax/save_answer',
         data: {
-            user_id  : '[% user_id %]',
-            sheet_id : '[% sheet_id %]',
-            pid      : pid,
-            guess    : val,
+            student_id : '[% student_id %]',
+            sheet_id   : '[% sheet_id %]',
+            pid        : pid,
+            guess      : val
         }
     });
 }
@@ -225,13 +227,13 @@ function blowup1() {
     dec_powerup(1);
     var ans = $(this).find('.answer').val();
     $(this).find('input.guess').val(ans).keyup();
-    $(this).killWithFire({image_path: '[% request.uri_base %]/images/'});
+    $(this).killWithFire({image_path: '[% base %]/images/'});
     untarget();
     $.ajax({
         type: 'POST',
-        url: '[% request.uri_base %]/ajax/used_powerup',
+        url: '[% base %]/ajax/used_powerup',
         data: {
-            user_id    : '[% user_id %]',
+            student_id    : '[% student_id %]',
             powerup_id : 1
         }
     });
@@ -244,13 +246,13 @@ function blowup_all() {
         $(this).val(ans);
         save_answer(pid, ans);
         $(this).parents('.problem').killWithFire(
-            { image_path : '[% request.uri_base %]/images/' });
+            { image_path : '[% base %]/images/' });
     });
     $.ajax({
         type: 'POST',
-        url: '[% request.uri_base %]/ajax/used_powerup',
+        url: '[% base %]/ajax/used_powerup',
         data: {
-            user_id    : '[% user_id %]',
+            student_id : '[% student_id %]',
             powerup_id : 2
         }
     });
@@ -270,7 +272,7 @@ $('#pu1').click(function() {
     TARGETING = true;
     $('.problem').addClass('problem-targetable');
     $('body').css('cursor',
-        'url([% request.uri_base %]/images/crosshair.png), crosshair');
+        'url([% base %]/images/crosshair.png), crosshair');
     //$('input.guess').prop('disabled', true);
     $('.problem').click(blowup1);
 });

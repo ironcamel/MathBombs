@@ -17,16 +17,16 @@ our $VERSION = '0.0001';
 
 #$ENV{DBIC_TRACE} = '1=/tmp/dbic_trace';
 
-get '/users/:user_id' => sub {
-    my $student_id = param 'user_id';
+get '/students/:student_id' => sub {
+    my $student_id = param 'student_id';
     my $user = schema->resultset('Student')->find($student_id)
         or return send_error "No such user", 404;
     my $sheet_id = $user->last_sheet + 1;
-    redirect "/users/$student_id/sheets/$sheet_id";
+    redirect "/students/$student_id/sheets/$sheet_id";
 };
 
-get '/users/:user_id/sheets/:sheet_id' => sub {
-    my $student_id = param 'user_id';
+get '/students/:student_id/sheets/:sheet_id' => sub {
+    my $student_id = param 'student_id';
     my $sheet_id = param 'sheet_id';
     debug "Getting sheet $sheet_id for $student_id";
     my $student = schema->resultset('Student')->find($student_id);
@@ -78,7 +78,7 @@ get '/users/:user_id/sheets/:sheet_id' => sub {
     debug "powerups: ", $powerups;
     template sheet => {
         name       => $student->name,
-        user_id    => $student_id,
+        student_id => $student_id,
         sheet_id   => $sheet_id,
         problems   => $problems,
         past_week  => past_week(),
@@ -88,7 +88,7 @@ get '/users/:user_id/sheets/:sheet_id' => sub {
 };
 
 post '/ajax/save_answer' => sub {
-    my $student_id = param 'user_id';
+    my $student_id = param 'student_id';
     my $sheet_id   = param 'sheet_id';
     my $pid        = param 'pid';
     my $guess      = param 'guess';
@@ -102,7 +102,7 @@ post '/ajax/save_answer' => sub {
 
 post '/ajax/finished_sheet' => sub {
     my $sheet_id = param 'sheet_id';
-    my $student_id = param 'user_id';
+    my $student_id = param 'student_id';
     my $sheet = schema->resultset('Sheet')->find({
         id      => $sheet_id,
         student => $student_id,
@@ -114,7 +114,7 @@ post '/ajax/finished_sheet' => sub {
     my $now = DateTime->now();
     $sheet->update({ finished => $now->ymd }) unless $sheet->finished;
     send_progress_email(
-        user_id    => $student_id,
+        student_id => $student_id,
         sheet_id   => $sheet_id,
         past_week  => past_week(),
         past_month => past_month(),
@@ -122,33 +122,33 @@ post '/ajax/finished_sheet' => sub {
     my $msg = config->{msgs}{$student_id}{$sheet_id};
     if ($msg) {
         send_msg_email(
-            user_id  => $student_id,
-            sheet_id => $sheet_id,
-            msg      => $msg,
+            student_id => $student_id,
+            sheet_id   => $sheet_id,
+            msg        => $msg,
         );
     }
     return 1;
 };
 
 post '/ajax/used_powerup' => sub {
-    my $user_id = param 'user_id';
+    my $student_id = param 'student_id';
     my $powerup_id = param 'powerup_id';
     my $user_powerups = schema->resultset('Powerup')->find({
         id      => $powerup_id,
-        student => $user_id,
+        student => $student_id,
     });
     my $count = $user_powerups->cnt;
     $user_powerups->update({ cnt => --$count });
     return 1;
 };
 
-get '/users/:user_id/report' => sub {
-    my $user_id = param 'user_id';
-    my $user = schema->resultset('Student')->find($user_id)
+get '/students/:student_id/report' => sub {
+    my $student_id = param 'student_id';
+    my $user = schema->resultset('Student')->find($student_id)
         or send_error "No such user", 404;
     template report => {
-        user_id    => $user_id,
-        user_name  => $user->name || $user_id,
+        student_id => $student_id,
+        user_name  => $user->name || $student_id,
         past_week  => past_week(),
         past_month => past_month(),
     }
@@ -171,9 +171,9 @@ any '/ajax/add_powerup' => sub {
 };
 
 get '/ajax/report' => sub {
-    my $user_id = param 'user_id';
+    my $student_id = param 'student_id';
     my @sheets = schema->resultset('Sheet')->search({
-        student  => $user_id,
+        student  => $student_id,
         finished => { '>' => DateTime->today->subtract(days => 30)->ymd }
     });
     my %data = map { DateTime->today->subtract(days => $_)->ymd => 0 } 0 .. 30;
@@ -286,7 +286,7 @@ get '/uidesign/:num' => sub { template 'uidesign_' . param 'num' };
 
 sub past_sheets {
     my ($days, $student_id) = @_;
-    $student_id ||= param 'user_id';
+    $student_id ||= param 'student_id';
     my $now = DateTime->now();
     return schema->resultset('Sheet')->count({
         student  => $student_id,
@@ -300,16 +300,16 @@ sub send_progress_email {
     my %args = @_;
     info 'Sending progress email: ', \%args;
     my $sheet_id = $args{sheet_id};
-    my $user_id = $args{user_id};
+    my $student_id = $args{student_id};
     my $past_week = $args{past_week};
     my $past_month = $args{past_month};
-    my $subject = "MathSheets: $user_id completed sheet $sheet_id"
+    my $subject = "MathSheets: $student_id completed sheet $sheet_id"
         . " ($past_week/7 $past_month/30)";
     my $body = join "\n",
-        "$user_id completed sheet $sheet_id.",
+        "$student_id completed sheet $sheet_id.",
         "past week: $past_week",
         "past month: $past_month",
-        uri_for("/users/$user_id/sheets/$sheet_id");
+        uri_for("/students/$student_id/sheets/$sheet_id");
     eval {
         email { subject => $subject, body => $body };
         info "Sent email subject => $subject";
@@ -322,11 +322,11 @@ sub send_msg_email {
     my $to = config->{special_msg_email} or return;
     info 'Sending msg email: ', \%args;
     my $sheet_id = $args{sheet_id};
-    my $user_id = $args{user_id};
-    my $user = schema->resultset('User')->find($user_id)
-        or die "No such user with id $user_id";
+    my $student_id = $args{student_id};
+    my $user = schema->resultset('User')->find($student_id)
+        or die "No such user with id $student_id";
     my $msg = $args{msg};
-    my $subject = "MathSheets: message for $user_id #$sheet_id";
+    my $subject = "MathSheets: message for $student_id #$sheet_id";
     my $body = "Congratulations @{[$user->name]}!!!\n\n"
         . "Math sheet #$sheet_id has a special message for you:\n\n$msg";
     eval {

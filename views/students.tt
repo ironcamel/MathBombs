@@ -30,14 +30,14 @@
             </div>
           </th>
           <td>
-            <a href="[% base %]/users/[% student.id %]">[% student.last_sheet %]</a>
+            <a href="[% base %]/students/[% student.id %]">[% student.last_sheet %]</a>
           </td>
           <td>
             [% student_id = student.id %]
             [% past_week = progress.$student_id.past_week %]
             [% past_month = progress.$student_id.past_month %]
             <div>
-              <a href="[% base %]/users/[% student.id %]/report">
+              <a href="[% base %]/students/[% student.id %]/report">
                 <div class="progress pull-left">
                   <div class="bar bar-success" style="width: [% past_week / 7 * 100 %]%;"></div>
                 </div>
@@ -45,7 +45,7 @@
               </a>
             </div>
             <div style="clear:both">
-              <a href="[% base %]/users/[% student.id %]/report">
+              <a href="[% base %]/students/[% student.id %]/report">
                 <div class="progress pull-left">
                   <div class="bar bar-success" style="width: [% past_month / 30 * 100 %]%;"></div>
                 </div>
@@ -64,7 +64,7 @@
     </table>
 
     <label class="checkbox">
-      <input id="pw_chk" type="checkbox"> Enable passwords
+      <input id="pw_chk" type="checkbox"> Show passwords
     </label>
 
   </div> <!-- span12 -->
