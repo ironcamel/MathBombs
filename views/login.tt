@@ -1,4 +1,6 @@
 
+[% base = request.uri_base %]
+
 [% IF err %]
 <div class="alert alert-error">
   <button type="button" class="close" data-dismiss="alert">×</button>
@@ -7,9 +9,57 @@
 [% END %]
 
 <form class="form-inline" method="post" accept-charset="utf-8">
+  <fieldset>
+    <legend>Teacher login</legend>
   <input name='email' type="text" value="[% params.email %]"
       placeholder="Email" />
   <input name='password' type="password" class="input-small"
       placeholder="Password" />
   <button type="submit" class="btn">Sign in</button>
+  </fieldset>
+</form>
+
+<br />
+<br />
+
+<form class="form-horizontal" method="post" action="[% base %]/teacher/new"
+    accept-charset="utf-8">
+  <fieldset>
+    <legend>Create a new teacher account</legend>
+
+    <div class="control-group">
+      <label class="control-label" for="new_name">Name</label>
+      <div class="controls">
+        <input type="text" id="new_name" name="new_name" maxlength="100" />
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label" for="new_email">Email</label>
+      <div class="controls">
+        <input type="text" id="new_email" name="new_email" maxlength="100" />
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label" for="new_password">Password</label>
+      <div class="controls">
+        <input type="password" id="new_password" name="new_password" />
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label" for="new_password2">Verify password</label>
+      <div class="controls">
+        <input type="password" id="new_password2" name="new_password2" />
+      </div>
+    </div>
+
+    <div class="control-group">
+      <div class="controls">
+        <button type="submit" class="btn">Create account</button>
+      </div>
+    </div>
+
+  </fieldset>
 </form>

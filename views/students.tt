@@ -106,7 +106,7 @@ $('button.delete').click(function() {
     var row = $(this).parents('tr');
     $.ajax({
         type: 'POST',
-        url: '[% base %]/teacher_ajax/delete_student',
+        url: '[% base %]/teacher/ajax/delete_student',
         data: {
             student_id : student_id
         },
