@@ -14,7 +14,7 @@ use MathSheets::Util qw(past_sheets);
 # Otherwise, redirect them to the login page.
 #
 get '/' => sub {
-    return redirect uri_for '/students' if session 'teacher';
+    return redirect uri_for '/teacher/students' if session 'teacher';
     return redirect uri_for '/login';
 };
 
@@ -34,7 +34,7 @@ post '/login' => sub {
     return login_tmpl('Invalid password')
         unless passphrase($password)->matches($teacher->pw_hash);
     session teacher => $teacher->email;
-    return redirect uri_for '/students';
+    return redirect uri_for '/teacher/students';
 };
 
 # Handles teachers logging out.
@@ -100,7 +100,7 @@ post '/teacher/new' => sub {
 
 # Display list of students for the given teacher
 #
-get '/students' => sub {
+get '/teacher/students' => sub {
     my $email = session 'teacher';
     if (not $email) {
         session login_err => 'You must be logged in to access your students';
@@ -112,7 +112,7 @@ get '/students' => sub {
 
 # Add a new student for the given teacher.
 #
-post '/students' => sub {
+post '/teacher/students' => sub {
     my $email = session 'teacher';
     if (not $email) {
         session login_err => 'You must be logged in to add a student';
