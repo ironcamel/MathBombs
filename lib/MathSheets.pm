@@ -74,7 +74,6 @@ get '/students/:student_id/sheets/:sheet_id' => sub {
         2 => 0,
         map { $_->id => $_->cnt } $student->powerups->all
     };
-    debug "powerups: ", $powerups;
     template sheet => {
         name       => $student->name,
         student_id => $student_id,
@@ -99,6 +98,8 @@ post '/ajax/save_answer' => sub {
     return 1;
 };
 
+# Handles a student finishing a sheet
+#
 post '/ajax/finished_sheet' => sub {
     my $sheet_id = param 'sheet_id';
     my $student_id = param 'student_id';
@@ -106,27 +107,22 @@ post '/ajax/finished_sheet' => sub {
         id      => $sheet_id,
         student => $student_id,
     });
-    my $user = $sheet->student;
-    if ($sheet_id > $user->last_sheet) {
-        $user->update({ last_sheet => $sheet_id });
-    }
-    my $now = DateTime->now();
-    $sheet->update({ finished => $now->ymd }) unless $sheet->finished;
-    send_progress_email(
-        student_id => $student_id,
-        sheet_id   => $sheet_id,
-        past_week  => past_week(),
-        past_month => past_month(),
-    );
+    return if $sheet->finished; # This sheet has already been completed
+
+    $sheet->update({ finished => DateTime->now->ymd });
+    my $student = $sheet->student;
+    $student->update({ last_sheet => $sheet_id })
+        if $sheet_id > $student->last_sheet; # sanity check
+    send_progress_email(student => $student, sheet_id => $sheet_id);
     my $msg = config->{msgs}{$student_id}{$sheet_id};
     if ($msg) {
-        send_msg_email(
-            student_id => $student_id,
-            sheet_id   => $sheet_id,
-            msg        => $msg,
+        send_special_msg_email(
+            student  => $student,
+            sheet_id => $sheet_id,
+            msg      => $msg,
         );
     }
-    return 1;
+    return;
 };
 
 post '/ajax/used_powerup' => sub {
@@ -195,44 +191,50 @@ sub past_month { past_sheets(30) }
 
 sub send_progress_email {
     my %args = @_;
-    info 'Sending progress email: ', \%args;
+    my $student = $args{student};
     my $sheet_id = $args{sheet_id};
-    my $student_id = $args{student_id};
-    my $past_week = $args{past_week};
-    my $past_month = $args{past_month};
-    my $subject = "MathSheets: $student_id completed sheet $sheet_id"
+    my $student_id = $student->id;
+    my $name = $student->name;
+    my $past_week = past_week();
+    my $past_month = past_month();
+    my $subject = "MathSheets: $name completed sheet $sheet_id"
         . " ($past_week/7 $past_month/30)";
-    my $body = join "\n",
-        "$student_id completed sheet $sheet_id.",
-        "past week: $past_week",
-        "past month: $past_month",
-        uri_for("/students/$student_id/sheets/$sheet_id");
-    eval {
-        email { subject => $subject, body => $body };
-        info "Sent email subject => $subject";
-    };
-    error "Could not send progress email: $@" if $@;
+    my $body = template progress_email => {
+        name       => $name,
+        sheet_id   => $sheet_id,
+        past_week  => $past_week,
+        past_month => $past_month,
+        sheet_url  => uri_for("/students/$student_id/sheets/$sheet_id"),
+    }, { layout => undef };
+    my $to = $student->teacher->email;
+    send_email(to => $to, subject => $subject, body => $body);
 };
 
-sub send_msg_email {
+sub send_special_msg_email {
     my %args = @_;
-    my $to = config->{special_msg_email} or return;
-    info 'Sending msg email: ', \%args;
+    my $student = $args{student};
     my $sheet_id = $args{sheet_id};
-    my $student_id = $args{student_id};
-    my $user = schema->resultset('User')->find($student_id)
-        or die "No such user with id $student_id";
     my $msg = $args{msg};
-    my $subject = "MathSheets: message for $student_id #$sheet_id";
-    my $body = "Congratulations @{[$user->name]}!!!\n\n"
-        . "Math sheet #$sheet_id has a special message for you:\n\n$msg";
-    eval {
-        email { to => $to, subject => $subject, body => $body };
-        info "Sent email to => $to, subject => $subject";
-    };
-    error "Could not send msg email: $@" if $@;
+    my $student_id = $student->id;
+    my $name = $student->name;
+    my $subject = "MathSheets: special message for $name from sheet #$sheet_id";
+    my $body = template special_msg_email => {
+        name     => $name,
+        sheet_id => $sheet_id,
+        msg      => $msg,
+    }, { layout => undef };
+    my $to = $student->teacher->email;
+    send_email(to => $to, subject => $subject, body => $body);
 }
 
+sub send_email {
+    my %args = (@_, from => 'notifications@mathsheets.org');
+    eval {
+        email \%args;
+        debug "Sent email $args{subject}";
+    };
+    error "Could not send email: $@" if $@;
+}
 sub gen_simple_problems {
     my ($cnt, $max, $op) = @_;
     my @problems;

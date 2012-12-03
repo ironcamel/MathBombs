@@ -1,0 +1,5 @@
+
+Congratulations [% name %]!
+MathSheet #[% sheet_id %] has a special message for you:
+
+[% msg %]

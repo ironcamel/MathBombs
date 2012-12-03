@@ -98,7 +98,7 @@ post '/teacher/new' => sub {
     return redirect uri_for '/students';
 };
 
-# Display list of students for the given teacher
+# Displays the list of students for the given teacher
 #
 get '/teacher/students' => sub {
     my $email = session 'teacher';
@@ -110,7 +110,7 @@ get '/teacher/students' => sub {
     return students_tmpl($teacher);
 };
 
-# Add a new student for the given teacher.
+# Adds a new student for the given teacher.
 #
 post '/teacher/students' => sub {
     my $email = session 'teacher';
