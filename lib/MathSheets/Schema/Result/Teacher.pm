@@ -25,9 +25,9 @@ __PACKAGE__->table("teacher");
 
 =head2 id
 
-  data_type: 'integer'
-  is_auto_increment: 1
+  data_type: 'varchar'
   is_nullable: 0
+  size: 100
 
 =head2 name
 
@@ -50,7 +50,7 @@ __PACKAGE__->table("teacher");
 
 __PACKAGE__->add_columns(
   "id",
-  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
+  { data_type => "varchar", is_nullable => 0, size => 100 },
   "name",
   { data_type => "varchar", is_nullable => 0, size => 100 },
   "email",
@@ -103,8 +103,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2012-11-26 02:04:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:w3PyHo/nzDdwfCIXAJ1AuA
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2012-12-06 04:26:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1asR8oP0N2o7PiRQIjhqMg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

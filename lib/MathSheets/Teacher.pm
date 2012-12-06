@@ -78,6 +78,7 @@ post '/teacher/new' => sub {
     }
     my $teacher = eval {
         schema->resultset('Teacher')->create({
+            id      => Data::UUID->new->create_str,
             name    => $name,
             email   => $email,
             pw_hash => passphrase($password)->generate_hash . '',
@@ -95,7 +96,7 @@ post '/teacher/new' => sub {
         }
     }
     session teacher => $email;
-    return redirect uri_for '/students';
+    return redirect uri_for '/teacher/students';
 };
 
 # Displays the list of students for the given teacher

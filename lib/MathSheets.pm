@@ -42,9 +42,9 @@ get '/students/:student_id/sheets/:sheet_id' => sub {
         given ($student_id) {
             when ('leila') {
                 #$problems = dec_multiplication(6, 10_000);
-                #$problems = division(8, 100, 1000);
+                $problems = division(10, 100, 1000);
                 #$problems = simplification(9, 100);
-                $problems = adding_fractions(8, 12, 3);
+                #$problems = adding_fractions(8, 12, 3);
             } when ('ava') {
                 #$problems = gen_simple_problems(6, 1000, '*');
                 #$problems = subtraction(12, 1000);
