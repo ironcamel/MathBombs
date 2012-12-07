@@ -57,7 +57,8 @@ get '/students/:student_id/sheets/:sheet_id' => sub {
                 #$problems = adding_fractions(6, 3, 2);
                 #$problems = division(1, 100, 1000);
             } default {
-                $problems = gen_simple_problems(9, 10, '+');
+                #$problems = gen_simple_problems(9, 10, '+');
+                $problems = adding_fractions(6, 12, 3);
             }
         }
         my $sheet = $student->sheets->create({ id => $sheet_id });
