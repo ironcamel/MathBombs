@@ -8,6 +8,7 @@
         <legend> [% student.name %]'s Settings </legend>
 
         <div class="row">
+
           <div class="span4">
             <label for="skill_sel">Math skill</label>
             <select name="math_skill" id="skill_sel">
@@ -23,8 +24,8 @@
             </select>
 
             <label for="count_sel">Problems per sheet</label>
-            <select name="count" id="count_sel">
-              [% FOR num IN [1 .. 25] %]
+            <select name="count" id="count_sel" class="input-small">
+              [% FOR num IN [1 .. 30] %]
               <option value="[% num %]"
                   [% IF student.problems_per_sheet == num %]
                   selected="selected"
@@ -49,12 +50,16 @@
               [% END %]
             </div>
 
-          </div>
+          </div> <!-- end span4 -->
 
           <div class="span8">
-            <button type="button">Refresh</button>
-            Example problem
-          </div>
+            <p> Sample problem </p>
+            <div class="problem">
+              <div class="eqn">$[% problem.question %]$</div>
+            </div>
+            <!--
+            -->
+          </div> <!-- end span8 -->
 
         </div>
 

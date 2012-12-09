@@ -137,9 +137,11 @@ get '/teacher/students/:student_id' => sub {
     my $teacher = get_teacher();
     my $student = $teacher->students->find(param 'student_id')
         or return res 404, 'You have no such student';
+    my $problems = gen_problems($student);
     template student => {
         student => $student,
         skills  => available_skills(),
+        problem => $problems->[0],
     };
 };
 

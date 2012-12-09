@@ -17,7 +17,7 @@ our $VERSION = '0.0001';
 get '/students/:student_id' => sub {
     my $student_id = param 'student_id';
     my $user = schema->resultset('Student')->find($student_id)
-        or return send_error "No such user", 404;
+        or return res 404, "No such user";
     my $sheet_id = $user->last_sheet + 1;
     redirect "/students/$student_id/sheets/$sheet_id";
 };
@@ -28,7 +28,7 @@ get '/students/:student_id/sheets/:sheet_id' => sub {
     debug "Getting sheet $sheet_id for $student_id";
     my $student = schema->resultset('Student')->find($student_id);
     if ($sheet_id > $student->last_sheet + 1) {
-        return send_error "You cannot skip ahead", 404;
+        return res 404, "You may not skip ahead";
     }
 
     my $problems;
@@ -37,19 +37,11 @@ get '/students/:student_id/sheets/:sheet_id' => sub {
         $problems = [ $sheet->problems->all ];
     } else {
         debug "Creating new problems for sheet $sheet_id";
-        $problems = gen_problems('FractionAddition');
+        $problems = gen_problems($student);
         given ($student_id) {
             when ('leila') {
-                #$problems = dec_multiplication(6, 10_000);
-                #$problems = division(10, 100, 1000);
                 #$problems = simplification(9, 100);
-            } when ('ava') {
-                #$problems = subtraction(12, 1000);
-                #$problems = division(9, 100, 1000);
                 #$problems = simplification(6, 100);
-            } when ('test') {
-                #$problems = division(12, 12, 1000);
-                #$problems = division(1, 100, 1000);
             }
         }
         my $sheet = $student->sheets->create({
@@ -132,7 +124,7 @@ post '/ajax/used_powerup' => sub {
 get '/students/:student_id/report' => sub {
     my $student_id = param 'student_id';
     my $user = schema->resultset('Student')->find($student_id)
-        or send_error "No such user", 404;
+        or return res 404, "No such user";
     template report => {
         student_id => $student_id,
         user_name  => $user->name || $student_id,
@@ -147,7 +139,7 @@ any '/ajax/add_powerup' => sub {
     return res 400, { error => 'student_id is required' } unless $student_id;
     return res 400, { error => 'powerup_id is required' } unless $powerup_id;
     my $user = schema->resultset('Student')->find($student_id)
-        or return send_error "No such user", 404;
+        or return res 404, { error => 'No such user' };
     my $powerups = schema->resultset('Powerup')->find_or_create({
         id      => $powerup_id,
         student => $student_id,

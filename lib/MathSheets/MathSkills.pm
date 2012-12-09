@@ -3,96 +3,32 @@ use strict;
 use warnings;
 use v5.10;
 use Devel::InnerPackage qw(list_packages);
-use Math::BigInt qw(bgcd);
-use Math::Random::Secure qw(irand);
-use Number::Fraction;
 
 use Exporter qw(import);
 our @EXPORT_OK = qw(available_skills gen_problems);
 
 sub gen_problems {
-    my ($type, $difficulty, $cnt) = @_;
-    $difficulty ||= 1;
-    $cnt ||= 10;
+    my ($student) = @_;
+    my $type = $student->math_skill || 'Addition';
     my $class = "MathSheets::MathSkills::$type";
-    my $skill = $class->new(difficulty => $difficulty);
-    return $skill->generate_problems();
+    my $skill = $class->new(difficulty => $student->difficulty);
+    return $skill->generate_problems($student->problems_per_sheet || 10);
 }
 
 sub available_skills {
     return [
         map $_->new(), qw(
             MathSheets::MathSkills::Addition
-            MathSheets::MathSkills::FractionAddition
+            MathSheets::MathSkills::Subtraction
             MathSheets::MathSkills::Multiplication
+            MathSheets::MathSkills::Division
+            MathSheets::MathSkills::DecimalMultiplication
+            MathSheets::MathSkills::Simplification
+            MathSheets::MathSkills::FractionAddition
         )
     ];
 }
 
-sub dec_multiplication {
-    my ($cnt, $max) = @_;
-    my @problems;
-    for my $i (1 .. $cnt) {
-        my $n1 = irand($max);
-        my $n2 = irand($max);
-        substr($n1, irand(length($n1)-1), 1) = '.';
-        substr($n2, irand(length($n2)-1), 1) = '.';
-        my $ans = $n1 * $n2;
-        my $equation = "$n1 \\; \\times \\; $n2";
-        push @problems, { id => $i, question => $equation, answer => $ans };
-    }
-    return \@problems;
-}
-
-sub subtraction {
-    my ($cnt, $max) = @_;
-    my @problems;
-    for my $i (1 .. $cnt) {
-        my $n1 = irand(int $max/2) + int $max/2;
-        my $n2 = irand(int $max/2);
-        my $ans = $n1 - $n2;
-        my $equation = "$n1 \\; - \\; $n2";
-        push @problems, { id => $i, question => $equation, answer => $ans };
-    }
-    return \@problems;
-}
-
-# A $max of 100 makes problems like 9900 / 100 = 99
-sub division {
-    my ($cnt, $divisor_max, $quotient_max) = @_;
-    my @problems;
-    for my $i (1 .. $cnt) {
-        my $divisor = irand($divisor_max) + 1;
-        my $quotient = irand($quotient_max);
-        my $dividend = $divisor * $quotient;
-        my $equation;
-        given (irand(3)) {
-            when (0) { $equation = "$dividend \\; / \\; $divisor"     }
-            when (1) { $equation = "$dividend \\; \\div \\; $divisor" }
-            when (2) { $equation = "\\frac{$dividend}{$divisor}"      }
-        }
-        push @problems, { id => $i, question => $equation, answer => $quotient };
-    }
-    return \@problems;
-}
-
-# $max is the max gcf
-sub simplification {
-    my ($cnt, $max) = @_;
-    my @problems;
-    for my $i (1 .. $cnt) {
-        my ($n1, $n2) = (2, 4);
-        while(bgcd($n1, $n2) > 1) {
-            ($n1, $n2) = sort {$a <=> $b } map { irand(12) + 1 } 1 .. 2;
-        }
-        my $ans = "$n1/$n2";
-        my $gcf = irand($max) + 1;
-        $_ *= $gcf for $n1, $n2;
-        my $equation = "\\frac{$n1}{$n2}";
-        push @problems, { id => $i, question => $equation, answer => $ans };
-    }
-    return \@problems;
-}
 
 package MathSheets::MathSkills::BaseSkill;
 use Moose::Role;
@@ -116,6 +52,7 @@ sub type {
     return $type;
 }
 
+
 package MathSheets::MathSkills::Addition;
 use Moose;
 
@@ -131,6 +68,24 @@ sub generate_problem {
     my $equation = "$n1 \\; + \\; $n2";
     return question => $equation, answer => $ans;
 }
+
+
+package MathSheets::MathSkills::Subtraction;
+use Moose;
+
+has name => (is => 'ro', default => 'Integer Subtraction');
+with 'MathSheets::MathSkills::BaseSkill';
+
+sub generate_problem {
+    my ($self) = @_;
+    my $max = 10 ** $self->difficulty;
+    my $n1 = int(rand() * (int $max/2)) + int $max/2;
+    my $n2 = int(rand() * (int $max/2));
+    my $ans = $n1 - $n2;
+    my $equation = "$n1 \\; - \\; $n2";
+    return question => $equation, answer => $ans;
+}
+
 
 package MathSheets::MathSkills::Multiplication;
 use Moose;
@@ -148,6 +103,75 @@ sub generate_problem {
     return question => $equation, answer => $ans;
 }
 
+
+package MathSheets::MathSkills::Division;
+use Moose;
+
+has name => (is => 'ro', default => 'Integer Division');
+with 'MathSheets::MathSkills::BaseSkill';
+
+sub generate_problem {
+    my ($self) = @_;
+    my ($divisor_max, $quotient_max);
+    given ($self->difficulty) {
+        when (1) { ($divisor_max, $quotient_max) = (10, 10)    }
+        when (2) { ($divisor_max, $quotient_max) = (10, 100)   }
+        default  { ($divisor_max, $quotient_max) = (100, 1000) }
+    }
+    my $divisor =  int(rand() * $divisor_max) + 1;
+    my $quotient = int(rand() * $quotient_max);
+    my $dividend = $divisor * $quotient;
+    my $equation;
+    given (int rand() * 3) {
+        when (0) { $equation = "$dividend \\; / \\; $divisor"     }
+        when (1) { $equation = "$dividend \\; \\div \\; $divisor" }
+        when (2) { $equation = "\\frac{$dividend}{$divisor}"      }
+    }
+    return question => $equation, answer => $quotient;
+}
+
+
+package MathSheets::MathSkills::DecimalMultiplication;
+use Moose;
+
+has name => (is => 'ro', default => 'Decimal Multiplication');
+with 'MathSheets::MathSkills::BaseSkill';
+
+sub generate_problem {
+    my ($self) = @_;
+    my $max = 10 ** ($self->difficulty + 2);
+    my $n1 = int(rand() * $max) + 10;
+    my $n2 = int(rand() * $max) + 10;
+    substr($n1, int(rand() * (length($n1)-1)), 1) = '.';
+    substr($n2, int(rand() * (length($n2)-1)), 1) = '.';
+    my $ans = $n1 * $n2;
+    my $equation = "$n1 \\; \\times \\; $n2";
+    return question => $equation, answer => $ans;
+}
+
+
+package MathSheets::MathSkills::Simplification;
+use Moose;
+use Math::BigInt qw(bgcd);
+
+has name => (is => 'ro', default => 'Fraction Simplification');
+with 'MathSheets::MathSkills::BaseSkill';
+
+sub generate_problem {
+    my ($self) = @_;
+    my $max = 10 ** $self->difficulty; # $max is the max gcf
+    my ($n1, $n2) = (2, 4);
+    while(bgcd($n1, $n2) > 1) {
+        ($n1, $n2) = sort { $a <=> $b } map { int(rand() * 12) + 1 } 1 .. 2;
+    }
+    my $ans = "$n1/$n2";
+    my $gcf = int(rand() * $max) + 1;
+    $_ *= $gcf foreach $n1, $n2;
+    my $equation = "\\frac{$n1}{$n2}";
+    return question => $equation, answer => $ans;
+}
+
+
 package MathSheets::MathSkills::FractionAddition;
 use Moose;
 use Number::Fraction;
@@ -161,7 +185,7 @@ sub generate_problem {
     given ($self->difficulty) {
         when (1) { ($max, $num_fractions) = (12, 2) }
         when (2) { ($max, $num_fractions) = (12, 3) }
-        default  { ($max, $num_fractions) = (24, 3) }
+        default  { ($max, $num_fractions) = (100, 3) }
     }
     my @values = map { int(rand() * $max) + 1 } 1 .. ($num_fractions * 2);
     my ($x, $y) = (pop(@values), pop(@values));
