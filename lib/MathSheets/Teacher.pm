@@ -38,11 +38,11 @@ post '/login' => sub {
         or return login_tmpl('Email is required');
     my $password = param 'password'
         or return login_tmpl('Password is required');
-    my $teacher = schema->resultset('Teacher')->find({ email => $email })
+    my $teacher = get_teacher($email)
         or return login_tmpl('No such email exists in the system');
     return login_tmpl('Invalid password')
         unless passphrase($password)->matches($teacher->pw_hash);
-    session teacher => $teacher;
+    session teacher => $email;
     return redirect uri_for '/teacher/students';
 };
 
@@ -104,27 +104,23 @@ post '/teacher/new' => sub {
             return redirect uri_for '/login';
         }
     }
-    $teacher->discard_changes; # Refresh row from db
-    session teacher => $teacher;
+    session teacher => $email;
     return redirect uri_for '/teacher/students';
 };
 
 # Displays the list of students for the given teacher
 #
-get '/teacher/students' => sub {
-    my $teacher = session 'teacher';
-    return students_tmpl($teacher);
-};
+get '/teacher/students' => sub { students_tmpl() };
 
 # Adds a new student for the given teacher.
 #
 post '/teacher/students' => sub {
     my $name = param('name') || '';
     info "Adding student $name";
-    my $teacher = session 'teacher';
-    return students_tmpl($teacher, "Invalid name")
+    my $teacher = get_teacher();
+    return students_tmpl("Invalid name")
         if  !$name or $name !~ /^\w[\w\s\.]*\w$/;
-    return students_tmpl($teacher, "Student $name already exists")
+    return students_tmpl("Student $name already exists")
         if $teacher->students->single({ name => $name });
     my $uuid = Data::UUID->new->create_str;
     $teacher->students->create({
@@ -132,11 +128,11 @@ post '/teacher/students' => sub {
         name       => $name,
         math_skill => 'Addition',
     });
-    return students_tmpl($teacher);
+    return students_tmpl();
 };
 
 get '/teacher/students/:student_id' => sub {
-    my $teacher = session 'teacher';
+    my $teacher = get_teacher();
     my $student = $teacher->students->find(param 'student_id')
         or return res 404, 'You have no such student';
     template student => {
@@ -146,7 +142,7 @@ get '/teacher/students/:student_id' => sub {
 };
 
 post '/teacher/students/:student_id' => sub {
-    my $teacher = session 'teacher';
+    my $teacher = get_teacher();
     my $student_id = param 'student_id';
     my $difficulty = param 'difficulty';
     my $math_skill = param 'math_skill';
@@ -163,7 +159,7 @@ post '/teacher/students/:student_id' => sub {
 # Deletes a student.
 #
 post '/teacher/ajax/delete_student' => sub {
-    my $teacher = session 'teacher' or return;
+    my $teacher = get_teacher() or return;
     my $student_id = param 'student_id';
     info $teacher->email . " is deleting $student_id";
     $teacher->students({ id => $student_id })->delete_all;
@@ -177,7 +173,7 @@ sub login_tmpl {
     my ($err) = @_;
     $err ||= session 'login_err';
     error "Login failed: $err" if $err;
-    session teacher => undef;
+    #session teacher => undef;
     session login_err => undef;
     return template login => { err => $err };
 }
@@ -186,8 +182,9 @@ sub login_tmpl {
 # An optional error message may be provided.
 #
 sub students_tmpl {
-    my ($teacher, $err) = @_;
+    my ($err) = @_;
     error "Students list page error: $err" if $err;
+    my $teacher = get_teacher();
     my @students = $teacher->students->all;
     my %progress = map
         {
@@ -204,6 +201,12 @@ sub students_tmpl {
         students => \@students,
         progress => \%progress,
     };
+}
+
+sub get_teacher {
+    my ($email) = @_;
+    $email ||= session 'teacher';
+    return schema->resultset('Teacher')->find({ email => $email });
 }
 
 1;
