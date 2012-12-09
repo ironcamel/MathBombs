@@ -6,10 +6,8 @@ use Dancer::Plugin::DBIC qw(schema);
 use Dancer::Plugin::Email;
 use Dancer::Plugin::Res;
 use DateTime;
-use Math::BigInt qw(bgcd);
-use Math::Random::Secure qw(irand);
-use Number::Fraction;
 
+use MathSheets::MathSkills qw(gen_problems);
 use MathSheets::Util qw(past_sheets);
 
 our $VERSION = '0.0001';
@@ -39,35 +37,28 @@ get '/students/:student_id/sheets/:sheet_id' => sub {
         $problems = [ $sheet->problems->all ];
     } else {
         debug "Creating new problems for sheet $sheet_id";
+        $problems = gen_problems('FractionAddition');
         given ($student_id) {
             when ('leila') {
                 #$problems = dec_multiplication(6, 10_000);
-                $problems = division(10, 100, 1000);
+                #$problems = division(10, 100, 1000);
                 #$problems = simplification(9, 100);
-                #$problems = adding_fractions(8, 12, 3);
             } when ('ava') {
-                #$problems = gen_simple_problems(6, 1000, '*');
                 #$problems = subtraction(12, 1000);
                 #$problems = division(9, 100, 1000);
                 #$problems = simplification(6, 100);
-                $problems = adding_fractions(6, 12, 3);
             } when ('test') {
-                $problems = gen_simple_problems(6, 10, '+');
                 #$problems = division(12, 12, 1000);
-                #$problems = adding_fractions(6, 3, 2);
                 #$problems = division(1, 100, 1000);
-            } default {
-                #$problems = gen_simple_problems(9, 10, '+');
-                $problems = adding_fractions(6, 12, 3);
             }
         }
-        my $sheet = $student->sheets->create({ id => $sheet_id });
+        my $sheet = $student->sheets->create({
+            id         => $sheet_id,
+            math_skill => $student->math_skill,
+            difficulty => $student->difficulty,
+        });
         for my $p (@$problems) {
-            $sheet->problems->create({
-                %$p,
-                id      => $p->{id},
-                student => $student_id,
-            });
+            $sheet->problems->create($p);
         }
     }
     my $powerups = {
@@ -235,104 +226,6 @@ sub send_email {
         debug "Sent email $args{subject}";
     };
     error "Could not send email: $@" if $@;
-}
-sub gen_simple_problems {
-    my ($cnt, $max, $op) = @_;
-    my @problems;
-    for my $i (1 .. $cnt) {
-        my $n1 = irand($max);
-        my $n2 = irand($max);
-        my $ans = $op eq '+' ? $n1 + $n2 : $n1 * $n2;
-        $op = '\times' if $op eq '*';
-        my $equation = "$n1 \\; $op \\; $n2";
-        push @problems, { id => $i, question => $equation, answer => $ans };
-    }
-    return \@problems;
-}
-
-#10_000
-sub dec_multiplication {
-    my ($cnt, $max) = @_;
-    my @problems;
-    for my $i (1 .. $cnt) {
-        my $n1 = irand($max);
-        my $n2 = irand($max);
-        substr($n1, irand(length($n1)-1), 1) = '.';
-        substr($n2, irand(length($n2)-1), 1) = '.';
-        my $ans = $n1 * $n2;
-        my $equation = "$n1 \\; \\times \\; $n2";
-        push @problems, { id => $i, question => $equation, answer => $ans };
-    }
-    return \@problems;
-}
-
-sub subtraction {
-    my ($cnt, $max) = @_;
-    my @problems;
-    for my $i (1 .. $cnt) {
-        my $n1 = irand(int $max/2) + int $max/2;
-        my $n2 = irand(int $max/2);
-        my $ans = $n1 - $n2;
-        my $equation = "$n1 \\; - \\; $n2";
-        push @problems, { id => $i, question => $equation, answer => $ans };
-    }
-    return \@problems;
-}
-
-# A $max of 100 makes problems like 9900 / 100 = 99
-sub division {
-    my ($cnt, $divisor_max, $quotient_max) = @_;
-    my @problems;
-    for my $i (1 .. $cnt) {
-        my $divisor = irand($divisor_max) + 1;
-        my $quotient = irand($quotient_max);
-        my $dividend = $divisor * $quotient;
-        my $equation;
-        given (irand(3)) {
-            when (0) { $equation = "$dividend \\; / \\; $divisor"     }
-            when (1) { $equation = "$dividend \\; \\div \\; $divisor" }
-            when (2) { $equation = "\\frac{$dividend}{$divisor}"      }
-        }
-        push @problems, { id => $i, question => $equation, answer => $quotient };
-    }
-    return \@problems;
-}
-
-# $max is the max gcf
-sub simplification {
-    my ($cnt, $max) = @_;
-    my @problems;
-    for my $i (1 .. $cnt) {
-        my ($n1, $n2) = (2, 4);
-        while(bgcd($n1, $n2) > 1) {
-            ($n1, $n2) = sort {$a <=> $b } map { irand(12) + 1 } 1 .. 2;
-        }
-        my $ans = "$n1/$n2";
-        my $gcf = irand($max) + 1;
-        $_ *= $gcf for $n1, $n2;
-        my $equation = "\\frac{$n1}{$n2}";
-        push @problems, { id => $i, question => $equation, answer => $ans };
-    }
-    return \@problems;
-}
-
-sub adding_fractions {
-    my ($cnt, $max, $num_fractions) = @_;
-    $num_fractions ||= 2;
-    my @problems;
-    for my $i (1 .. $cnt) {
-        my @values = map { irand($max) + 1 } 1 .. ($num_fractions * 2);
-        my ($x, $y) = (pop(@values), pop(@values));
-        my $ans = Number::Fraction->new($x, $y);
-        my $equation = "\\frac{$x}{$y}";
-        while (@values) {
-            ($x, $y) = (pop(@values), pop(@values));
-            $ans += Number::Fraction->new($x, $y);
-            $equation .= " \\; + \\; \\frac{$x}{$y}";
-        }
-        push @problems, { id => $i, question => $equation, answer => "$ans" };
-    }
-    return \@problems;
 }
 
 1;

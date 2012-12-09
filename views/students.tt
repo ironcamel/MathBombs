@@ -22,7 +22,9 @@
       <tbody>
         [% FOR student IN students %]
         <tr>
-          <td> [% student.name %] </td>
+          <td>
+            <a href="[% base %]/teacher/students/[% student.id %]">[% student.name %]</a>
+          </td>
           <th class="pw_col">
 <div class="input-append">
             <input class="input-mini" type="text" name="pw" value="[% loop.count * 17 + 100 %]" />

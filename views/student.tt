@@ -1,0 +1,52 @@
+[% base = request.uri_base %]
+
+<div class="row">
+  <div class="span12">
+    <form method="post" accept-charset="utf-8">
+      <fieldset>
+
+        <legend> [% student.name %]'s Settings </legend>
+
+        <div class="row">
+          <div class="span4">
+            <label for="skill_sel">Math skill</label>
+            <select name="math_skill" id="skill_sel">
+              [% FOR skill IN skills %]
+              <option value="[% skill.type %]"
+                  [% IF student.math_skill == skill.type %]
+                  selected="selected"
+                  [% END %]
+              >
+                [% skill.name %]
+              </option>
+              [% END %]
+            </select>
+
+            <div>
+              Difficulty
+              [% FOR level IN [1, 2, 3] %]
+              <label class="radio inline">
+                <input name="difficulty" type="radio" value="[% level %]"
+                    [% IF student.difficulty == level %]
+                    checked="checked"
+                    [% END %]
+                />
+                [% level %]
+              </label>
+              [% END %]
+            </div>
+          </div>
+
+          <div class="span8">
+            <button type="button">Refresh</button>
+            Example problem
+          </div>
+
+        </div>
+
+        <button type="submit">Update</button>
+
+      <fieldset>
+    </form>
+  </div>
+</div>

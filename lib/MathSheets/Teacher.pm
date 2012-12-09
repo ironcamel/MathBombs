@@ -4,10 +4,19 @@ use Dancer ':syntax';
 use v5.10;
 use Dancer::Plugin::DBIC qw(schema);
 use Dancer::Plugin::Passphrase;
+use Dancer::Plugin::Res;
 use Data::UUID;
 use Email::Valid;
 
+use MathSheets::MathSkills qw(available_skills gen_problems);
 use MathSheets::Util qw(past_sheets);
+
+hook before => sub {
+    if (!session('teacher') and request->path_info =~ m{^/teacher}) {
+        session login_err => 'You must be logged in to access teacher pages';
+        return redirect uri_for '/login';
+    }
+};
 
 # Handles requests for the root of the application.
 # If a teacher is logged in, redirect them to their list of students.
@@ -33,7 +42,7 @@ post '/login' => sub {
         or return login_tmpl('No such email exists in the system');
     return login_tmpl('Invalid password')
         unless passphrase($password)->matches($teacher->pw_hash);
-    session teacher => $teacher->email;
+    session teacher => $teacher;
     return redirect uri_for '/teacher/students';
 };
 
@@ -95,49 +104,68 @@ post '/teacher/new' => sub {
             return redirect uri_for '/login';
         }
     }
-    session teacher => $email;
+    $teacher->discard_changes; # Refresh row from db
+    session teacher => $teacher;
     return redirect uri_for '/teacher/students';
 };
 
 # Displays the list of students for the given teacher
 #
 get '/teacher/students' => sub {
-    my $email = session 'teacher';
-    if (not $email) {
-        session login_err => 'You must be logged in to access your students';
-        return redirect uri_for '/login';
-    }
-    my $teacher = schema->resultset('Teacher')->find({ email => $email });
+    my $teacher = session 'teacher';
     return students_tmpl($teacher);
 };
 
 # Adds a new student for the given teacher.
 #
 post '/teacher/students' => sub {
-    my $email = session 'teacher';
-    if (not $email) {
-        session login_err => 'You must be logged in to add a student';
-        return redirect uri_for '/login';
-    }
-    my $name = param 'name';
+    my $name = param('name') || '';
     info "Adding student $name";
-    my $teacher = schema->resultset('Teacher')->find({ email => $email });
+    my $teacher = session 'teacher';
     return students_tmpl($teacher, "Invalid name")
-        if  !$name or $name !~ /^\w[\w\s]*\w$/;
+        if  !$name or $name !~ /^\w[\w\s\.]*\w$/;
     return students_tmpl($teacher, "Student $name already exists")
         if $teacher->students->single({ name => $name });
     my $uuid = Data::UUID->new->create_str;
-    $teacher->add_to_students({ name => $name, id => $uuid });
+    $teacher->students->create({
+        id         => $uuid,
+        name       => $name,
+        math_skill => 'Addition',
+    });
     return students_tmpl($teacher);
+};
+
+get '/teacher/students/:student_id' => sub {
+    my $teacher = session 'teacher';
+    my $student = $teacher->students->find(param 'student_id')
+        or return res 404, 'You have no such student';
+    template student => {
+        student => $student,
+        skills  => available_skills(),
+    };
+};
+
+post '/teacher/students/:student_id' => sub {
+    my $teacher = session 'teacher';
+    my $student_id = param 'student_id';
+    my $difficulty = param 'difficulty';
+    my $math_skill = param 'math_skill';
+    debug "updating $student_id $difficulty $math_skill";
+    my $student = $teacher->students({ id => $student_id })
+        or return res 404, 'You have no such student';
+    $student->update({
+        difficulty => $difficulty,
+        math_skill => $math_skill,
+    });
+    return redirect uri_for "/teacher/students/$student_id";
 };
 
 # Deletes a student.
 #
 post '/teacher/ajax/delete_student' => sub {
-    my $email = session 'teacher' or return;
+    my $teacher = session 'teacher' or return;
     my $student_id = param 'student_id';
-    info "$email is deleting $student_id";
-    my $teacher = schema->resultset('Teacher')->find({ email => $email });
+    info $teacher->email . " is deleting $student_id";
     $teacher->students({ id => $student_id })->delete_all;
     return;
 };

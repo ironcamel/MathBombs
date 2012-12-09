@@ -47,6 +47,24 @@ __PACKAGE__->table("student");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 math_skill
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 200
+
+=head2 difficulty
+
+  data_type: 'int'
+  default_value: 1
+  is_nullable: 1
+
+=head2 problems_per_sheet
+
+  data_type: 'int'
+  default_value: 10
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -58,6 +76,12 @@ __PACKAGE__->add_columns(
   { data_type => "int", default_value => 0, is_nullable => 0 },
   "teacher_id",
   { data_type => "int", is_foreign_key => 1, is_nullable => 0 },
+  "math_skill",
+  { data_type => "varchar", is_nullable => 1, size => 200 },
+  "difficulty",
+  { data_type => "int", default_value => 1, is_nullable => 1 },
+  "problems_per_sheet",
+  { data_type => "int", default_value => 10, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -120,8 +144,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2012-11-26 04:34:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hu1jODc/yZQ4QQMeJfaEww
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2012-12-08 08:01:27
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4M6XgS0gvA34xeBaSoucOw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -39,7 +39,7 @@
         [% IF session.teacher %]
         <ul class="nav pull-right">
           <li id="fat-menu" class="dropdown">
-            <a href="#" id="drop1" role="button" class="dropdown-toggle" data-toggle="dropdown">[% session.teacher %] <b class="caret"></b></a>
+            <a href="#" id="drop1" role="button" class="dropdown-toggle" data-toggle="dropdown">[% session.teacher.email %] <b class="caret"></b></a>
             <ul class="dropdown-menu" role="menu" aria-labelledby="drop1">
               <li><a tabindex="-1" href="[% base %]/logout">Logout</a></li>
             </ul>
