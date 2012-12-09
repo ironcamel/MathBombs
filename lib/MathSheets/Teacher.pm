@@ -131,6 +131,8 @@ post '/teacher/students' => sub {
     return students_tmpl();
 };
 
+# Settings page for a student
+#
 get '/teacher/students/:student_id' => sub {
     my $teacher = get_teacher();
     my $student = $teacher->students->find(param 'student_id')
@@ -141,17 +143,21 @@ get '/teacher/students/:student_id' => sub {
     };
 };
 
+# Update settings for a student
+#
 post '/teacher/students/:student_id' => sub {
     my $teacher = get_teacher();
     my $student_id = param 'student_id';
     my $difficulty = param 'difficulty';
     my $math_skill = param 'math_skill';
-    debug "updating $student_id $difficulty $math_skill";
+    my $count      = param 'count';
+    debug "updating $student_id $math_skill $difficulty per_sheet: $count";
     my $student = $teacher->students({ id => $student_id })
         or return res 404, 'You have no such student';
     $student->update({
-        difficulty => $difficulty,
-        math_skill => $math_skill,
+        difficulty         => $difficulty,
+        math_skill         => $math_skill,
+        problems_per_sheet => $count,
     });
     return redirect uri_for "/teacher/students/$student_id";
 };
@@ -173,7 +179,6 @@ sub login_tmpl {
     my ($err) = @_;
     $err ||= session 'login_err';
     error "Login failed: $err" if $err;
-    #session teacher => undef;
     session login_err => undef;
     return template login => { err => $err };
 }

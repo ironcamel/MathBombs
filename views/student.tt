@@ -22,9 +22,22 @@
               [% END %]
             </select>
 
+            <label for="count_sel">Problems per sheet</label>
+            <select name="count" id="count_sel">
+              [% FOR num IN [1 .. 25] %]
+              <option value="[% num %]"
+                  [% IF student.problems_per_sheet == num %]
+                  selected="selected"
+                  [% END %]
+              >
+                [% num %]
+              </option>
+              [% END %]
+            </select>
+
             <div>
               Difficulty
-              [% FOR level IN [1, 2, 3] %]
+              [% FOR level IN [1 .. 3] %]
               <label class="radio inline">
                 <input name="difficulty" type="radio" value="[% level %]"
                     [% IF student.difficulty == level %]
@@ -35,6 +48,7 @@
               </label>
               [% END %]
             </div>
+
           </div>
 
           <div class="span8">
