@@ -43,27 +43,28 @@ __PACKAGE__->table("student");
 
 =head2 teacher_id
 
-  data_type: 'int'
+  data_type: 'varchar'
   is_foreign_key: 1
   is_nullable: 0
+  size: 100
 
 =head2 math_skill
 
   data_type: 'varchar'
-  is_nullable: 1
+  is_nullable: 0
   size: 200
 
 =head2 difficulty
 
   data_type: 'int'
   default_value: 1
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 problems_per_sheet
 
   data_type: 'int'
   default_value: 10
-  is_nullable: 1
+  is_nullable: 0
 
 =cut
 
@@ -75,13 +76,13 @@ __PACKAGE__->add_columns(
   "last_sheet",
   { data_type => "int", default_value => 0, is_nullable => 0 },
   "teacher_id",
-  { data_type => "int", is_foreign_key => 1, is_nullable => 0 },
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 100 },
   "math_skill",
-  { data_type => "varchar", is_nullable => 1, size => 200 },
+  { data_type => "varchar", is_nullable => 0, size => 200 },
   "difficulty",
-  { data_type => "int", default_value => 1, is_nullable => 1 },
+  { data_type => "int", default_value => 1, is_nullable => 0 },
   "problems_per_sheet",
-  { data_type => "int", default_value => 10, is_nullable => 1 },
+  { data_type => "int", default_value => 10, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -144,8 +145,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2012-12-08 08:01:27
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4M6XgS0gvA34xeBaSoucOw
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2012-12-09 03:54:02
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:d+6DSXVh7SKIM08Lryf/XQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
