@@ -12,7 +12,9 @@ use MathSheets::MathSkills qw(available_skills build_skill gen_problems);
 use MathSheets::Util qw(past_sheets);
 
 hook before => sub {
-    if (!session('teacher') and request->path_info =~ m{^/teacher}) {
+    if (!session('teacher')
+            and request->path_info =~ m{^/teacher}
+            and request->path_info !~ m{^/teacher/new}) {
         session login_err => 'You must be logged in to access teacher pages';
         return redirect uri_for '/login';
     }
