@@ -61,3 +61,7 @@ div.prev-next {
 #students_tbl .pw_col {
     display: none;
 }
+
+#students_tbl i {
+    margin-left: 10px;
+}

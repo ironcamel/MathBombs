@@ -66,6 +66,12 @@ __PACKAGE__->table("student");
   default_value: 10
   is_nullable: 0
 
+=head2 password
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 100
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -83,6 +89,8 @@ __PACKAGE__->add_columns(
   { data_type => "int", default_value => 1, is_nullable => 0 },
   "problems_per_sheet",
   { data_type => "int", default_value => 10, is_nullable => 0 },
+  "password",
+  { data_type => "varchar", is_nullable => 1, size => 100 },
 );
 
 =head1 PRIMARY KEY
@@ -145,8 +153,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2012-12-09 03:54:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:d+6DSXVh7SKIM08Lryf/XQ
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2012-12-09 21:03:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JJc4CkaaUb3kKGGa38Q5PA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

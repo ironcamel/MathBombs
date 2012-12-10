@@ -165,6 +165,27 @@ get '/ajax/report' => sub {
     ];
 };
 
+post '/ajax/get_worksheet_link' => sub {
+    my $student_name = param 'student_name';
+    my $teacher_id = param 'teacher_id';
+    my $password = param 'password';
+    my $teacher = schema->resultset('Teacher')->find($teacher_id )
+        or return { err => 'No such teacher' };
+    my $student = $teacher->students->single({ name => $student_name })
+        or return { err => "No such student named $student_name" };
+    my $url = uri_for "/students/" . $student->id;
+    if (defined $student->password) {
+        if ($student->password eq $password) {
+            return { url => "$url" };
+        } else {
+            return { err => "The password is wrong :(" };
+        }
+    } else {
+        return { url => "$url" };
+    }
+};
+
+
 post '/foo' => sub { info 'post foo'; info params->{id}; 1;};
 get  '/foo' => sub { info 'get /foo'; template 'foo' };
 get '/uidesign'      => sub { template 'uidesign' };

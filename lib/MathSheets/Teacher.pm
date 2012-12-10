@@ -8,7 +8,7 @@ use Dancer::Plugin::Res;
 use Data::UUID;
 use Email::Valid;
 
-use MathSheets::MathSkills qw(available_skills gen_problems);
+use MathSheets::MathSkills qw(available_skills build_skill gen_problems);
 use MathSheets::Util qw(past_sheets);
 
 hook before => sub {
@@ -112,15 +112,21 @@ post '/teacher/new' => sub {
 #
 get '/teacher/students' => sub { students_tmpl() };
 
+get '/portals/:teacher_id' => sub {
+    my $teacher = schema->resultset('Teacher')->find(param 'teacher_id')
+        or return res 404, 'No such portal';
+    return students_tmpl(is_portal => 1, teacher => $teacher);
+};
+
 # Adds a new student for the given teacher.
 #
 post '/teacher/students' => sub {
     my $name = param('name') || '';
     info "Adding student $name";
     my $teacher = get_teacher();
-    return students_tmpl("Invalid name")
+    return students_tmpl(err => "Invalid name")
         if  !$name or $name !~ /^\w[\w\s\.]*\w$/;
-    return students_tmpl("Student $name already exists")
+    return students_tmpl(err => "Student $name already exists")
         if $teacher->students->single({ name => $name });
     my $uuid = Data::UUID->new->create_str;
     $teacher->students->create({
@@ -174,6 +180,18 @@ post '/teacher/ajax/delete_student' => sub {
     return;
 };
 
+# Updates the password for a student.
+#
+post '/teacher/ajax/update_password' => sub {
+    my $teacher = get_teacher() or return;
+    my $student_id = param 'student_id';
+    my $password = param 'password';
+    return { err => "Invalid password" } unless $password =~ /^\w[\w\s\.]*\w$/;
+    $teacher->students({ id => $student_id })->update(
+        { password => $password });
+    return;
+};
+
 # Returns a login template.
 # An optional error message may be provided as a param or from the session.
 #
@@ -189,10 +207,13 @@ sub login_tmpl {
 # An optional error message may be provided.
 #
 sub students_tmpl {
-    my ($err) = @_;
+    my (%args) = @_;
+    my $err = $args{err};
     error "Students list page error: $err" if $err;
-    my $teacher = get_teacher();
+    my $teacher = $args{teacher} || get_teacher();
+    my $is_portal = $args{is_portal};
     my @students = $teacher->students->all;
+    my %skills = map { $_->id => build_skill($_) } @students;
     my %progress = map
         {
             $_->id => {
@@ -204,9 +225,12 @@ sub students_tmpl {
         { $progress{$a->id}{past_month} <=> $progress{$b->id}{past_month} }
         @students;
     return template students => {
-        err      => $err,
-        students => \@students,
-        progress => \%progress,
+        err       => $err,
+        teacher   => $teacher,
+        students  => \@students,
+        progress  => \%progress,
+        skills    => \%skills,
+        is_portal => $is_portal,
     };
 }
 

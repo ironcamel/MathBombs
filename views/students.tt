@@ -1,41 +1,68 @@
 
 [% base = request.uri_base %]
 
-[% IF err %]
-<div class="alert alert-error">
-  <button type="button" class="close" data-dismiss="alert">&times;</button>
-  <strong>Error!</strong> [% err %]
-</div>
-[% END %]
-
 <div class="row">
   <div class="span12">
-    <input type="hidden" name="foo" value="bar" />
+
+    <h2 class="offset1">
+      [% teacher.name %]'s Students
+      [% IF !is_portal %]
+      <small>[<a href="[% base %]/portals/[% teacher.id %]">student portal</a>]</small>
+      [% END %]
+    </h2>
+    
+    [% IF err %]
+    <div class="alert alert-error" id="err_div">
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+      <strong>Error!</strong> <span id="err_span">[% err %]</span>
+    </div>
+    [% END %]
+
     <table id="students_tbl" class="table table-hover">
       <thead>
-        <th>Student</th>
+        <th>Name</th>
+        [% IF !is_portal %]
         <th class="pw_col">Password</th>
-        <th>Sheet</th>
-        <th>Progress</th>
+        <th>Details</th>
+        [% END %]
+        <th>Goal Progress</th>
+        [% IF !is_portal %]
         <th>Delete</th>
+        [% END %]
       </thead>
       <tbody>
         [% FOR student IN students %]
+          [% student_id = student.id %]
         <tr>
           <td>
-            <a href="[% base %]/teacher/students/[% student.id %]">[% student.name %]</a>
+            [% IF is_portal %]
+            <a href="#" class="student_link" data-student_name="[% student.name %]">[% student.name %]</a>
+            [% ELSE %]
+            <a href="[% base %]/students/[% student.id %]" title="Right click to copy private link for student">[% student.name %]</a>
+            <a href="[% base %]/teacher/students/[% student.id %]"><i class="icon-pencil" title="Edit student settings"></i></a>
+            [% END %]
+            
           </td>
+          [% IF !is_portal %]
           <th class="pw_col">
 <div class="input-append">
-            <input class="input-mini" type="text" name="pw" value="[% loop.count * 17 + 100 %]" />
-            <button class="btn" type="button">Update</button>
+            <input class="input-mini" data-foo="aabb" type="text" value="[% student.password %]" />
+            <button class="btn pw_btn" data-student_id="[% student.id %]"
+                type="button">Update</button>
             </div>
           </th>
           <td>
-            <a href="[% base %]/students/[% student.id %]">[% student.last_sheet %]</a>
+            <dl class="dl-horizontal">
+              <dt>Current skill</dt>
+              <dd>[% skills.$student_id.name %]</dd>
+              <dt>Difficulty level</dt>
+              <dd>[% student.difficulty %]</dd>
+              <dt>Sheets completed</dt>
+              <dd>[% student.last_sheet %]</dd>
+            </dl>
           </td>
+          [% END %]
           <td>
-            [% student_id = student.id %]
             [% past_week = progress.$student_id.past_week %]
             [% past_month = progress.$student_id.past_month %]
             <div>
@@ -55,26 +82,30 @@
               </a>
             </div>
           </td>
+          [% IF !is_portal %]
           <td>
             <button class="delete" type="button"
                 data-student_name="[% student.name %]"
                 data-student_id="[% student.id %]">&times;</button>
           </td>
+          [% END %]
         </tr>
         [% END %]
       </tbody>
     </table>
 
+    [% IF !is_portal %]
     <label class="checkbox">
       <input id="pw_chk" type="checkbox"> Show passwords
     </label>
+    [% END %]
 
   </div> <!-- span12 -->
 </div> <!-- row -->
 
+[% IF !is_portal %]
 <div class="row">
   <div class="span12">
-
     <form id="add_form" class="form-inline" method="post">
       <fieldset>
         <legend>Add Student</legend>
@@ -84,9 +115,35 @@
     </form>
   </div>
 </div>
+[% END %]
 
 <script type="text/javascript" charset="utf-8">
-
+[% IF is_portal %]
+$('.student_link').click(function () {
+    var password = prompt('What is your password?');
+    if (password === null) return;
+    var student_name = $(this).data('student_name');
+    var teacher_id = '[% teacher.id %]';
+    $.ajax({
+        type: 'POST',
+        url: '[% base %]/ajax/get_worksheet_link',
+        data: {
+            student_name : student_name,
+            teacher_id   : teacher_id,
+            password     : password
+        },
+        success: function(data) {
+            if (!data) return;
+            if (data.err) {
+                alert(data.err);
+            } else if (data.url) {
+                window.location = data.url;
+            }
+        }
+    });
+    return false;
+});
+[% ELSE %]
 $('#pw_chk').click(function () {
     $('.pw_col').toggle(this.checked);
 });
@@ -116,5 +173,31 @@ $('button.delete').click(function() {
     });
 });
 
+$('.pw_btn').click(function() {
+    var student_id = $(this).data('student_id');
+    var pw = $(this).siblings('input').val();
+    pw = $.trim(pw);
+    if (!pw) {
+        alert("Password is empty");
+        return false;
+    }
+    $.ajax({
+        type: 'POST',
+        url: '[% base %]/teacher/ajax/update_password',
+        data: {
+            student_id : student_id,
+            password   : pw
+        },
+        success: function(data) {
+          if (data && data.err) {
+            alert(data.err);
+            return;
+          }
+          alert('Password updated');
+        }
+    });
+});
+
+[% END %]
 </script>
 

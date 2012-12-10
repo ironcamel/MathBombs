@@ -5,14 +5,19 @@ use v5.10;
 use Devel::InnerPackage qw(list_packages);
 
 use Exporter qw(import);
-our @EXPORT_OK = qw(available_skills gen_problems);
+our @EXPORT_OK = qw(available_skills gen_problems build_skill);
 
 sub gen_problems {
     my ($student) = @_;
+    my $skill = build_skill($student);
+    return $skill->generate_problems($student->problems_per_sheet);
+}
+
+sub build_skill {
+    my ($student) = @_;
     my $type = $student->math_skill || 'Addition';
     my $class = "MathSheets::MathSkills::$type";
-    my $skill = $class->new(difficulty => $student->difficulty);
-    return $skill->generate_problems($student->problems_per_sheet || 10);
+    return $class->new(difficulty => $student->difficulty);
 }
 
 sub available_skills {
