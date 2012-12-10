@@ -133,6 +133,7 @@ post '/teacher/students' => sub {
         id         => $uuid,
         name       => $name,
         math_skill => 'Addition',
+        password   => int(rand() * 1000 + 100),
     });
     return students_tmpl();
 };
