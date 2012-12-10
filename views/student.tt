@@ -25,7 +25,7 @@
 
             <label for="count_sel">Problems per sheet</label>
             <select name="count" id="count_sel" class="input-small">
-              [% FOR num IN [1 .. 30] %]
+              [% FOR num IN [1 .. 12] %]
               <option value="[% num %]"
                   [% IF student.problems_per_sheet == num %]
                   selected="selected"

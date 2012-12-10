@@ -38,12 +38,6 @@ get '/students/:student_id/sheets/:sheet_id' => sub {
     } else {
         debug "Creating new problems for sheet $sheet_id";
         $problems = gen_problems($student);
-        given ($student_id) {
-            when ('leila') {
-                #$problems = simplification(9, 100);
-                #$problems = simplification(6, 100);
-            }
-        }
         my $sheet = $student->sheets->create({
             id         => $sheet_id,
             math_skill => $student->math_skill,
