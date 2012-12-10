@@ -123,11 +123,10 @@ post '/ajax/used_powerup' => sub {
 
 get '/students/:student_id/report' => sub {
     my $student_id = param 'student_id';
-    my $user = schema->resultset('Student')->find($student_id)
-        or return res 404, "No such user";
+    my $student = schema->resultset('Student')->find($student_id)
+        or return res 404, "No such student";
     template report => {
-        student_id => $student_id,
-        user_name  => $user->name || $student_id,
+        student    => $student,
         past_week  => past_week(),
         past_month => past_month(),
     }
