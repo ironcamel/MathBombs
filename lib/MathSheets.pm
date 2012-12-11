@@ -9,6 +9,7 @@ use DateTime;
 
 use MathSheets::MathSkills qw(gen_problems);
 use MathSheets::Util qw(past_sheets);
+use Proc::Simple::Async;
 
 our $VERSION = '0.0001';
 
@@ -206,7 +207,7 @@ sub send_progress_email {
         sheet_url  => uri_for("/students/$student_id/sheets/$sheet_id"),
     }, { layout => undef };
     my $to = $student->teacher->email;
-    send_email(to => $to, subject => $subject, body => $body);
+    async { send_email(to => $to, subject => $subject, body => $body) };
 };
 
 sub send_special_msg_email {
@@ -223,10 +224,12 @@ sub send_special_msg_email {
         msg      => $msg,
     }, { layout => undef };
     my $to = $student->teacher->email;
-    eval { send_email(to => $to, subject => $subject, body => $body) };
+    async { send_email(to => $to, subject => $subject, body => $body) };
     my $rewards_email = $student->teacher->rewards_email;
     return unless $rewards_email;
-    eval {send_email(to => $rewards_email, subject => $subject, body => $body)};
+    async { 
+        send_email(to => $rewards_email, subject => $subject, body => $body)
+    };
 }
 
 sub send_email {

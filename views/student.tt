@@ -1,3 +1,4 @@
+[% USE HTML %]
 [% base = request.uri_base %]
 
 <div class="row">
@@ -110,7 +111,7 @@
                 [% FOR reward IN rewards %]
                 <tr>
                   <td>[% reward.sheet_id %]</td>
-                  <td>[% reward.reward %]</td>
+                  <td>[% HTML.escape(reward.reward) %]</td>
                   <td>
                     <button type="button" class="delete_reward"
                         data-sheet_id="[% reward.sheet_id %]">
@@ -123,6 +124,8 @@
             </table>
             [% END %]
           </div>
+
+        </div> <!-- end row -->
 
       </fieldset>
     </form>

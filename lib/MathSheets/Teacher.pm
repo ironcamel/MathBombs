@@ -110,6 +110,29 @@ post '/teacher/new' => sub {
     return redirect uri_for '/teacher/students';
 };
 
+# Displays the teacher profile page
+get '/teacher/profile' => sub {
+    my $err = session 'profile_err';
+    session 'profile_err' => undef;
+    template teacher => {
+        teacher => get_teacher(),
+        err     => $err,
+    };
+};
+
+# Updates teacher profile
+#
+post '/teacher/profile' => sub {
+    my $teacher = get_teacher();
+    my $printer_email = param 'printer_email';
+    if (not Email::Valid->address($printer_email)) {
+        session profile_err => 'Printer email is invalid';
+        return redirect uri_for '/teacher/profile';
+    }
+    $teacher->update({ rewards_email => $printer_email });
+    return redirect uri_for '/teacher/profile';
+};
+
 # Displays the list of students for the given teacher
 #
 get '/teacher/students' => sub { students_tmpl() };
