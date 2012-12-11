@@ -1,6 +1,6 @@
 package MathSheets::Util;
 use Exporter qw(import);
-our @EXPORT_OK = qw(past_sheets);
+our @EXPORT_OK = qw(past_sheets get_powerups);
 
 use Dancer ':syntax';
 use Dancer::Plugin::DBIC qw(schema);
@@ -14,6 +14,11 @@ sub past_sheets {
         student  => $student_id,
         finished => { '>' => $now->subtract(days => $days)->ymd }
     });
+}
+
+sub get_powerups {
+    my ($student) = @_;
+    return {1 => 0, 2 => 0, map { $_->id => $_->cnt } $student->powerups->all};
 }
 
 1;

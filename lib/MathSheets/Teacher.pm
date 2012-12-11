@@ -9,7 +9,7 @@ use Data::UUID;
 use Email::Valid;
 
 use MathSheets::MathSkills qw(available_skills build_skill gen_problems);
-use MathSheets::Util qw(past_sheets);
+use MathSheets::Util qw(past_sheets get_powerups);
 
 hook before => sub {
     if (!session('teacher')
@@ -171,10 +171,11 @@ get '/teacher/students/:student_id' => sub {
         or return res 404, 'You have no such student';
     my $problems = gen_problems($student);
     template student => {
-        student => $student,
-        skills  => available_skills(),
-        problem => $problems->[0],
-        rewards => [ $student->rewards->all ],
+        student  => $student,
+        skills   => available_skills(),
+        problem  => $problems->[0],
+        rewards  => [ $student->rewards->all ],
+        powerups => get_powerups($student),
     };
 };
 
@@ -197,20 +198,35 @@ post '/teacher/students/:student_id' => sub {
     return redirect uri_for "/teacher/students/$student_id";
 };
 
-# Add a reward for the student.
+# Adds a reward for the student.
 #
 post '/teacher/students/:student_id/rewards' => sub {
     my $teacher    = get_teacher();
     my $student_id = param 'student_id';
     my $sheet_id   = param 'sheet_id';
     my $reward     = param 'reward';
-    debug "adding reward for $student_id: $reward";
     my $student = $teacher->students->find($student_id)
         or return res 404, 'You have no such student';
     $student->rewards->update_or_create({
         sheet_id   => $sheet_id,
         reward     => $reward,
     });
+    return redirect uri_for "/teacher/students/$student_id";
+};
+
+# Updates student's power-ups.
+#
+post '/teacher/students/:student_id/powerups' => sub {
+    my $teacher    = get_teacher();
+    my $student_id = param 'student_id';
+    my $pu1        = param 'pu1';
+    my $pu2        = param 'pu2';
+    my $student = $teacher->students->find($student_id)
+        or return res 404, 'You have no such student';
+    return res 400, 'Power-up counts must be integers'
+        unless $pu1 =~ /^\d+$/ and $pu2 =~ /^\d+$/;
+    $student->powerups->update_or_create({ id  => 1, cnt => $pu1 });
+    $student->powerups->update_or_create({ id  => 2, cnt => $pu2 });
     return redirect uri_for "/teacher/students/$student_id";
 };
 

@@ -8,7 +8,7 @@ use Dancer::Plugin::Res;
 use DateTime;
 
 use MathSheets::MathSkills qw(gen_problems);
-use MathSheets::Util qw(past_sheets);
+use MathSheets::Util qw(past_sheets get_powerups);
 use Proc::Simple::Async;
 
 our $VERSION = '0.0001';
@@ -48,11 +48,6 @@ get '/students/:student_id/sheets/:sheet_id' => sub {
             $sheet->problems->create($p);
         }
     }
-    my $powerups = {
-        1 => 0,
-        2 => 0,
-        map { $_->id => $_->cnt } $student->powerups->all
-    };
     template sheet => {
         name       => $student->name,
         student_id => $student_id,
@@ -60,7 +55,7 @@ get '/students/:student_id/sheets/:sheet_id' => sub {
         problems   => $problems,
         past_week  => past_week(),
         past_month => past_month(),
-        powerups   => $powerups,
+        powerups   => get_powerups($student),
     };
 };
 

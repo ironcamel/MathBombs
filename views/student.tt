@@ -132,6 +132,33 @@
   </div>
 </div>
 
+<div class="row">
+  <div class="span12">
+    <form id="award_form" method="post"
+        action="[% base _ request.path_info %]/powerups"
+        accept-charset="utf-8">
+      <fieldset>
+        <legend> Power-ups </legend>
+
+        <p>
+          <img src="[% base %]/images/bomb-64.png" id="pu1" />
+          &times; 
+          <input class="input-mini" type="text" name="pu1"
+              value="[% powerups.1 %]" />
+        </p>
+        <p>
+          <img src="[% base %]/images/nuclear.gif" id="pu2" style="width:64px"/>
+          &times; 
+          <input class="input-mini" type="text" name="pu2"
+              value="[% powerups.2 %]" />
+        </p>
+        <button type="submit">Update power-ups</button>
+
+      </fieldset>
+    </form>
+  </div>
+</div>
+
 <script type="text/javascript" charset="utf-8">
 
 $('#award_form').submit(function() {

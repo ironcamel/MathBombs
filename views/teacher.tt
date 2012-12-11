@@ -17,7 +17,7 @@
         <label for="email">Email</label>
         <input type="text" name="email" id="email" disabled="disabled"
             value="[% teacher.email %]" />
-        <label for="printer_email">Printer email</label>
+        <label for="printer_email">Printer email (for printing reward coupons)</label>
         <input type="text" name="printer_email" id="printer_email"
             value="[% teacher.rewards_email %]" />
         <button type="submit">Save</button>
