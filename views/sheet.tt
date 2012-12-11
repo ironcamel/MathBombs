@@ -139,13 +139,12 @@ function check_problems(tell_server) {
                 student_id : '[% student_id %]',
                 sheet_id   : '[% sheet_id %]'
             },
-            success: function() { $('.next-link').show() }
+            success: function(data) {
+                var msg = data.msg || 'Great job!';
+                alert(msg);
+                $('.next-link').show();
+            }
         });
-        var msg = 'Great job!';
-        [% IF settings.msgs.$student_id.$sheet_id %]
-        msg = "[% settings.msgs.$student_id.$sheet_id %]";
-        [% END %]
-        alert(msg);
     } else {
         $('.next-link').show();
     }

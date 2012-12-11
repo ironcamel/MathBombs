@@ -92,7 +92,8 @@ post '/ajax/finished_sheet' => sub {
     $student->update({ last_sheet => $sheet_id })
         if $sheet_id > $student->last_sheet; # sanity check
     send_progress_email(student => $student, sheet_id => $sheet_id);
-    my $msg = config->{msgs}{$student_id}{$sheet_id};
+    my $reward = $student->rewards->single({ sheet_id => $sheet_id });
+    my $msg = $reward ? $reward->reward : '';
     if ($msg) {
         send_special_msg_email(
             student  => $student,
@@ -100,7 +101,7 @@ post '/ajax/finished_sheet' => sub {
             msg      => $msg,
         );
     }
-    return;
+    return { msg => $msg };
 };
 
 post '/ajax/used_powerup' => sub {
@@ -222,7 +223,10 @@ sub send_special_msg_email {
         msg      => $msg,
     }, { layout => undef };
     my $to = $student->teacher->email;
-    send_email(to => $to, subject => $subject, body => $body);
+    eval { send_email(to => $to, subject => $subject, body => $body) };
+    my $rewards_email = $student->teacher->rewards_email;
+    return unless $rewards_email;
+    eval {send_email(to => $rewards_email, subject => $subject, body => $body)};
 }
 
 sub send_email {
