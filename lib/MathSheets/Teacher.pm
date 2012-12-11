@@ -151,6 +151,7 @@ get '/teacher/students/:student_id' => sub {
         student => $student,
         skills  => available_skills(),
         problem => $problems->[0],
+        rewards => [ $student->rewards->all ],
     };
 };
 
@@ -163,12 +164,29 @@ post '/teacher/students/:student_id' => sub {
     my $math_skill = param 'math_skill';
     my $count      = param 'count';
     debug "updating $student_id $math_skill $difficulty per_sheet: $count";
-    my $student = $teacher->students({ id => $student_id })
+    my $student = $teacher->students->find($student_id)
         or return res 404, 'You have no such student';
     $student->update({
         difficulty         => $difficulty,
         math_skill         => $math_skill,
         problems_per_sheet => $count,
+    });
+    return redirect uri_for "/teacher/students/$student_id";
+};
+
+# Add a reward for the student.
+#
+post '/teacher/students/:student_id/rewards' => sub {
+    my $teacher    = get_teacher();
+    my $student_id = param 'student_id';
+    my $sheet_id   = param 'sheet_id';
+    my $reward     = param 'reward';
+    debug "adding reward for $student_id: $reward";
+    my $student = $teacher->students->find($student_id)
+        or return res 404, 'You have no such student';
+    $student->rewards->update_or_create({
+        sheet_id   => $sheet_id,
+        reward     => $reward,
     });
     return redirect uri_for "/teacher/students/$student_id";
 };
@@ -194,6 +212,19 @@ post '/teacher/ajax/update_password' => sub {
         { password => $password });
     return;
 };
+
+# Updates the password for a student.
+#
+post '/teacher/ajax/delete_reward' => sub {
+    my $teacher = get_teacher() or return;
+    my $student_id = param 'student_id';
+    my $sheet_id = param 'sheet_id';
+    my $student = $teacher->students->find($student_id)
+        or return { err => "No such student for this teacher" };
+    $student->rewards({ sheet_id => $sheet_id })->delete_all;
+    return;
+};
+
 
 # Returns a login template.
 # An optional error message may be provided as a param or from the session.

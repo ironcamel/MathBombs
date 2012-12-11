@@ -122,6 +122,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 1, cascade_delete => 1 },
 );
 
+=head2 rewards
+
+Type: has_many
+
+Related object: L<MathSheets::Schema::Result::Reward>
+
+=cut
+
+__PACKAGE__->has_many(
+  "rewards",
+  "MathSheets::Schema::Result::Reward",
+  { "foreign.student_id" => "self.id" },
+  { cascade_copy => 1, cascade_delete => 1 },
+);
+
 =head2 sheets
 
 Type: has_many
@@ -153,8 +168,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2012-12-09 21:03:36
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JJc4CkaaUb3kKGGa38Q5PA
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2012-12-11 03:14:27
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DsYM8kFIzVQroC9RWBmKiA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

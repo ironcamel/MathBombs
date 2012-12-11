@@ -36,7 +36,7 @@
               [% END %]
             </select>
 
-            <div>
+            <p>
               Difficulty
               [% FOR level IN [1 .. 3] %]
               <label class="radio inline">
@@ -48,8 +48,9 @@
                 [% level %]
               </label>
               [% END %]
-            </div>
+            </p>
 
+            <button type="submit">Update</button>
           </div> <!-- end span4 -->
 
           <div class="span8">
@@ -61,11 +62,97 @@
             -->
           </div> <!-- end span8 -->
 
-        </div>
+        </div> <!-- end row -->
 
-        <button type="submit">Update</button>
-
-      <fieldset>
+      </fieldset>
     </form>
   </div>
 </div>
+
+
+<div class="row">
+  <div class="span12">
+    <form id="award_form" method="post"
+        action="[% base _ request.path_info %]/rewards"
+        accept-charset="utf-8">
+      <fieldset>
+        <legend> Rewards </legend>
+
+        <div class="row">
+
+          <div class="span4">
+            <label for="sheet_sel">Sheet</label>
+            <select name="sheet_id" id="sheet_sel" class="input-small">
+              [% start_sheet = student.last_sheet+1 %]
+              [% end_sheet = student.last_sheet+50 %]
+              [% FOR num IN [start_sheet .. end_sheet] %]
+              <option value="[% num %]">
+                [% num %]
+              </option>
+              [% END %]
+            </select>
+            <label for="reward_ta">Reward</label>
+            <textarea id="reward_ta" name="reward" rows="3"></textarea>
+            <button type="submit">Add Reward</button>
+          </div>
+
+          <div class="span8">
+            [% IF rewards.size %]
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Sheet</th>
+                  <th>Reward</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                [% FOR reward IN rewards %]
+                <tr>
+                  <td>[% reward.sheet_id %]</td>
+                  <td>[% reward.reward %]</td>
+                  <td>
+                    <button type="button" class="delete_reward"
+                        data-sheet_id="[% reward.sheet_id %]">
+                      &times;
+                    </button>
+                  </td>
+                </tr>
+                [% END %]
+              </tbody>
+            </table>
+            [% END %]
+          </div>
+
+      </fieldset>
+    </form>
+  </div>
+</div>
+
+<script type="text/javascript" charset="utf-8">
+
+$('#award_form').submit(function() {
+    var reward = $.trim($('#reward_ta').val());
+    if (!reward) {
+        alert("A reward message is required");
+        return false;
+    }
+    return true;
+});
+
+$('button.delete_reward').click(function() {
+    console.log(33);
+    var sheet_id = $(this).data('sheet_id');
+    var row = $(this).parents('tr');
+    $.ajax({
+        type: 'POST',
+        url: '[% base %]/teacher/ajax/delete_reward',
+        data: {
+            student_id : "[% student.id %]",
+            sheet_id   : sheet_id
+        },
+        success: function(data) { row.remove() }
+    });
+});
+
+</script>
