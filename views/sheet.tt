@@ -124,11 +124,20 @@ var POWERUPS = {
     2 : [% powerups.2 %]
 }
 
+function check_guess(guess_inp) {
+    var guess = $(guess_inp);
+    var ans = guess.siblings('.answer').val();
+    if (ans == guess.val()) {
+        guess.prop('disabled', true);
+        guess.addClass('correct-answer');
+        return true;
+    }
+    return false;
+}
+
 function check_problems(tell_server) {
     var num_wrong = $.grep($(".problem input.guess"), function(guess) {
-        var ans = $(guess).siblings('.answer').val();
-        return ans != $(guess).val();
-        //return ! $(n).hasClass('correct-answer');
+        return !check_guess(guess);
     }).length;
     if (num_wrong > 0) return false;
     if (tell_server) {
@@ -195,23 +204,11 @@ function save_answer(pid, val) {
 $(".problem input.guess").keyup(function() {
     var ans = $(this).siblings('.answer').val();
     var id = $(this).siblings('.pid').val();
-    console.log('ans: ' + ans);
-    console.log('this: ' + $(this).val());
-    if (ans == $(this).val()) {
+    if (check_guess(this)) {
         award_powerup();
-        $(this).addClass('correct-answer');
         check_problems(true);
-    } else {
-        $(this).removeClass('correct-answer');
     }
     save_answer(id, $(this).val());
-});
-
-$(".problem input.guess").each(function() {
-    var ans = $(this).siblings('.answer').val();
-    if (ans == $(this).val()) {
-        $(this).addClass('correct-answer');
-    }
 });
 
 var TARGETING = false;
@@ -272,7 +269,6 @@ $('#pu1').click(function() {
     $('.problem').addClass('problem-targetable');
     $('body').css('cursor',
         'url([% base %]/images/crosshair.png), crosshair');
-    //$('input.guess').prop('disabled', true);
     $('.problem').click(blowup1);
 });
 

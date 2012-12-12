@@ -6,7 +6,10 @@
     <form method="post" accept-charset="utf-8">
       <fieldset>
 
-        <legend> [% student.name %]'s Settings </legend>
+        <legend>
+          [% student.name %]'s Settings
+          [<a href="[% base %]/students/[% student.id %]">workbook</a>]
+        </legend>
 
         <div class="row">
 
