@@ -1,7 +1,6 @@
-package MathSheets::Teacher;
+package MathSheets::Routes::Teachers;
 use Dancer ':syntax';
 
-use v5.10;
 use Dancer::Plugin::DBIC qw(schema);
 use Dancer::Plugin::Passphrase;
 use Dancer::Plugin::Res;
@@ -11,6 +10,9 @@ use Email::Valid;
 use MathSheets::MathSkills qw(available_skills build_skill gen_problems);
 use MathSheets::Util qw(past_sheets get_powerups);
 
+# Confirm that a teacher is logged in before allowing access to any sensitive
+# /teacher/* routes.
+#
 hook before => sub {
     if (!session('teacher')
             and request->path_info =~ m{^/teacher}

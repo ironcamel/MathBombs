@@ -1,15 +1,21 @@
-# Rename this file to config.yml.
+# Rename this file to config.yml
+# Make sure to update the plugins->DBIC->dsn value to point to your database.
+# See https://metacpan.org/module/Dancer::Plugin::Email for documentation
+# on updating the email settings, if necessary.
 
 appname: "MathSheets"
 layout: "main"
 charset: "UTF-8"
-
 template: "template_toolkit"
+serializer: JSON
+session: YAML
+
 engines:
   template_toolkit:
     encoding:  'utf8'
     start_tag: '[%'
     end_tag:   '%]'
+    anycase:   0
 
 plugins:
   DBIC:
@@ -17,20 +23,6 @@ plugins:
       schema_class: MathSheets::Schema
       dsn: dbi:SQLite:dbname=/path/to/math.db
   Email:
-    headers:
-      from: 'bob@gmail.com'
-      to: 'bob@gmail.com, sue@gmail.com'
     transport:
-      SMTP:
-        ssl: 1
-        host: smtp.gmail.com
-        port: 465
-        sasl_username: bob@gmail.com
-        sasl_password: secret
-
-special_msg_email: 'sam@foo.com'
-
-msgs:
-  leila:
-    1: 'Great job! You are on your way to becoming a math genius!'
-    3: 'Your reward is 1 candy bar from 7-11!'
+      Sendmail:
+        sendmail: '/usr/sbin/sendmail'
