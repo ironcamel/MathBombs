@@ -139,12 +139,6 @@ post '/teacher/profile' => sub {
 #
 get '/teacher/students' => sub { students_tmpl() };
 
-get '/portals/:teacher_id' => sub {
-    my $teacher = schema->resultset('Teacher')->find(param 'teacher_id')
-        or return res 404, 'No such portal';
-    return students_tmpl(is_portal => 1, teacher => $teacher);
-};
-
 # Adds a new student for the given teacher.
 #
 post '/teacher/students' => sub {
@@ -162,7 +156,15 @@ post '/teacher/students' => sub {
         math_skill => 'Addition',
         password   => int(rand() * 1000 + 100),
     });
-    return students_tmpl();
+    return redirect uri_for '/teacher/students';
+};
+
+# Displays portal page for the teacher's students
+#
+get '/portals/:teacher_id' => sub {
+    my $teacher = schema->resultset('Teacher')->find(param 'teacher_id')
+        or return res 404, 'No such portal';
+    return students_tmpl(is_portal => 1, teacher => $teacher);
 };
 
 # Settings page for a student
