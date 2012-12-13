@@ -34,7 +34,7 @@ things easy on yourself. To create the database tables, run:
 
 To deploy MathSheets, you can simply run:
 
-    ./bin/app.pl
+    perl ./bin/app.pl
 
 Then you can visit http://localhost:3000 and MathSheets should be running.
 For more sophisticated deployment options, see the documentation at
