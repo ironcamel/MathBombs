@@ -23,6 +23,8 @@ plugins:
       schema_class: MathSheets::Schema
       dsn: dbi:SQLite:dbname=/path/to/math.db
   Email:
+    headers:
+      from: 'noreply@yourdomain.com'
     transport:
       Sendmail:
         sendmail: '/usr/sbin/sendmail'
