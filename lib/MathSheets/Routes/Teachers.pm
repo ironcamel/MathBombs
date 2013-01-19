@@ -1,7 +1,7 @@
 package MathSheets::Routes::Teachers;
 use Dancer ':syntax';
 
-use Dancer::Plugin::DBIC qw(schema);
+use Dancer::Plugin::DBIC qw(rset schema);
 use Dancer::Plugin::Passphrase;
 use Dancer::Plugin::Res;
 use Data::UUID;
@@ -20,6 +20,22 @@ hook before => sub {
         session login_err => 'You must be logged in to access teacher pages';
         return redirect uri_for '/login';
     }
+};
+
+get '/admin' => sub {
+    return res 403, 'Forbidden'
+        unless config->{admin_email} eq session 'teacher';
+    template admin => {
+        teachers => [ rset('Teacher')->all ],
+    };
+};
+
+post '/ajax/login_as' => sub {
+    return res 403, 'Forbidden'
+        unless config->{admin_email} eq session 'teacher';
+    my $email = param 'email';
+    session teacher => $email;
+    return redirect uri_for '/teacher/students';
 };
 
 # Handles requests for the root of the application.
@@ -42,6 +58,11 @@ post '/login' => sub {
         or return login_tmpl('Email is required');
     my $password = param 'password'
         or return login_tmpl('Password is required');
+    if ($email eq config->{admin_email}
+            and $password eq config->{admin_password}) {
+        session teacher => $email;
+        return redirect uri_for '/admin';
+    }
     my $teacher = get_teacher($email)
         or return login_tmpl('No such email exists in the system');
     return login_tmpl('Invalid password')

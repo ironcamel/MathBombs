@@ -44,13 +44,13 @@
             
           </td>
           [% IF !is_portal %]
-          <th class="pw_col">
+          <td class="pw_col">
 <div class="input-append">
             <input class="input-mini" data-foo="aabb" type="text" value="[% student.password %]" />
             <button class="btn pw_btn" data-student_id="[% student.id %]"
                 type="button">Update</button>
             </div>
-          </th>
+          </td>
           <td>
             <dl class="dl-horizontal">
               <dt>Current skill</dt>

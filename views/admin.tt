@@ -1,0 +1,45 @@
+[% base = request.uri_base %]
+
+<div class="row">
+  <div class="span12">
+
+    <h2 class="offset1">
+      Teachers
+    </h2>
+    
+    <table id="teachers_tbl" class="table table-hover">
+      <thead>
+        <th>Name</th>
+        <th></th>
+      </thead>
+      <tbody>
+        [% FOR teacher IN teachers %]
+        <tr>
+          <td>[% teacher.email %]</td>
+          <td>
+            <button class="login" type="button"
+                data-email="[% teacher.email %]">
+              Login
+            </button>
+          </td>
+        </tr>
+        [% END %]
+      </tbody>
+    </table>
+
+  </div> <!-- span12 -->
+</div> <!-- row -->
+
+<script type="text/javascript" charset="utf-8">
+$('button.login').click(function () {
+    var email = $(this).data('email');
+    $.ajax({
+        type: 'POST',
+        url: '[% base %]/ajax/login_as',
+        data: { email : email },
+        success: function(data) {
+            window.location = '[% base %]';
+        }
+    });
+});
+</script>

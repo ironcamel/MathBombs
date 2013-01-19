@@ -7,7 +7,7 @@ WriteMakefile(
     LICENSE      => 'perl',
     PREREQ_PM => {
         'Dancer'                     => 1.31,
-        'Dancer::Plugin::DBIC'       => 0,
+        'Dancer::Plugin::DBIC'       => 0.1800,
         'Dancer::Plugin::Email'      => 0,
         'Dancer::Plugin::Passphrase' => 0,
         'Dancer::Plugin::Res'        => 0,
