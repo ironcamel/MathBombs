@@ -8,7 +8,7 @@ use Data::UUID;
 use Email::Valid;
 
 use MathSheets::MathSkills qw(available_skills build_skill gen_problems);
-use MathSheets::Util qw(past_sheets get_powerups);
+use MathSheets::Util qw(past_sheets get_powerups irand);
 
 # Confirm that a teacher is logged in before allowing access to any sensitive
 # /teacher/* routes.
@@ -154,7 +154,7 @@ post '/teacher/students' => sub {
         id         => $uuid,
         name       => $name,
         math_skill => 'Addition',
-        password   => int(rand() * 1000 + 100),
+        password   => irand(1000) + 100,
     });
     return redirect uri_for '/teacher/students';
 };

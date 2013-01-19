@@ -30,6 +30,7 @@ sub available_skills {
             MathSheets::MathSkills::DecimalMultiplication
             MathSheets::MathSkills::Simplification
             MathSheets::MathSkills::FractionAddition
+            MathSheets::MathSkills::FractionMultiplication
         )
     ];
 }
@@ -179,6 +180,7 @@ sub generate_problem {
 
 package MathSheets::MathSkills::FractionAddition;
 use Moose;
+use MathSheets::Util qw(irand);
 use Number::Fraction;
 
 has name => (is => 'ro', default => 'Fraction Addition');
@@ -190,9 +192,9 @@ sub generate_problem {
     given ($self->difficulty) {
         when (1) { ($max, $num_fractions) = (12, 2) }
         when (2) { ($max, $num_fractions) = (12, 3) }
-        default  { ($max, $num_fractions) = (100, 3) }
+        default  { ($max, $num_fractions) = (16, 3) }
     }
-    my @values = map { int(rand() * $max) + 1 } 1 .. ($num_fractions * 2);
+    my @values = map { irand($max) + 1 } 1 .. ($num_fractions * 2);
     my ($x, $y) = (pop(@values), pop(@values));
     my $ans = Number::Fraction->new($x, $y);
     my $equation = "\\frac{$x}{$y}";
@@ -200,6 +202,35 @@ sub generate_problem {
         ($x, $y) = (pop(@values), pop(@values));
         $ans += Number::Fraction->new($x, $y);
         $equation .= " \\; + \\; \\frac{$x}{$y}";
+    }
+    return question => $equation, answer => "$ans";
+}
+
+package MathSheets::MathSkills::FractionMultiplication;
+use Moose;
+use MathSheets::Util qw(irand);
+use Number::Fraction;
+
+has name => (is => 'ro', default => 'Fraction Multiplication');
+with 'MathSheets::MathSkills::BaseSkill';
+
+sub generate_problem {
+    my ($self) = @_;
+    my ($max, $num_fractions);
+    given ($self->difficulty) {
+        when (1) { ($max, $num_fractions) = (12, 2) }
+        when (2) { ($max, $num_fractions) = (12, 3) }
+        default  { ($max, $num_fractions) = (16, 3) }
+    }
+    my @values = map { irand($max) + 1 } 1 .. ($num_fractions * 2);
+    my ($x, $y) = (pop(@values), pop(@values));
+    my $ans = Number::Fraction->new($x, $y);
+    my $equation = "\\frac{$x}{$y}";
+    while (@values) {
+        ($x, $y) = (pop(@values), pop(@values));
+        $ans *= Number::Fraction->new($x, $y);
+        my $times = irand(2) ? '\times' : '\cdot';
+        $equation .= " \\; $times \\; \\frac{$x}{$y}";
     }
     return question => $equation, answer => "$ans";
 }

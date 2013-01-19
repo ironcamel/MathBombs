@@ -1,6 +1,6 @@
 package MathSheets::Util;
 use Exporter qw(import);
-our @EXPORT_OK = qw(past_sheets get_powerups);
+our @EXPORT_OK = qw(past_sheets get_powerups irand);
 
 use Dancer ':syntax';
 use Dancer::Plugin::DBIC qw(schema);
@@ -20,5 +20,7 @@ sub get_powerups {
     my ($student) = @_;
     return {1 => 0, 2 => 0, map { $_->id => $_->cnt } $student->powerups->all};
 }
+
+sub irand { int rand() * shift }
 
 1;
