@@ -38,6 +38,7 @@
         <a class="brand" href="[% base %]">[% settings.appname %]</a>
         <ul class="nav">
           <li class=""><a href="[% base %]">Home</a></li>
+          <li class=""><a href="[% base %]/help">Help</a></li>
         </ul>
         [% IF session.teacher %]
         <ul class="nav pull-right">

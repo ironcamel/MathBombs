@@ -1,0 +1,12 @@
+<p>
+If you have any questions or technical issues,
+you can send an email to
+&lt;<a href="mailto:[% settings.admin_email %]">[% settings.admin_email %]</a>&gt;
+.
+</p>
+
+<p>
+If you find any bugs or have any feature requests or cool ideas for MathSheets,
+you can create tickets for them on
+<a href="https://github.com/ironcamel/MathSheets/issues">github</a>.
+</p>

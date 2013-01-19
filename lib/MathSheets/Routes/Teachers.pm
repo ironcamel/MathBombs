@@ -22,22 +22,6 @@ hook before => sub {
     }
 };
 
-get '/admin' => sub {
-    return res 403, 'Forbidden'
-        unless config->{admin_email} eq session 'teacher';
-    template admin => {
-        teachers => [ rset('Teacher')->all ],
-    };
-};
-
-post '/ajax/login_as' => sub {
-    return res 403, 'Forbidden'
-        unless config->{admin_email} eq session 'teacher';
-    my $email = param 'email';
-    session teacher => $email;
-    return redirect uri_for '/teacher/students';
-};
-
 # Handles requests for the root of the application.
 # If a teacher is logged in, redirect them to their list of students.
 # Otherwise, redirect them to the login page.
