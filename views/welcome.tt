@@ -1,0 +1,58 @@
+[% base = request.uri_base %]
+
+<style type="text/css">
+div.thumbnail {
+  /*
+  height: 300px;
+  */
+  border: none;
+}
+</style>
+
+<div class="hero-unit">
+  <h1>MathSheets</h1>
+    
+  <p>
+    Virtual math worksheets for learning and fun!
+  </p>
+  <p><a class="btn btn-primary btn-large" href="[% base %]/login">Get started &raquo;</a></p>
+</div>
+
+<ul class="thumbnails">
+
+  <li class="span4">
+    <div class="thumbnail" style="border:none">
+      <img src="[% base %]/images/bomb-128.png">
+     <h3>Power-ups</h3>
+      <p>
+        Random problems will give students power-ups which they can use
+        to blast away other problems.
+      </p>
+    </div>
+  </li>
+
+  <li class="span4">
+    <div class="thumbnail">
+      <img src="[% base %]/images/star6.png" style="height:128px">
+      <h3>Rewards</h3>
+      <p>
+        A highly customizable and unique rewards system which can optionally
+        print physical coupons in real-time as students win rewards.
+        Come on, give those kids some extra recess time.
+      </p>
+    </div>
+  </li>
+
+  <li class="span4">
+    <div class="thumbnail">
+      <img src="[% base %]/images/food_188.gif" style="height:128px">
+      <h3>Teacher Tools</h3>
+      <p>
+        A classroom portal page is automatically created for each teacher.
+        An optional password-less student login workflow removes the need for
+        managing passwords.
+      </p>
+    </div>
+  </li>
+
+</ul>

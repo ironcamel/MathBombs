@@ -50,6 +50,12 @@
             </ul>
           </li>
         </ul>
+        [% ELSE %]
+        <ul class="nav pull-right">
+          <li>
+            <a href="[% base %]/login">login</a>
+          </li>
+        </ul>
         [% END %]
       </div>
     </div>

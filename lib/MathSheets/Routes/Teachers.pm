@@ -26,10 +26,10 @@ hook before => sub {
 # If a teacher is logged in, redirect them to their list of students.
 # Otherwise, redirect them to the login page.
 #
-get '/' => sub {
-    return redirect uri_for '/teacher/students' if session 'teacher';
-    return redirect uri_for '/login';
-};
+#get '/' => sub {
+#    return redirect uri_for '/teacher/students' if session 'teacher';
+#    return redirect uri_for '/login';
+#};
 
 # Retrieves the login page.
 #
