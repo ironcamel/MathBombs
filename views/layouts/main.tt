@@ -10,6 +10,7 @@
 
 <link rel="stylesheet" href="[% request.uri_base %]/bootstrap/css/bootstrap.css" />
 <link rel="stylesheet" href="[% request.uri_base %]/css/style.css" />
+<link rel="icon" href="[% base %]/favicon.ico" />
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript"></script>
 
