@@ -156,10 +156,11 @@ post '/teacher/students' => sub {
         if $teacher->students->single({ name => $name });
     my $uuid = Data::UUID->new->create_str;
     $teacher->students->create({
-        id         => $uuid,
-        name       => $name,
-        math_skill => 'Addition',
-        password   => irand(1000) + 100,
+        id                 => $uuid,
+        name               => $name,
+        math_skill         => 'Addition',
+        password           => irand(1000) + 100,
+        problems_per_sheet => 6,
     });
     return redirect uri_for '/teacher/students';
 };

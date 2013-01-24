@@ -106,7 +106,7 @@
 [% IF !is_portal %]
 <div class="row">
   <div class="span12">
-    <form id="add_form" class="form-inline" method="post">
+    <form id="add_form" class="form-inline" method="post" accept-charset="utf-8">
       <fieldset>
         <legend>Add Student</legend>
         <input id="new_name" type="text" name="name" placeholder="Name" />
