@@ -29,8 +29,9 @@ sub available_skills {
             MathSheets::MathSkills::Division
             MathSheets::MathSkills::DecimalMultiplication
             MathSheets::MathSkills::Simplification
-            MathSheets::MathSkills::FractionAddition
             MathSheets::MathSkills::FractionMultiplication
+            MathSheets::MathSkills::FractionDivision
+            MathSheets::MathSkills::FractionAddition
         )
     ];
 }
@@ -231,6 +232,29 @@ sub generate_problem {
         $ans *= Number::Fraction->new($x, $y);
         my $times = irand(2) ? '\times' : '\cdot';
         $equation .= " \\; $times \\; \\frac{$x}{$y}";
+    }
+    return question => $equation, answer => "$ans";
+}
+
+package MathSheets::MathSkills::FractionDivision;
+use Moose;
+use MathSheets::Util qw(irand);
+use Number::Fraction;
+
+has name => (is => 'ro', default => 'Fraction Division');
+with 'MathSheets::MathSkills::BaseSkill';
+
+sub generate_problem {
+    my ($self) = @_;
+    my ($x1,$x2,$y1,$y2) = map irand($self->difficulty * 6) + 1, 1 .. 4;
+    my $ans = Number::Fraction->new($x1, $x2) / Number::Fraction->new($y1, $y2);
+    my $f1 = "\\frac{$x1}{$x2}";
+    my $f2 = "\\frac{$y1}{$y2}";
+    my $equation = "\\frac{$x1}{$x2}";
+    given (int rand() * 3) {
+        when (0) { $equation = "$f1 \\; / \\; $f2"     }
+        when (1) { $equation = "$f1 \\; \\div \\; $f2" }
+        when (2) { $equation = "\\frac{\\;$f1\\;}{\\;$f2\\;}"      }
     }
     return question => $equation, answer => "$ans";
 }
