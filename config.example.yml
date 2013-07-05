@@ -28,3 +28,12 @@ plugins:
     transport:
       Sendmail:
         sendmail: '/usr/sbin/sendmail'
+
+# These are the probabilities of winning powerups in percentages. In this
+# example, there is a 10% chance of winning a normal Bomb and a 5% chance
+# of winning a Super Bomb, per problem.
+powerups:
+  1:
+    probability: 10
+  2:
+    probability: 5

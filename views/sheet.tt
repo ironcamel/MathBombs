@@ -160,10 +160,13 @@ function check_problems(tell_server) {
     return true;
 }
 
+// Returns a random number between 1 - 100
+function rand_100() {
+    return Math.floor((Math.random() * 100)) + 1;
+}
+
 function award_powerup() {
-    var rand = Math.floor((Math.random() * 100));
-    if (rand < 80) return;
-    if (rand >= 90) {
+    if (rand_100() <= [% settings.powerups.2.probability || 5 %]) {
         $('#modal2').modal();
         $.ajax({
             type: 'POST',
@@ -174,7 +177,8 @@ function award_powerup() {
             },
             success: function() { inc_powerup(2) }
         });
-    } else {
+    }
+    if (rand_100() <= [% settings.powerups.1.probability || 10 %]) {
         $('#modal1').modal();
         $.ajax({
             type: 'POST',

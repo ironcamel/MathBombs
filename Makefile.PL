@@ -13,7 +13,6 @@ WriteMakefile(
         'Dancer::Plugin::Res'        => 0,
         'Data::UUID'                 => 0,
         'DateTime'                   => 0,
-        'DateTime'                   => 0,
         'DBD::SQLite'                => 0,
         'Email::Valid'               => 0,
         'JSON'                       => 0,
