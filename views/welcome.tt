@@ -15,7 +15,10 @@ div.thumbnail {
   <p>
     Virtual math worksheets for learning and fun!
   </p>
-  <p><a class="btn btn-primary btn-large" href="[% base %]/login">Get started &raquo;</a></p>
+  <p>
+    <a class="btn btn-primary btn-large" href="[% base %]/login">Get started &raquo;</a>
+    <a class="btn btn-large" href="[% base %]/students/32CBD3D2-41EA-11E2-9427-B740B9B2CD51">Demo</a>
+  </p>
 </div>
 
 <ul class="thumbnails">
@@ -36,9 +39,8 @@ div.thumbnail {
       <img src="[% base %]/images/star6.png" style="height:128px">
       <h3>Rewards</h3>
       <p>
-        A highly customizable and unique rewards system which can optionally
+        A customizable rewards system which can optionally
         print physical coupons in real-time as students win rewards.
-        Come on, give those kids some extra recess time.
       </p>
     </div>
   </li>
@@ -46,11 +48,11 @@ div.thumbnail {
   <li class="span4">
     <div class="thumbnail">
       <img src="[% base %]/images/food_188.gif" style="height:128px">
-      <h3>Teacher Tools</h3>
+      <h3>Teacher/Parent Tools</h3>
       <p>
-        A classroom portal page is automatically created for each teacher.
-        An optional password-less student login workflow removes the need for
-        managing passwords.
+        A classroom portal page provides an overview of students progress.
+        An optional password-less student login workflow can remove the need
+        for managing student passwords.
       </p>
     </div>
   </li>
