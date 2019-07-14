@@ -6,7 +6,7 @@
 
 <meta charset="[% settings.charset %]" />
 
-<title>MathSheets</title>
+<title>MathBombs</title>
 
 <link rel="stylesheet" href="[% request.uri_base %]/bootstrap/css/bootstrap.css" />
 <link rel="stylesheet" href="[% request.uri_base %]/css/style.css" />
