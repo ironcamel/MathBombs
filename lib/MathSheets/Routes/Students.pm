@@ -84,14 +84,33 @@ post '/ajax/finished_sheet' => sub {
         if $sheet_id > $student->last_sheet; # sanity check
     send_progress_email(student => $student, sheet_id => $sheet_id);
     my $reward = $student->rewards->single({ sheet_id => $sheet_id });
-    my $msg = $reward ? $reward->reward : '';
-    if ($msg) {
+
+    if (not $reward) {
+        my @rewards = $student->rewards({
+            sheet_id => undef,
+            is_given => 0,
+        });
+        for my $r (@rewards) {
+            if ($r->week_goal and past_week() >= $r->week_goal) {
+                $reward = $r;
+            } elsif ($r->month_goal and past_month() >= $r->month_goal) {
+                $reward = $r;
+            }
+            last if $reward;
+        }
+    }
+
+    my $msg = '';
+    if ($reward) {
+        $msg = $reward->reward;
         send_special_msg_email(
             student  => $student,
             sheet_id => $sheet_id,
             msg      => $msg,
         );
+        $reward->update({ is_given => 1 });
     }
+
     return { msg => $msg };
 };
 

@@ -107,6 +107,21 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
+=head2 old_rewards
+
+Type: has_many
+
+Related object: L<MathSheets::Schema::Result::OldReward>
+
+=cut
+
+__PACKAGE__->has_many(
+  "old_rewards",
+  "MathSheets::Schema::Result::OldReward",
+  { "foreign.student_id" => "self.id" },
+  { cascade_copy => 1, cascade_delete => 1 },
+);
+
 =head2 powerups
 
 Type: has_many
@@ -168,8 +183,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2012-12-11 03:14:27
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DsYM8kFIzVQroC9RWBmKiA
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-07-15 03:15:20
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:M6oUFq4OYVuMgStorfZgrA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -4,11 +4,10 @@ use Dancer ':syntax';
 use Dancer::Plugin::DBIC qw(rset schema);
 use Dancer::Plugin::Passphrase;
 use Dancer::Plugin::Res;
-use Data::UUID;
 use Email::Valid;
 
 use MathSheets::MathSkills qw(available_skills build_skill gen_problems);
-use MathSheets::Util qw(past_sheets get_powerups irand);
+use MathSheets::Util qw(past_sheets gen_uuid get_powerups irand);
 
 # Confirm that a teacher is logged in before allowing access to any sensitive
 # /teacher/* routes.
@@ -96,7 +95,7 @@ post '/teacher/new' => sub {
     }
     my $teacher = eval {
         schema->resultset('Teacher')->create({
-            id      => Data::UUID->new->create_str,
+            id      => gen_uuid(),
             name    => $name,
             email   => $email,
             pw_hash => passphrase($password)->generate_hash . '',
@@ -154,9 +153,8 @@ post '/teacher/students' => sub {
         if  !$name or $name !~ /^\w[\w\s\.]*\w$/;
     return students_tmpl(err => "Student $name already exists")
         if $teacher->students->single({ name => $name });
-    my $uuid = Data::UUID->new->create_str;
     $teacher->students->create({
-        id                 => $uuid,
+        id                 => gen_uuid(),
         name               => $name,
         math_skill         => 'Addition',
         password           => irand(1000) + 100,
@@ -218,8 +216,9 @@ post '/teacher/students/:student_id/rewards' => sub {
     my $student = $teacher->students->find($student_id)
         or return res 404, 'You have no such student';
     $student->rewards->update_or_create({
-        sheet_id   => $sheet_id,
-        reward     => $reward,
+        id       => gen_uuid(),
+        sheet_id => $sheet_id,
+        reward   => $reward,
     });
     return redirect uri_for "/teacher/students/$student_id";
 };
@@ -266,11 +265,8 @@ post '/teacher/ajax/update_password' => sub {
 #
 post '/teacher/ajax/delete_reward' => sub {
     my $teacher = get_teacher() or return;
-    my $student_id = param 'student_id';
-    my $sheet_id = param 'sheet_id';
-    my $student = $teacher->students->find($student_id)
-        or return { err => "No such student for this teacher" };
-    $student->rewards({ sheet_id => $sheet_id })->delete_all;
+    my $reward_id = param 'reward_id';
+    rset('Reward')->search({ id => $reward_id })->delete;
     return;
 };
 

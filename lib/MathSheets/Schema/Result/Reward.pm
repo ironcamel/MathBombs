@@ -23,6 +23,12 @@ __PACKAGE__->table("reward");
 
 =head1 ACCESSORS
 
+=head2 id
+
+  data_type: 'varchar'
+  is_nullable: 0
+  size: 100
+
 =head2 student_id
 
   data_type: 'varchar'
@@ -30,40 +36,62 @@ __PACKAGE__->table("reward");
   is_nullable: 0
   size: 100
 
-=head2 sheet_id
-
-  data_type: 'int'
-  is_nullable: 0
-
 =head2 reward
 
   data_type: 'text'
   is_nullable: 0
 
+=head2 is_given
+
+  data_type: 'int'
+  default_value: 0
+  is_nullable: 0
+
+=head2 sheet_id
+
+  data_type: 'int'
+  is_nullable: 1
+
+=head2 week_goal
+
+  data_type: 'int'
+  is_nullable: 1
+
+=head2 month_goal
+
+  data_type: 'int'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
+  "id",
+  { data_type => "varchar", is_nullable => 0, size => 100 },
   "student_id",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 100 },
-  "sheet_id",
-  { data_type => "int", is_nullable => 0 },
   "reward",
   { data_type => "text", is_nullable => 0 },
+  "is_given",
+  { data_type => "int", default_value => 0, is_nullable => 0 },
+  "sheet_id",
+  { data_type => "int", is_nullable => 1 },
+  "week_goal",
+  { data_type => "int", is_nullable => 1 },
+  "month_goal",
+  { data_type => "int", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
 
 =over 4
 
-=item * L</student_id>
-
-=item * L</sheet_id>
+=item * L</id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("student_id", "sheet_id");
+__PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
@@ -83,8 +111,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2012-12-11 03:14:27
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:CLB/Z98n782imaIM+3IF9w
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-07-19 06:13:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v99zJMm+d3DSYF4KJBNgog
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

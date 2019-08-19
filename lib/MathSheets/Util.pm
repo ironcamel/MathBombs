@@ -1,9 +1,10 @@
 package MathSheets::Util;
 use Exporter qw(import);
-our @EXPORT_OK = qw(past_sheets get_powerups irand);
+our @EXPORT_OK = qw(past_sheets get_powerups irand gen_uuid);
 
 use Dancer ':syntax';
 use Dancer::Plugin::DBIC qw(schema);
+use Data::UUID;
 use DateTime;
 
 sub past_sheets {
@@ -22,5 +23,7 @@ sub get_powerups {
 }
 
 sub irand { int rand() * shift }
+
+sub gen_uuid { Data::UUID->new->create_str }
 
 1;

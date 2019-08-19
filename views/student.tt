@@ -105,19 +105,36 @@
             <table class="table table-hover">
               <thead>
                 <tr>
-                  <th>Sheet</th>
+                  <th>Condition</th>
                   <th>Reward</th>
+                  <th>Awarded</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
                 [% FOR reward IN rewards %]
                 <tr>
-                  <td>[% reward.sheet_id %]</td>
+                  <td>
+                    [% IF reward.sheet_id %]
+                    Sheet [% reward.sheet_id %]
+                    [% END %]
+                    [% IF reward.week_goal %]
+                    Week goal &gt;= [% reward.week_goal %]
+                    [% END %]
+                    [% IF reward.month_goal %]
+                    Month goal &gt;= [% reward.month_goal %]
+                    [% END %]
+                  </td>
                   <td>[% HTML.escape(reward.reward) %]</td>
                   <td>
-                    <button type="button" class="delete_reward"
-                        data-sheet_id="[% reward.sheet_id %]">
+                    [% IF reward.is_given %]
+                    Yes
+                    [% ELSE %]
+                    No
+                    [% END %]
+                  </td>
+                  <td>
+                    <button type="button" class="delete_reward" data-reward_id="[% reward.id %]">
                       &times;
                     </button>
                   </td>
@@ -174,15 +191,13 @@ $('#award_form').submit(function() {
 });
 
 $('button.delete_reward').click(function() {
-    console.log(33);
-    var sheet_id = $(this).data('sheet_id');
+    var reward_id = $(this).data('reward_id');
     var row = $(this).parents('tr');
     $.ajax({
         type: 'POST',
         url: '[% base %]/teacher/ajax/delete_reward',
         data: {
-            student_id : "[% student.id %]",
-            sheet_id   : sheet_id
+            reward_id: reward_id
         },
         success: function(data) { row.remove() }
     });
