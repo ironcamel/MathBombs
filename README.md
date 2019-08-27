@@ -2,7 +2,7 @@
 # About
 
 MathSheets is a web application for teachers and students of math.
-It is hosted at https://mathsheets.org. You may also install
+It is hosted at https://mathbombs.org. You may also install
 your own private instance of MathSheets.
 
 # Installation
