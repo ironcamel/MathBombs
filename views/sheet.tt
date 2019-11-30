@@ -38,25 +38,29 @@
   <div class="span2" style="border:0px black solid">
 
     <h4> Progress </h4>
-    <p>
-      7 day goal: [% past_week %] / 7
-      <div class="progress">
-        <div class="bar bar-success"
-            style="width: [% past_week / 7 * 100 %]%;"></div>
-        <!--
-        <div class="bar bar-warning" style="width: 20%;"></div>
-        <div class="bar bar-danger" style="width: 10%;"></div>
-        -->
-      </div>
-    </p>
+    <a href="[% base %]/students/[% student_id %]/report">
+      <p>
+        7 day goal: [% past_week %] / 7
+        <div class="progress">
+          <div class="bar bar-success"
+              style="width: [% past_week / 7 * 100 %]%;"></div>
+          <!--
+          <div class="bar bar-warning" style="width: 20%;"></div>
+          <div class="bar bar-danger" style="width: 10%;"></div>
+          -->
+        </div>
+      </p>
+    </a>
 
-    <p>
-      30 day goal: [% past_month %] / 30
-      <div class="progress">
-        <div class="bar bar-success"
-            style="width: [% past_month / 30 * 100 %]%;"></div>
-      </div>
-    </p>
+    <a href="[% base %]/students/[% student_id %]/report">
+      <p>
+        30 day goal: [% past_month %] / 30
+        <div class="progress">
+          <div class="bar bar-success"
+              style="width: [% past_month / 30 * 100 %]%;"></div>
+        </div>
+      </p>
+    </a>
 
     <hr />
 
