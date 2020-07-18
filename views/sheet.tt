@@ -113,8 +113,12 @@
     </p>
   </div>
   <div class="modal-footer">
+    [% IF bomb_name == 'Bomb' %]
     <button type="button" class="btn" data-dismiss="modal">Save for later</button>
-    <button type="button" class="btn btn-primary" data-dismiss="modal">Boom!</button>
+    <button id="boom-btn" type="button" class="btn btn-primary" data-dismiss="modal">Boom!</button>
+    [% ELSE %]
+    <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+    [% END %]
   </div>
 </div>
 [% END %]
@@ -271,14 +275,17 @@ function inc_powerup(powerup_id) {
     $('#pu_count' + powerup_id).html(++POWERUPS[powerup_id]);
 }
 
-$('#pu1').click(function() {
+function target() {
     if (POWERUPS[1] <= 0) return;
     TARGETING = true;
     $('.problem').addClass('problem-targetable');
     $('body').css('cursor',
         'url([% base %]/images/crosshair.png), crosshair');
     $('.problem').click(blowup1);
-});
+}
+
+$('#pu1').click(target);
+$('#boom-btn').click(target);
 
 $('#pu2').click(function() {
     if (POWERUPS[2] <= 0) return;
