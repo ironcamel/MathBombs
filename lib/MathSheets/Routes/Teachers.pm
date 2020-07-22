@@ -195,7 +195,6 @@ post '/teacher/students/:student_id' => sub {
     my $difficulty = param 'difficulty';
     my $math_skill = param 'math_skill';
     my $count      = param 'count';
-    debug "updating $student_id $math_skill $difficulty per_sheet: $count";
     my $student = $teacher->students->find($student_id)
         or return res 404, 'You have no such student';
     $student->update({

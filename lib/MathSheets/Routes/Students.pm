@@ -244,7 +244,7 @@ sub send_special_msg_email {
 sub send_email {
     my %args = @_;
     my $from = config->{plugins}{Email}{headers}{from};
-    $args{from} = $from ? $from : 'noreply@mathsheets.org';
+    $args{from} = $from ? $from : 'noreply@mathbombs.org';
     eval {
         email \%args;
         debug "Sent email $args{subject}";

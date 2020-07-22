@@ -65,3 +65,7 @@ div.prev-next {
 #students_tbl i {
     margin-left: 10px;
 }
+
+.hidden {
+    display: none;
+}

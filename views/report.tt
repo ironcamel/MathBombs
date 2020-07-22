@@ -19,7 +19,6 @@ function drawChart() {
   var student_id = '[% student.id %]';
   var req_data = { student_id : student_id };
   $.getJSON("[% request.uri_base %]/ajax/report", req_data, function(data) {
-    console.log(data);
     data = google.visualization.arrayToDataTable(data);
 
     var options = {

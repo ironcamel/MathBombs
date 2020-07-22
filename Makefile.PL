@@ -14,6 +14,7 @@ WriteMakefile(
         'Data::UUID'                 => 0,
         'DateTime'                   => 0,
         'DBD::SQLite'                => 0,
+        'DBIx::Class::TimeStamp'     => 0,
         'Email::Valid'               => 0,
         'JSON'                       => 0,
         'Number::Fraction'           => 0,

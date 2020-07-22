@@ -95,6 +95,21 @@ __PACKAGE__->add_unique_constraint("email_unique", ["email"]);
 
 =head1 RELATIONS
 
+=head2 password_reset_tokens
+
+Type: has_many
+
+Related object: L<MathSheets::Schema::Result::PasswordResetToken>
+
+=cut
+
+__PACKAGE__->has_many(
+  "password_reset_tokens",
+  "MathSheets::Schema::Result::PasswordResetToken",
+  { "foreign.teacher_id" => "self.id" },
+  { cascade_copy => 1, cascade_delete => 1 },
+);
+
 =head2 students
 
 Type: has_many
@@ -111,8 +126,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2012-12-11 01:25:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3cM5/PQ1DQ+YAhjOnbHXjQ
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-07-22 15:47:11
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XTnMPIqCEFIRsUfZMXFl8A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
