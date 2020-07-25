@@ -21,19 +21,6 @@ hook before => sub {
     }
 };
 
-# Handles requests for the root of the application.
-# If a teacher is logged in, redirect them to their list of students.
-# Otherwise, redirect them to the login page.
-#
-#get '/' => sub {
-#    return redirect uri_for '/teacher/students' if session 'teacher';
-#    return redirect uri_for '/login';
-#};
-
-# Retrieves the login page.
-#
-get '/login' => sub { login_tmpl() };
-
 # Handles teacher logins.
 #
 post '/login' => sub {
@@ -52,13 +39,6 @@ post '/login' => sub {
         unless passphrase($password)->matches($teacher->pw_hash);
     session teacher => $email;
     return redirect uri_for '/teacher/students';
-};
-
-# Handles teachers logging out.
-#
-get '/logout' => sub {
-    session teacher => undef;
-    return redirect uri_for '/login';
 };
 
 # Creates a new teacher.

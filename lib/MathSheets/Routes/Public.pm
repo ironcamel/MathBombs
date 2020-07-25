@@ -4,7 +4,10 @@ use Dancer ':syntax';
 use Dancer::Plugin::DBIC qw(schema);
 use Dancer::Plugin::Res;
 
-get '/' => sub { template 'welcome' };
+get '/' => sub {
+    return redirect uri_for '/teacher/students' if session 'teacher';
+    return template 'welcome';
+};
 
 get '/help' => sub { template 'help' };
 

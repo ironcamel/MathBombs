@@ -1,69 +1,154 @@
 
-[% base = request.uri_base %]
+<div id="login-page"></div>
 
-[% IF err %]
-<div class="alert alert-error">
-  <button type="button" class="close" data-dismiss="alert">×</button>
-  <strong>Error!</strong> [% err %]
-</div>
-[% END %]
+<script type="text/babel">
+const LoginPage = () => {
+  const [errMsg, setErrMsg] = React.useState(null);
+  const [isLoggingIn, setIsLoggingIn] = React.useState(false);
+  const [isCreatingTeacher, setIsCreatingTeacher] = React.useState(false);
+  const emailRef = React.createRef();
+  const newEmailRef = React.createRef();
+  const passwordRef = React.createRef();
+  const password1Ref = React.createRef();
+  const password2Ref = React.createRef();
+  const nameRef = React.createRef();
 
-<form class="form-inline well" method="post" accept-charset="utf-8">
-  <fieldset>
-    <legend>Teacher login</legend>
-  <input name='email' type="text" value="[% params.email %]"
-      placeholder="Email" />
-  <input name='password' type="password" class="input-small"
-      placeholder="Password" />
-  <button type="submit" class="btn">Sign in</button>
-  </fieldset>
-</form>
+  const signIn = () => {
+    setErrMsg('');
+    setIsLoggingIn(true);
+    const email = emailRef.current.value;
+    const password = passwordRef.current.value;
+    fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
+    .then(res => res.json())
+    .then(data => {
+      setIsLoggingIn(false);
+      if (data.err) {
+        setErrMsg(data.err);
+      } else {
+        location.href = location.href.replace(/login.*/, 'teacher/students');
+      }
+    });
+  };
 
-<p>
-  <a href="forgot-password">Forgot Password?</a>
-</p>
+  const createTeacher = () => {
+    setErrMsg('');
+    const name = nameRef.current.value;
+    const email = newEmailRef.current.value;
+    const password1 = password1Ref.current.value;
+    const password2 = password2Ref.current.value;
+    const password = password1;
 
-<br />
-<br />
+    if (!password1.length) {
+      setErrMsg("A passwords is required for new accounts");
+      window.scrollTo(0, 0);
+      return;
+    }
 
-<form class="form-horizontal well" method="post" action="[% base %]/teacher/new"
-    accept-charset="utf-8">
-  <fieldset>
-    <legend>Create a new teacher account</legend>
+    if (password1 != password2) {
+      setErrMsg("The passwords don't match");
+      window.scrollTo(0, 0);
+      return;
+    }
 
-    <div class="control-group">
-      <label class="control-label" for="new_name">Name</label>
-      <div class="controls">
-        <input type="text" id="new_name" name="new_name" maxlength="100" />
+    setIsCreatingTeacher(true);
+    fetch('/api/teachers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
+    })
+    .then(res => res.json())
+    .then(data => {
+      setIsCreatingTeacher(false);
+      if (data.err) {
+        setErrMsg(data.err);
+      } else {
+        location.href = location.href.replace(/login.*/, 'teacher/students');
+      }
+    });
+  };
+
+  const loginBtn = isLoggingIn
+    ? "Signing in ..."
+    : <button type="button" className="btn" onClick={signIn}>Sign in</button>;
+
+  const createBtn = isCreatingTeacher
+    ? "Creating teacher ..."
+    : <button type="button" className="btn" onClick={createTeacher}>Create account</button>
+
+  return (
+    <React.Fragment>
+
+      { errMsg &&
+      <div className="alert alert-error">
+        <button type="button" className="close" onClick={() => setErrMsg('')}>×</button>
+        <strong>Error!</strong> {errMsg}
       </div>
-    </div>
+      }
 
-    <div class="control-group">
-      <label class="control-label" for="new_email">Email</label>
-      <div class="controls">
-        <input type="text" id="new_email" name="new_email" maxlength="100" />
-      </div>
-    </div>
+      <form className="form-inline well" acceptCharset="utf-8">
+        <fieldset>
+          <legend>Login</legend>
+          <input type="text" placeholder="Email" ref={emailRef} />{' '}
+          <input type="password" className="input-small" placeholder="Password" ref={passwordRef} />{' '}
+          {loginBtn}
+        </fieldset>
+      </form>
 
-    <div class="control-group">
-      <label class="control-label" for="new_password">Password</label>
-      <div class="controls">
-        <input type="password" id="new_password" name="new_password" />
-      </div>
-    </div>
+      <p>
+        <a href="forgot-password">Forgot Password?</a>
+      </p>
 
-    <div class="control-group">
-      <label class="control-label" for="new_password2">Verify password</label>
-      <div class="controls">
-        <input type="password" id="new_password2" name="new_password2" />
-      </div>
-    </div>
+      <br />
+      <br />
 
-    <div class="control-group">
-      <div class="controls">
-        <button type="submit" class="btn">Create account</button>
-      </div>
-    </div>
+      <form className="form-horizontal well" acceptCharset="utf-8">
+        <fieldset>
+          <legend>Create a new account</legend>
 
-  </fieldset>
-</form>
+          <div className="control-group">
+            <label className="control-label" htmlFor="new_name">Name</label>
+            <div className="controls">
+              <input type="text" maxLength="100" ref={nameRef} />
+            </div>
+          </div>
+
+          <div className="control-group">
+            <label className="control-label" htmlFor="new_email">Email</label>
+            <div className="controls">
+              <input type="text" maxLength="100" ref={newEmailRef} />
+            </div>
+          </div>
+
+          <div className="control-group">
+            <label className="control-label" htmlFor="new_password">Password</label>
+            <div className="controls">
+              <input type="password" ref={password1Ref} />
+            </div>
+          </div>
+
+          <div className="control-group">
+            <label className="control-label" htmlFor="new_password2">Verify password</label>
+            <div className="controls">
+              <input type="password" ref={password2Ref} />
+            </div>
+          </div>
+
+          <div className="control-group">
+            <div className="controls">
+              {createBtn}
+            </div>
+          </div>
+
+        </fieldset>
+      </form>
+
+    </React.Fragment>
+  );
+};
+
+ReactDOM.render(<LoginPage />, document.getElementById('login-page'));
+</script>
