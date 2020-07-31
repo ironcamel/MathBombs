@@ -95,6 +95,21 @@ __PACKAGE__->add_unique_constraint("email_unique", ["email"]);
 
 =head1 RELATIONS
 
+=head2 auth_tokens
+
+Type: has_many
+
+Related object: L<MathSheets::Schema::Result::AuthToken>
+
+=cut
+
+__PACKAGE__->has_many(
+  "auth_tokens",
+  "MathSheets::Schema::Result::AuthToken",
+  { "foreign.teacher_id" => "self.id" },
+  { cascade_copy => 1, cascade_delete => 1 },
+);
+
 =head2 password_reset_tokens
 
 Type: has_many
@@ -126,9 +141,14 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-07-22 15:47:11
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XTnMPIqCEFIRsUfZMXFl8A
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-07-31 01:13:22
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NOIKpsLwsh2oWa7DpsGwhg
 
+sub TO_JSON {
+    my ($self) = @_;
+    my %cols =  $self->get_columns;
+    my @keys = grep { $_ ne 'pw_hash' } keys %cols;
+    return { %cols{@keys} };
+}
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

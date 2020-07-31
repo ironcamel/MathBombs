@@ -186,6 +186,16 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-07-15 03:15:20
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:M6oUFq4OYVuMgStorfZgrA
 
+use MathSheets::Util qw(past_sheets);
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+sub TO_JSON {
+    my ($self) = @_;
+    my %cols = (
+        $self->get_columns,
+        past_week  => past_sheets(7, $self->id),
+        past_month => past_sheets(30, $self->id),
+    );
+    return \%cols;
+}
+
 1;

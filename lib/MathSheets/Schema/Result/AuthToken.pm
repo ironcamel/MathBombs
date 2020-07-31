@@ -1,12 +1,12 @@
 use utf8;
-package MathSheets::Schema::Result::PasswordResetToken;
+package MathSheets::Schema::Result::AuthToken;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-MathSheets::Schema::Result::PasswordResetToken
+MathSheets::Schema::Result::AuthToken
 
 =cut
 
@@ -15,11 +15,11 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
-=head1 TABLE: C<password_reset_token>
+=head1 TABLE: C<auth_token>
 
 =cut
 
-__PACKAGE__->table("password_reset_token");
+__PACKAGE__->table("auth_token");
 
 =head1 ACCESSORS
 
@@ -35,6 +35,12 @@ __PACKAGE__->table("password_reset_token");
   is_foreign_key: 1
   is_nullable: 0
   size: 100
+
+=head2 token
+
+  data_type: 'varchar'
+  is_nullable: 0
+  size: 500
 
 =head2 is_deleted
 
@@ -59,6 +65,8 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 0, size => 100 },
   "teacher_id",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 100 },
+  "token",
+  { data_type => "varchar", is_nullable => 0, size => 500 },
   "is_deleted",
   { data_type => "int", default_value => 0, is_nullable => 0 },
   "created",
@@ -97,16 +105,23 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-07-31 01:38:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rvfr5rAvweC6/UUwcMPSXQ
-
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-07-31 01:18:18
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:W224DdV20jfzymx71s4rqg
 
 __PACKAGE__->load_components(qw(TimeStamp));
 
 __PACKAGE__->add_columns(
     '+created' => { set_on_create => 1 },
-    '+updated' => { set_on_create => 1, set_on_update => 1, },
+    '+updated' => { set_on_create => 1, set_on_update => 1 },
 );
+
+sub TO_JSON {
+    my ($self) = @_;
+    my %cols = $self->get_columns;
+    return {
+        %cols,
+        teacher => $self->teacher,
+    };
+}
 
 1;

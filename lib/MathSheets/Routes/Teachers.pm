@@ -21,81 +21,6 @@ hook before => sub {
     }
 };
 
-# Handles teacher logins.
-#
-post '/login' => sub {
-    my $email = param 'email'
-        or return login_tmpl('Email is required');
-    my $password = param 'password'
-        or return login_tmpl('Password is required');
-    if ($email eq config->{admin_email}
-            and $password eq config->{admin_password}) {
-        session teacher => $email;
-        return redirect uri_for '/admin';
-    }
-    my $teacher = get_teacher($email)
-        or return login_tmpl('No such email exists in the system');
-    return login_tmpl('Invalid password')
-        unless passphrase($password)->matches($teacher->pw_hash);
-    session teacher => $email;
-    return redirect uri_for '/teacher/students';
-};
-
-# Creates a new teacher.
-#
-post '/teacher/new' => sub {
-    # TODO: I really should use a validation framework to do all this
-    my $name = param 'new_name';
-    if  (!$name or $name !~ /^\w[\w\s\.]*\w$/) {
-        session login_err => 'Name is invalid';
-        return redirect uri_for '/login';
-    }
-    my $email = param 'new_email';
-    if (not $email) {
-        session login_err => 'Email is required';
-        return redirect uri_for '/login';
-    }
-    if (not Email::Valid->address($email)) {
-        session login_err => 'Email is invalid';
-        return redirect uri_for '/login';
-    }
-    my $password = param 'new_password';
-    my $password2 = param 'new_password2';
-    if (not $password or not $password2) {
-        session login_err => 'Password is required';
-        return redirect uri_for '/login';
-    }
-    if ($password ne $password2) {
-        session login_err => 'The passwords do not match';
-        return redirect uri_for '/login';
-    }
-    if (length($password) < 4) {
-        session login_err => 'The password must be at least 4 characters long';
-        return redirect uri_for '/login';
-    }
-    my $teacher = eval {
-        schema->resultset('Teacher')->create({
-            id      => gen_uuid(),
-            name    => $name,
-            email   => $email,
-            pw_hash => passphrase($password)->generate_hash . '',
-        });
-    };
-    if ($@) {
-        if ($@ =~ /column email is not unique/) {
-            session login_err => "The email address $email already exists";
-            return redirect uri_for '/login';
-        } else {
-            error $@;
-            session login_err => "There was an error creating your account."
-                . " Please contact the admin or try again later.";
-            return redirect uri_for '/login';
-        }
-    }
-    session teacher => $email;
-    return redirect uri_for '/teacher/students';
-};
-
 # Displays the teacher profile page
 get '/teacher/profile' => sub {
     my $err = session 'profile_err';
@@ -119,12 +44,10 @@ post '/teacher/profile' => sub {
     return redirect uri_for '/teacher/profile';
 };
 
-# Displays the list of students for the given teacher
-#
-get '/teacher/students' => sub { students_tmpl() };
+# List of students page
+get '/teacher/students' => sub { template 'students2' };
 
-# Adds a new student for the given teacher.
-#
+# Creates a new student for the given teacher.
 post '/teacher/students' => sub {
     my $name = param('name') || '';
     info "Adding student $name";
@@ -240,8 +163,6 @@ post '/teacher/ajax/update_password' => sub {
     return;
 };
 
-# Updates the password for a student.
-#
 post '/teacher/ajax/delete_reward' => sub {
     my $teacher = get_teacher() or return;
     my $reward_id = param 'reward_id';
@@ -280,7 +201,8 @@ sub students_tmpl {
             }
         } @students;
     @students = sort
-        { $progress{$a->id}{past_month} <=> $progress{$b->id}{past_month} }
+        #{ $progress{$a->id}{past_month} <=> $progress{$b->id}{past_month} }
+        { $a->name cmp $b->name }
         @students;
     return template students => {
         err       => $err,

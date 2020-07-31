@@ -18,17 +18,20 @@ const LoginPage = () => {
     setIsLoggingIn(true);
     const email = emailRef.current.value;
     const password = passwordRef.current.value;
-    fetch('/api/login', {
+    fetch('/api/auth-tokens', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     })
     .then(res => res.json())
     .then(data => {
+      console.log(data);
       setIsLoggingIn(false);
-      if (data.err) {
-        setErrMsg(data.err);
+      if (data.error) {
+        setErrMsg(data.error);
       } else {
+        window.localStorage.setItem('teacher', JSON.stringify(data.data.teacher));
+        window.localStorage.setItem('auth-token', JSON.stringify(data.data.token));
         location.href = location.href.replace(/login.*/, 'teacher/students');
       }
     });
@@ -63,8 +66,8 @@ const LoginPage = () => {
     .then(res => res.json())
     .then(data => {
       setIsCreatingTeacher(false);
-      if (data.err) {
-        setErrMsg(data.err);
+      if (data.error) {
+        setErrMsg(data.error);
       } else {
         location.href = location.href.replace(/login.*/, 'teacher/students');
       }
