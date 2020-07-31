@@ -9,19 +9,24 @@ use Email::Valid;
 use MathSheets::Util qw(gen_uuid irand past_sheets);
 
 hook before => sub {
-    if (not var('auth_token')
-        and request->path_info =~ m{^/api}
-        and request->path_info !~ m{^/api/auth-tokens}
-        and request->path_info !~ m{^/api/password-reset-tokens}
-    ) {
+    return if var 'auth_token';
+
+    my $is_api = request->path_info =~ m{^/api};
+    my $is_public_api =
+        request->path_info =~ m{^/api/auth-tokens}
+        || request->path_info =~ m{^/api/password-reset-tokens}
+        || request->is_post && request->path_info eq '/api/teachers';
+
+    if ($is_api and not $is_public_api) {
         my $token = request->header('x-auth-token');
-        my $auth_token = rset('AuthToken')->find({ token => $token });
+        my $auth_token = rset('AuthToken')->find({
+            token      => $token,
+            is_deleted => 0,
+        });
         var auth_token => $auth_token;
         if (not $auth_token) {
             status 403;
             halt { error => 'Invalid x-auth-token header.' };
-        } else {
-            var teacher => $auth_token->teacher;
         }
     }
 };
@@ -45,7 +50,7 @@ post '/api/auth-tokens' => sub {
         length  => 64,
         charset => ['a'..'z', 0 .. 9],
     });
-    my $auth_token = $teacher->auth_tokens->create({ token => $token });
+    my $auth_token = _create_auth_token($teacher);
     return { data => $auth_token };
 };
 
@@ -118,7 +123,7 @@ post '/api/teachers' => sub {
             id      => gen_uuid(),
             name    => $name,
             email   => $email,
-            pw_hash => passphrase($password)->generate_hash . '',
+            pw_hash => passphrase($password)->generate . '',
         });
     };
     if ($@) {
@@ -135,29 +140,28 @@ post '/api/teachers' => sub {
             };
         }
     }
+    my $auth_token = _create_auth_token($teacher);
     session teacher => $email;
-    return res 201 => {};
+    return res 201 => {
+        data => $teacher,
+        meta => {
+            auth_token => $auth_token->token,
+        }
+    };
 };
 
 get '/api/students' => sub {
-    my $teacher_id = param 'teacher_id'
-        or return res 400 => { error => 'teacher_id param is required' };
-    my $teacher = rset('Teacher')->find($teacher_id)
-        or return res 400 => { error => 'No such teacher' };
-    my @students = sort { $a->name cmp $b->name } $teacher->students->all;
+    my @students = sort { $a->name cmp $b->name } _teacher()->students->all;
     return { data => \@students };
 };
 
 post '/api/students' => sub {
     my $name = param 'name'
-        or return res 400 => { error => 'name param is required' };
+        or return res 400 => { error => 'The name param is required.' };
     return res 400 => { error => "Invalid name" }
         if $name !~ /^\w[\w\s\.]*\w$/;
-    my $teacher_id = param 'teacher_id'
-        or return res 400 => { error => 'teacher_id param is required' };
-    my $teacher = rset('Teacher')->find($teacher_id)
-        or return res 400 => { error => 'No such teacher' };
-    return res 400 => { error =>  "Student $name already exists"}
+    my $teacher = _teacher();
+    return res 400 => { error => "Student $name already exists"}
         if $teacher->students->count({ name => $name });
     info "Adding student $name";
     my $student = $teacher->students->create({
@@ -199,6 +203,18 @@ del '/api/students/:student_id' => sub {
 sub _teacher {
     my $auth_token = var 'auth_token' or return;
     return $auth_token->teacher;
+}
+
+sub _create_auth_token {
+    my ($teacher) = @_;
+    my $token = passphrase->generate_random({
+        length  => 64,
+        charset => ['a'..'z', 0 .. 9],
+    });
+    return $teacher->auth_tokens->create({
+        id    => gen_uuid(),
+        token => $token,
+    });
 }
 
 1;

@@ -1,9 +1,16 @@
 package MathSheets::Routes::Auth;
 use Dancer ':syntax';
 
+use Dancer::Plugin::DBIC qw(rset);
+
 get '/login' => sub { template 'login' };
 
 get '/logout' => sub {
+    my $email = session 'teacher';
+    if ($email) {
+        my $teacher = rset('Teacher')->find({ email => $email });
+        $teacher->auth_tokens->delete if $teacher;
+    }
     session teacher => undef;
     return redirect uri_for '/login';
 };

@@ -12,7 +12,7 @@ const TeacherMainPage = () => {
   const newStudentName = React.createRef();
 
   const teacher = JSON.parse(window.localStorage.getItem('teacher'));
-  const authToken = JSON.parse(window.localStorage.getItem('auth-token'));
+  const authToken = window.localStorage.getItem('auth-token');
   const portalUrl = "/portals/" + teacher.id;
 
   React.useEffect(() => {
@@ -27,7 +27,12 @@ const TeacherMainPage = () => {
     .then(res => res.json())
     .then(data => {
       console.log(data);
-      setStudents(data.data);
+      if (data.error) {
+        setErrMsg(data.error);
+        window.scrollTo(0, 0);
+      } else {
+        setStudents(data.data);
+      }
     });
   };
 
@@ -40,10 +45,7 @@ const TeacherMainPage = () => {
         'content-type': 'application/json',
         'x-auth-token': authToken,
       },
-      body: JSON.stringify({
-        name: newStudentName.current.value,
-        teacher_id: teacher.id,
-      }),
+      body: JSON.stringify({ name: newStudentName.current.value }),
     })
     .then(res => res.json())
     .then(data => {
@@ -151,7 +153,7 @@ const TeacherMainPage = () => {
 };
 
 const StudentRow = ({ student, showPasswords, deleteStudent, setErrMsg }) => {
-  const authToken = JSON.parse(window.localStorage.getItem('auth-token'));
+  const authToken = window.localStorage.getItem('auth-token');
   const studentUrl = `/students/${student.id}`;
   const reportUrl = `/students/${student.id}/report`;
   const editStudentUrl = `/teacher/students/${student.id}`;
@@ -179,13 +181,10 @@ const StudentRow = ({ student, showPasswords, deleteStudent, setErrMsg }) => {
     })
     .then(res => res.json())
     .then(data => {
-      console.log(data);
       setIsUpdatingStudent(false);
       if (data.error) {
         setErrMsg(data.error);
         window.scrollTo(0, 0);
-      } else {
-        alert('Password updated');
       }
     });
   };
@@ -200,8 +199,11 @@ const StudentRow = ({ student, showPasswords, deleteStudent, setErrMsg }) => {
       <td>
         <div className="input-append">
           <input className="input-mini" type="text" defaultValue={student.password} ref={passwordRef} />
+          { isUpdatingStudent ||
           <button className="btn pw_btn" type="button" onClick={updatePassword}>Update</button>
+          }
         </div>
+        { isUpdatingStudent && 'Updating ...' }
       </td>
       }
       <td>
@@ -214,32 +216,15 @@ const StudentRow = ({ student, showPasswords, deleteStudent, setErrMsg }) => {
           <dd>{student.last_sheet}</dd>
         </dl>
       </td>
+      <StudentProgressTd student={student} />
       <td>
-        <div>
-          <a href={reportUrl}>
-            <div className="progress pull-left">
-              <div className="bar bar-success" style={{width: weekPercent + '%'}}></div>
-            </div>
-            {student.past_week} / 7
-          </a>
-        </div>
-        <div style={{clear: 'both'}}>
-          <a href={reportUrl}>
-            <div className="progress pull-left">
-              <div className="bar bar-success" style={{width: monthPercent + '%'}}></div>
-            </div>
-            {student.past_month} / 30
-          </a>
-        </div>
-      </td>
-      <td>
-        <button className="delete" type="button" onClick={() => deleteStudent(student)}
-            data-student_name={student.name}
-            data-student_id={student.id}>&times;</button>
+        <button className="delete" type="button" onClick={() => deleteStudent(student)}>
+          &times;
+        </button>
       </td>
     </tr>
   );
-}
+};
 
 ReactDOM.render(<TeacherMainPage />, document.getElementById('teacher-main-page'));
 

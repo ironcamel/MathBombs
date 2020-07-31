@@ -47,35 +47,10 @@ post '/teacher/profile' => sub {
 # List of students page
 get '/teacher/students' => sub { template 'students2' };
 
-# Creates a new student for the given teacher.
-post '/teacher/students' => sub {
-    my $name = param('name') || '';
-    info "Adding student $name";
-    my $teacher = get_teacher();
-    return students_tmpl(err => "Invalid name")
-        if  !$name or $name !~ /^\w[\w\s\.]*\w$/;
-    return students_tmpl(err => "Student $name already exists")
-        if $teacher->students->single({ name => $name });
-    $teacher->students->create({
-        id                 => gen_uuid(),
-        name               => $name,
-        math_skill         => 'Addition',
-        password           => irand(1000) + 100,
-        problems_per_sheet => 6,
-    });
-    return redirect uri_for '/teacher/students';
-};
-
 # Displays portal page for the teacher's students
-#
-get '/portals/:teacher_id' => sub {
-    my $teacher = schema->resultset('Teacher')->find(param 'teacher_id')
-        or return res 404, 'No such portal';
-    return students_tmpl(is_portal => 1, teacher => $teacher);
-};
+get '/portals/:teacher_id' => sub { template 'portal' };
 
 # Settings page for a student
-#
 get '/teacher/students/:student_id' => sub {
     my $teacher = get_teacher();
     my $student = $teacher->students->find(param 'student_id')
@@ -180,38 +155,6 @@ sub login_tmpl {
     error "Login failed: $err" if $err;
     session login_err => undef;
     return template login => { err => $err };
-}
-
-# Returns a students list page template.
-# An optional error message may be provided.
-#
-sub students_tmpl {
-    my (%args) = @_;
-    my $err = $args{err};
-    error "Students list page error: $err" if $err;
-    my $teacher = $args{teacher} || get_teacher();
-    my $is_portal = $args{is_portal};
-    my @students = $teacher->students->all;
-    my %skills = map { $_->id => build_skill($_) } @students;
-    my %progress = map
-        {
-            $_->id => {
-                past_week  => past_sheets(7,  $_->id),
-                past_month => past_sheets(30, $_->id),
-            }
-        } @students;
-    @students = sort
-        #{ $progress{$a->id}{past_month} <=> $progress{$b->id}{past_month} }
-        { $a->name cmp $b->name }
-        @students;
-    return template students => {
-        err       => $err,
-        teacher   => $teacher,
-        students  => \@students,
-        progress  => \%progress,
-        skills    => \%skills,
-        is_portal => $is_portal,
-    };
 }
 
 sub get_teacher {

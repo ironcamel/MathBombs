@@ -29,6 +29,7 @@
 <script type="text/javascript" src="[% base %]/mathjax/MathJax.js?config=TeX-AMS_HTML">
 </script>
 
+<script type="text/babel" src="[% request.uri_base%]/javascripts/components.js"></script>
 <script type="text/javascript" src="[% request.uri_base%]/javascripts/mathsheets.js"></script>
 <script type="text/javascript" src="[% request.uri_base%]/javascripts/fire.js"></script>
 

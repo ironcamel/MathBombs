@@ -30,8 +30,8 @@ const LoginPage = () => {
       if (data.error) {
         setErrMsg(data.error);
       } else {
+        window.localStorage.setItem('auth-token', data.data.token);
         window.localStorage.setItem('teacher', JSON.stringify(data.data.teacher));
-        window.localStorage.setItem('auth-token', JSON.stringify(data.data.token));
         location.href = location.href.replace(/login.*/, 'teacher/students');
       }
     });
@@ -65,10 +65,13 @@ const LoginPage = () => {
     })
     .then(res => res.json())
     .then(data => {
+      console.log(data);
       setIsCreatingTeacher(false);
       if (data.error) {
         setErrMsg(data.error);
       } else {
+        window.localStorage.setItem('auth-token', data.meta.auth_token);
+        window.localStorage.setItem('teacher', JSON.stringify(data.data));
         location.href = location.href.replace(/login.*/, 'teacher/students');
       }
     });
@@ -80,7 +83,7 @@ const LoginPage = () => {
 
   const createBtn = isCreatingTeacher
     ? "Creating teacher ..."
-    : <button type="button" className="btn" onClick={createTeacher}>Create account</button>
+    : <button type="button" className="btn" onClick={createTeacher}>Create account</button>;
 
   return (
     <React.Fragment>
