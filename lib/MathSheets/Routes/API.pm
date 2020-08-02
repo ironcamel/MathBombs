@@ -152,6 +152,17 @@ post '/api/teachers' => sub {
     };
 };
 
+patch '/api/teachers/:teacher_id' => sub {
+    my $teacher_id = param 'teacher_id';
+    my $teacher = _teacher();
+    return res 403 => { error => "Not allowed to update this teacher." }
+        unless $teacher_id eq $teacher->id;
+    my $rewards_email = param 'rewards_email'
+        or return res 400 => {error => 'The rewards_email param is required.'};
+    $teacher->update({ rewards_email => $rewards_email });
+    return { data => $teacher };
+};
+
 get '/api/students' => sub {
     my @students = sort { $a->name cmp $b->name } _teacher()->students->all;
     return { data => \@students };
@@ -254,14 +265,14 @@ post '/api/rewards' => sub {
         or return res 400 => { error => 'The student_id param is required.' };
     my $sheet_id = param 'sheet_id'
         or return res 400 => { error => 'The sheet_id param is required.' };
-    my $reward = param 'reward'
+    my $reward_msg = param 'reward'
         or return res 400 => { error => 'The reward param is required.' };
     my $student = _teacher()->students->find($student_id)
         or return res 400 => { error => 'No such student.' };
     my $reward = $student->rewards->update_or_create({
         id       => gen_uuid(),
         sheet_id => $sheet_id,
-        reward   => $reward,
+        reward   => $reward_msg,
     });
     return { data => $reward };
 };

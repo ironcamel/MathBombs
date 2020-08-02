@@ -1,41 +1,8 @@
 
-<div class="row">
-  <div class="span12">
+<div id="teacher-profile-page"></div>
 
-    [% IF err %]
-    <div class="alert alert-error" id="err_div">
-      <button type="button" class="close" data-dismiss="alert">&times;</button>
-      <strong>Error!</strong> [% err %]
-    </div>
-    [% END %]
+<script type="text/babel" src="/javascripts/components/TeacherProfilePage.js"></script>
 
-    <form id="profile_form" method="post" accept-charset="utf-8">
-      <fieldset>
-
-        <legend> [% teacher.name %]'s Profile </legend>
-
-        <label for="email">Email</label>
-        <input type="text" name="email" id="email" disabled="disabled"
-            value="[% teacher.email %]" />
-        <label for="printer_email">Printer email (for printing reward coupons)</label>
-        <input type="text" name="printer_email" id="printer_email"
-            value="[% teacher.rewards_email %]" />
-        <button type="submit">Save</button>
-
-      </fieldset>
-    </form>
-  </div>
-</div>
-
-<script type="text/javascript" charset="utf-8">
-
-$('#profile_form').submit(function() {
-    var printer_email = $.trim($('#printer_email').val());
-    if (!printer_email) {
-        alert("A reward message is required");
-        return false;
-    }
-    return true;
-});
-
+<script type="text/babel">
+  ReactDOM.render(<TeacherProfilePage/>, document.getElementById('teacher-profile-page'));
 </script>
