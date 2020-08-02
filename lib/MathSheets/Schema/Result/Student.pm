@@ -183,8 +183,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-07-15 03:15:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:M6oUFq4OYVuMgStorfZgrA
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-08-02 08:03:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wXDivc70gqtljoImzCQJuA
 
 use MathSheets::Util qw(past_sheets);
 
@@ -194,6 +194,7 @@ sub TO_JSON {
         $self->get_columns,
         past_week  => past_sheets(7, $self->id),
         past_month => past_sheets(30, $self->id),
+        powerups   => { map { $_->id => $_ } $self->powerups->all },
     );
     return \%cols;
 }

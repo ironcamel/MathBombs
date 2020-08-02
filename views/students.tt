@@ -15,9 +15,7 @@ const TeacherMainPage = () => {
   const authToken = window.localStorage.getItem('auth-token');
   const portalUrl = "/portals/" + teacher.id;
 
-  React.useEffect(() => {
-    getStudents();
-  }, []);
+  React.useEffect(() => getStudents(), []);
 
   const getStudents = () => {
     fetch('/api/students?teacher_id=' + teacher.id, {

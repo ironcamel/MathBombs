@@ -6,6 +6,8 @@ use Dancer::Plugin::Email;
 use Dancer::Plugin::Passphrase;
 use Dancer::Plugin::Res;
 use Email::Valid;
+
+use MathSheets::MathSkills qw(available_skills gen_problems sample_problem);
 use MathSheets::Util qw(gen_uuid irand past_sheets);
 
 hook before => sub {
@@ -174,6 +176,13 @@ post '/api/students' => sub {
     return res 201 => { data => $student };
 };
 
+get '/api/students/:student_id' => sub {
+    my $student_id = param 'student_id';
+    my $student = _teacher()->students->find({ id => $student_id })
+        or return res 404 => { error => "No such student." };
+    return { data => $student };
+};
+
 patch '/api/students/:student_id' => sub {
     my $student_id = param 'student_id';
     my $student = _teacher()->students->find({ id => $student_id })
@@ -184,6 +193,26 @@ patch '/api/students/:student_id' => sub {
         return res 400 => { error => "Invalid password" }
             unless $password =~ /^\w[\w\s\.]*\w$/;
         $cols->{password} = $password;
+    }
+
+    my $math_skill = param 'math_skill';
+    if ($math_skill) {
+        return res 400 => { error => "Invalid math_skill" }
+            unless grep { $math_skill eq $_ }
+            map { $_->type } @{ available_skills() };
+        $cols->{math_skill} = $math_skill;
+    }
+
+    my $pps = param 'problems_per_sheet';
+    $cols->{problems_per_sheet} = int($pps) if $pps;
+
+    if (my $difficulty = param 'difficulty') {
+        return res 400 => { error => "Invalid difficulty" }
+            unless grep { $_ eq $difficulty } 1..3;
+        $cols->{difficulty} = int($difficulty) if $difficulty;
+    }
+
+    if (%$cols) {
         $student->update($cols);
     }
     return { data => $student };
@@ -198,6 +227,86 @@ del '/api/students/:student_id' => sub {
     info "Deleting student " . $student->name . " $student_id";
     $student->delete;
     return {};
+};
+
+post '/api/students/:student_id/sample-problem' => sub {
+    my $student_id = param 'student_id';
+    my $student = _teacher()->students->find({ id => $student_id })
+        or return res 404 => { error => "No such student." };
+    return { data => sample_problem($student) };
+};
+
+get '/api/skills' => sub {
+    return { data => available_skills() };
+};
+
+get '/api/rewards' => sub {
+    my $student_id = param 'student_id'
+        or return res 400 => { error => 'The student_id param is required.' };
+    my $student = _teacher()->students->find($student_id)
+        or return res 400 => { error => 'No such student.' };
+    my @rewards = $student->rewards->all;
+    return { data => \@rewards };
+};
+
+post '/api/rewards' => sub {
+    my $student_id = param 'student_id'
+        or return res 400 => { error => 'The student_id param is required.' };
+    my $sheet_id = param 'sheet_id'
+        or return res 400 => { error => 'The sheet_id param is required.' };
+    my $reward = param 'reward'
+        or return res 400 => { error => 'The reward param is required.' };
+    my $student = _teacher()->students->find($student_id)
+        or return res 400 => { error => 'No such student.' };
+    my $reward = $student->rewards->update_or_create({
+        id       => gen_uuid(),
+        sheet_id => $sheet_id,
+        reward   => $reward,
+    });
+    return { data => $reward };
+};
+
+del '/api/rewards/:reward_id' => sub {
+    my $reward_id = param 'reward_id';
+    my $student_id = param 'student_id'
+        or return res 400 => { error => 'The student_id param is required.' };
+    my $student = _teacher()->students->find($student_id)
+        or return res 400 => { error => 'No such student.' };
+    my $reward = $student->rewards->find($reward_id)
+        or return res 404 => { error => 'No such reward.' };
+    $reward->delete;
+    return {};
+};
+
+get '/api/powerups' => sub {
+    my $student_id = param 'student_id'
+        or return res 400 => { error => 'The student_id param is required.' };
+    my $student = _teacher()->students->find($student_id)
+        or return res 400 => { error => 'No such student.' };
+    my @powerups = $student->powerups->all;
+    return { data => \@powerups };
+};
+
+patch '/api/powerups' => sub {
+    my $student_id = param 'student_id'
+        or return res 400 => { error => 'The student_id param is required.' };
+    my $powerup_id = param 'powerup_id';
+    return res 400 => { error => 'The powerup_id param is required.' }
+        unless defined $powerup_id;
+    my $cnt = param 'cnt';
+    return res 400 => { error => 'The cnt (count) param is required.' }
+        unless defined $cnt;
+    return res 400 => { error => 'The powerups count must be an integer.' }
+        unless $cnt =~ /^\d+$/;
+    my $student = _teacher()->students->find($student_id)
+        or return res 400 => { error => 'No such student.' };
+    my $powerup = $student->powerups->find({
+        id         => $powerup_id,
+        student_id => $student_id,
+    }) or return res 404 => { error => 'No such powerup.' };
+    $powerup->update({ cnt => int($cnt) });
+    return { data => $powerup };
+
 };
 
 sub _teacher {

@@ -37,7 +37,7 @@ __PACKAGE__->table("powerup");
 
 =head2 cnt
 
-  data_type: (empty string)
+  data_type: 'int'
   default_value: 0
   is_nullable: 0
 
@@ -49,7 +49,7 @@ __PACKAGE__->add_columns(
   "student",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 100 },
   "cnt",
-  { data_type => "", default_value => 0, is_nullable => 0 },
+  { data_type => "int", default_value => 0, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -84,9 +84,12 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2012-11-26 05:10:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9yC+BcT8YZgyutT5vuWk5Q
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-08-02 07:18:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:losAHjt2vm3mVDLRcjxEAw
 
+sub TO_JSON {
+    my ($self) = @_;
+    return +{ $self->get_columns };
+}
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

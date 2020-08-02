@@ -87,6 +87,20 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<token_unique>
+
+=over 4
+
+=item * L</token>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("token_unique", ["token"]);
+
 =head1 RELATIONS
 
 =head2 teacher
@@ -105,8 +119,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-07-31 01:18:18
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:W224DdV20jfzymx71s4rqg
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-08-02 07:18:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:WfI17VTmJuDt3+MUSJwxBA
 
 __PACKAGE__->load_components(qw(TimeStamp));
 

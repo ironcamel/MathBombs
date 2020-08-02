@@ -6,7 +6,7 @@ use Dancer::Plugin::Passphrase;
 use Dancer::Plugin::Res;
 use Email::Valid;
 
-use MathSheets::MathSkills qw(available_skills build_skill gen_problems);
+use MathSheets::MathSkills qw(available_skills gen_problems);
 use MathSheets::Util qw(past_sheets gen_uuid get_powerups irand);
 
 # Confirm that a teacher is logged in before allowing access to any sensitive
@@ -45,23 +45,21 @@ post '/teacher/profile' => sub {
 };
 
 # List of students page
-get '/teacher/students' => sub { template 'students2' };
+get '/teacher/students' => sub { template 'students' };
 
 # Displays portal page for the teacher's students
 get '/portals/:teacher_id' => sub { template 'portal' };
 
+get '/teacher/students2/:student_id' => sub {
+    return template student2 => {
+        student_id => param('student_id'),
+    };
+};
+
 # Settings page for a student
 get '/teacher/students/:student_id' => sub {
-    my $teacher = get_teacher();
-    my $student = $teacher->students->find(param 'student_id')
-        or return res 404, 'You have no such student';
-    my $problems = gen_problems($student);
     template student => {
-        student  => $student,
-        skills   => available_skills(),
-        problem  => $problems->[0],
-        rewards  => [ $student->rewards->all ],
-        powerups => get_powerups($student),
+        student_id => param('student_id'),
     };
 };
 
@@ -115,47 +113,6 @@ post '/teacher/students/:student_id/powerups' => sub {
     $student->powerups->update_or_create({ id  => 2, cnt => $pu2 });
     return redirect uri_for "/teacher/students/$student_id";
 };
-
-# Deletes a student.
-#
-post '/teacher/ajax/delete_student' => sub {
-    my $teacher = get_teacher() or return;
-    my $student_id = param 'student_id';
-    info $teacher->email . " is deleting $student_id";
-    $teacher->students({ id => $student_id })->delete_all;
-    return;
-};
-
-# Updates the password for a student.
-#
-post '/teacher/ajax/update_password' => sub {
-    my $teacher = get_teacher() or return;
-    my $student_id = param 'student_id';
-    my $password = param 'password';
-    return { err => "Invalid password" } unless $password =~ /^\w[\w\s\.]*\w$/;
-    $teacher->students({ id => $student_id })->update(
-        { password => $password });
-    return;
-};
-
-post '/teacher/ajax/delete_reward' => sub {
-    my $teacher = get_teacher() or return;
-    my $reward_id = param 'reward_id';
-    rset('Reward')->search({ id => $reward_id })->delete;
-    return;
-};
-
-
-# Returns a login template.
-# An optional error message may be provided as a param or from the session.
-#
-sub login_tmpl {
-    my ($err) = @_;
-    $err ||= session 'login_err';
-    error "Login failed: $err" if $err;
-    session login_err => undef;
-    return template login => { err => $err };
-}
 
 sub get_teacher {
     my ($email) = @_;

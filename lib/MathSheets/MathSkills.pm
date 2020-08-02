@@ -5,12 +5,18 @@ use v5.10;
 use Devel::InnerPackage qw(list_packages);
 
 use Exporter qw(import);
-our @EXPORT_OK = qw(available_skills gen_problems build_skill);
+our @EXPORT_OK = qw(available_skills gen_problems sample_problem);
 
 sub gen_problems {
     my ($student) = @_;
     my $skill = build_skill($student);
     return $skill->generate_problems($student->problems_per_sheet);
+}
+
+sub sample_problem {
+    my ($student) = @_;
+    my $skill = build_skill($student);
+    return +{ $skill->generate_problem };
 }
 
 sub build_skill {
@@ -48,6 +54,14 @@ sub generate_problems {
     my ($self, $cnt) = @_;
     $cnt ||= 10;
     return [ map +{ id => $_, $self->generate_problem() }, 1 .. $cnt ];
+}
+
+sub TO_JSON {
+    my ($self) = @_;
+    return {
+        name => $self->name,
+        type => $self->type,
+    };
 }
 
 # Returns the type of math skill this is by introspecting the class name.
