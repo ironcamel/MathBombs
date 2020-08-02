@@ -1,3 +1,4 @@
 config.yml
 data/math-dump*.sql
 data/math.db
+*.swp
