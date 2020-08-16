@@ -5,7 +5,9 @@ use Dancer::Plugin::DBIC qw(rset);
 use Dancer::Plugin::Email;
 use Dancer::Plugin::Passphrase;
 use Dancer::Plugin::Res;
+use DateTime;
 use Email::Valid;
+use Proc::Simple::Async;
 
 use MathSheets::MathSkills qw(available_skills gen_problems sample_problem);
 use MathSheets::Util qw(gen_uuid irand past_sheets);
@@ -319,6 +321,159 @@ patch '/api/powerups' => sub {
     return { data => $powerup };
 
 };
+
+post '/api/problems' => sub {
+    my $student_id = param 'student_id'
+        or return res 400 => { error => 'The student_id param is required.' };
+    my $sheet_id = param 'sheet_id'
+        or return res 400 => { error => 'The sheet_id param is required.' };
+    my $student = _teacher()->students->find($student_id)
+        or return res 400 => { error => 'No such student.' };
+    my $problems;
+    if (my $sheet = $student->sheets->find({ id => $sheet_id })) {
+        debug "Grabbing problems from db for sheet $sheet_id";
+        $problems = [ $sheet->problems->all ];
+    } else {
+        debug "Creating new problems for sheet $sheet_id";
+        $problems = gen_problems($student);
+        my $sheet = $student->sheets->create({
+            id         => $sheet_id,
+            math_skill => $student->math_skill,
+            difficulty => $student->difficulty,
+        });
+        for my $p (@$problems) {
+            $sheet->problems->create($p);
+        }
+    }
+    return { data => $problems };
+};
+
+patch '/api/problems/:pid' => sub {
+    my $pid = param 'pid';
+    my $guess = param 'guess';
+    return res 400 => { error => 'The guess param is required.' }
+        unless defined $guess;
+    my $student_id = param 'student_id'
+        or return res 400 => { error => 'The student_id param is required.' };
+    my $sheet_id = param 'sheet_id'
+        or return res 400 => { error => 'The sheet_id param is required.' };
+    my $student = _teacher()->students->find($student_id)
+        or return res 400 => { error => 'No such student.' };
+    my $problem = rset('Problem')->find({
+        id      => $pid,
+        sheet   => $sheet_id,
+        student => $student_id,
+    }) or return res 404 => { error => 'No such problem exists.' };
+    $problem->update({ guess => $guess });
+    my $reward_msg = process_sheet($problem->sheet);
+    return {
+        data => $problem,
+        meta => { reward => $reward_msg },
+    };
+};
+
+sub process_sheet {
+    my ($sheet) = @_;
+    return if $sheet->finished; # This sheet has already been completed
+
+    my $num_correct = $sheet->problems->count({ answer => { -ident => 'guess' } });
+    my $num_problems = $sheet->problems->count;
+    return if $num_correct != $num_problems;
+
+    my $sheet_id = $sheet->id;
+
+    $sheet->update({ finished => DateTime->now->ymd });
+    my $student = $sheet->student;
+    $student->update({ last_sheet => $sheet_id })
+        if $sheet_id > $student->last_sheet; # sanity check
+    send_progress_email(student => $student, sheet_id => $sheet_id);
+    my $reward = $student->rewards->single({ sheet_id => $sheet_id });
+
+    if (not $reward) {
+        my @rewards = $student->rewards({
+            sheet_id => undef,
+            is_given => 0,
+        });
+        for my $r (@rewards) {
+            if ($r->week_goal and past_week() >= $r->week_goal) {
+                $reward = $r;
+            } elsif ($r->month_goal and past_month() >= $r->month_goal) {
+                $reward = $r;
+            }
+            last if $reward;
+        }
+    }
+
+    my $msg = '';
+    if ($reward) {
+        $msg = $reward->reward;
+        send_special_msg_email(
+            student  => $student,
+            sheet_id => $sheet_id,
+            msg      => $msg,
+        );
+        $reward->update({ is_given => 1 });
+    }
+
+    return $msg;
+};
+
+sub send_progress_email {
+    my %args = @_;
+    my $student = $args{student};
+    my $sheet_id = $args{sheet_id};
+    my $student_id = $student->id;
+    my $name = $student->name;
+    my $past_week = past_week();
+    my $past_month = past_month();
+    my $subject = "MathBombs: $name completed sheet $sheet_id"
+        . " ($past_week/7 $past_month/30)";
+    my $body = template progress_email => {
+        name       => $name,
+        sheet_id   => $sheet_id,
+        past_week  => $past_week,
+        past_month => $past_month,
+        sheet_url  => uri_for("/students/$student_id/sheets/$sheet_id"),
+    }, { layout => undef };
+    my $to = $student->teacher->email;
+    async { send_email(to => $to, subject => $subject, body => $body) };
+};
+
+sub send_special_msg_email {
+    my %args = @_;
+    my $student = $args{student};
+    my $sheet_id = $args{sheet_id};
+    my $msg = $args{msg};
+    my $student_id = $student->id;
+    my $name = $student->name;
+    my $subject = "MathBombs: special message for $name from sheet #$sheet_id";
+    my $body = template special_msg_email => {
+        name     => $name,
+        sheet_id => $sheet_id,
+        msg      => $msg,
+    }, { layout => undef };
+    my $to = $student->teacher->email;
+    async { send_email(to => $to, subject => $subject, body => $body) };
+    my $rewards_email = $student->teacher->rewards_email;
+    return unless $rewards_email;
+    async { 
+        send_email(to => $rewards_email, subject => $subject, body => $body)
+    };
+}
+
+sub send_email {
+    my %args = @_;
+    my $from = config->{plugins}{Email}{headers}{from};
+    $args{from} = $from ? $from : 'noreply@mathbombs.org';
+    eval {
+        email \%args;
+        debug "Sent email $args{subject}";
+    };
+    error "Could not send email: $@" if $@;
+}
+
+sub past_week  { past_sheets(7 ) }
+sub past_month { past_sheets(30) }
 
 sub _teacher {
     my $auth_token = var 'auth_token' or return;

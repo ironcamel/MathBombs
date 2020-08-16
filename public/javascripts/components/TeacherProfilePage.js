@@ -7,7 +7,6 @@ const TeacherProfilePage = () => {
 
   const teacher = JSON.parse(window.localStorage.getItem('teacher'));
   const authToken = window.localStorage.getItem('auth-token');
-  console.log('teacher:', teacher);
 
   const updateTeacher = () => {
     setErrMsg('');
@@ -24,7 +23,6 @@ const TeacherProfilePage = () => {
     })
     .then(res => res.json())
     .then(data => {
-      console.log(data);
       setIsUpdatingTeacher(false);
       if (data.error) {
         setErrMsg(data.error);
@@ -63,9 +61,16 @@ const TeacherProfilePage = () => {
                 defaultValue={teacher.rewards_email}
                 ref={printerRef}
               />
+
               <br/>
 
-              <button type="button" className="btn" onClick={updateTeacher}>Save</button>
+              { isUpdatingTeacher
+                ? <div>
+                  Saving ...
+                  <img src="/images/spinner.gif" style={{ width: '50px', marginLeft: '0px' }} />
+                </div>
+                : <button type="button" className="btn" onClick={updateTeacher}>Save</button>
+              }
 
             </fieldset>
           </form>

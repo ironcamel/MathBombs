@@ -170,7 +170,7 @@ function check_problems(tell_server) {
 
 // Returns a random number between 1 - 100
 function rand_100() {
-    return Math.floor((Math.random() * 100)) + 1;
+    return Math.ceil((Math.random() * 100));
 }
 
 function award_powerup() {
@@ -228,7 +228,7 @@ var TARGETING = false;
 function untarget() {
     TARGETING = false;
     $(".problem").off('click').removeClass('problem-targetable');
-    $('body').css('cursor', 'auto');
+    $('body').removeClass('targeting');
 }
 
 function blowup1() {
@@ -279,8 +279,7 @@ function target() {
     if (POWERUPS[1] <= 0) return;
     TARGETING = true;
     $('.problem').addClass('problem-targetable');
-    $('body').css('cursor',
-        'url([% base %]/images/crosshair.png), crosshair');
+    $('body').addClass('targeting');
     $('.problem').click(blowup1);
 }
 

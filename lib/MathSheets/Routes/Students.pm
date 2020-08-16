@@ -21,6 +21,15 @@ get '/students/:student_id' => sub {
 get '/students/:student_id/sheets/:sheet_id' => sub {
     my $student_id = param 'student_id';
     my $sheet_id = param 'sheet_id';
+    template 'sheet2' => {
+        student_id => $student_id,
+        sheet_id   => $sheet_id,
+    };
+};
+
+get '/students/:student_id/sheets-orig/:sheet_id' => sub {
+    my $student_id = param 'student_id';
+    my $sheet_id = param 'sheet_id';
     debug "Getting sheet $sheet_id for $student_id";
     my $student = schema->resultset('Student')->find($student_id);
     if ($sheet_id > $student->last_sheet + 1) {

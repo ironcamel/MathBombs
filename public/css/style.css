@@ -46,6 +46,10 @@ input.correct-answer {
     border: 2px solid #DDD;
 }
 
+.targeting {
+    cursor: url(/images/crosshair.png) 40 40, crosshair;
+}
+
 div.prev-next {
 /*
     padding: 20px 20px

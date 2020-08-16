@@ -121,6 +121,9 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07033 @ 2012-11-26 04:34:46
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:S+7W/V/DZYq0YQZzf+E8ig
 
+sub TO_JSON {
+    my ($self) = @_;
+    return +{ $self->get_columns };
+}
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

@@ -186,8 +186,17 @@ const StudentRow = ({ student, showPasswords, deleteStudent, setErrMsg }) => {
   return (
     <tr key={student.id}>
       <td>
-        <a href={studentUrl} title="Right click to copy private link for student">{student.name}</a>
-        <a href={editStudentUrl}><i className="icon-pencil" title="Edit student settings"></i></a>
+        <div>{student.name}</div>
+        <div>
+          <a href={editStudentUrl} title="Click to edit this student's settings">
+            manage { /*<i className="icon-pencil" title="Edit student settings"></i>*/ }
+          </a>
+        </div>
+        <div>
+          <a href={studentUrl} title="Right click to copy private link for student">
+            workbook
+          </a>
+        </div>
       </td>
       { showPasswords &&
       <td>
