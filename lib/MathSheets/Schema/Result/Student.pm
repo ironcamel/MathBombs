@@ -107,21 +107,6 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
-=head2 old_rewards
-
-Type: has_many
-
-Related object: L<MathSheets::Schema::Result::OldReward>
-
-=cut
-
-__PACKAGE__->has_many(
-  "old_rewards",
-  "MathSheets::Schema::Result::OldReward",
-  { "foreign.student_id" => "self.id" },
-  { cascade_copy => 1, cascade_delete => 1 },
-);
-
 =head2 powerups
 
 Type: has_many
@@ -183,8 +168,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-08-02 08:03:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wXDivc70gqtljoImzCQJuA
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-08-16 07:32:15
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:S1yI6oXoru1nSzCv1rf4HA
 
 use MathSheets::Util qw(past_sheets);
 

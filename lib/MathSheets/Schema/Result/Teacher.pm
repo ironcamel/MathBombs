@@ -52,6 +52,16 @@ __PACKAGE__->table("teacher");
   is_nullable: 1
   size: 200
 
+=head2 created
+
+  data_type: 'timestamp'
+  is_nullable: 1
+
+=head2 updated
+
+  data_type: 'timestamp'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -65,6 +75,10 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "rewards_email",
   { data_type => "varchar", is_nullable => 1, size => 200 },
+  "created",
+  { data_type => "timestamp", is_nullable => 1 },
+  "updated",
+  { data_type => "timestamp", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -141,8 +155,15 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-07-31 01:13:22
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NOIKpsLwsh2oWa7DpsGwhg
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-08-16 07:32:15
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:VPE7umICIClOyBn+rHOaLw
+
+__PACKAGE__->load_components(qw(TimeStamp));
+
+__PACKAGE__->add_columns(
+    '+created' => { set_on_create => 1 },
+    '+updated' => { set_on_create => 1, set_on_update => 1 },
+);
 
 sub TO_JSON {
     my ($self) = @_;
