@@ -37,5 +37,5 @@ To deploy MathSheets, you can simply run:
     perl ./bin/app.pl
 
 Then you can visit http://localhost:3000 and MathSheets should be running.
-For more sophisticated deployment options, see the documentation at
+For production deployment options, see the documentation at
 https://metacpan.org/module/Dancer::Deployment.
