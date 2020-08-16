@@ -32,7 +32,11 @@ const LoginPage = () => {
       } else {
         window.localStorage.setItem('auth-token', data.data.token);
         window.localStorage.setItem('teacher', JSON.stringify(data.data.teacher));
-        location.href = location.href.replace(/login.*/, 'teacher/students');
+        if (email === 'admin@mathbombs.org') {
+          location.href = location.href.replace(/login.*/, 'admin');
+        } else {
+          location.href = location.href.replace(/login.*/, 'teacher/students');
+        }
       }
     });
   };

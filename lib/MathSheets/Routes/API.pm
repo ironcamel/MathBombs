@@ -35,20 +35,26 @@ hook before => sub {
     }
 };
 
+sub find_teacher {
+    my ($email) = @_;
+    my ($teacher) = rset('Teacher')->search(\[ 'lower(email) = ?', lc $email ]);
+    return $teacher;
+}
+
 post '/api/auth-tokens' => sub {
     my $email = param 'email'
         or return res 403 => { error => 'Email is required' };
     my $password = param 'password'
         or return res 403 => { error => 'Password is required' };
-    if ($email eq config->{admin_email}
-            and $password eq config->{admin_password}) {
-        session teacher => $email;
-        return redirect uri_for '/admin';
-    }
-    my $teacher = rset('Teacher')->find({ email => $email })
+    my $teacher = find_teacher($email)
         or return res 403 => { error => 'No such email exists in the system' };
-    return res 403 => { error => 'Invalid password' }
-        unless passphrase($password)->matches($teacher->pw_hash);
+    if ($email eq config->{admin_email}) {
+        return res 403 => { error => 'Invalid password' }
+            unless $password eq config->{admin_password};
+    } else {
+        return res 403 => { error => 'Invalid password' }
+            unless passphrase($password)->matches($teacher->pw_hash);
+    }
     session teacher => $email;
     my $token = passphrase->generate_random({
         length  => 64,
@@ -60,12 +66,8 @@ post '/api/auth-tokens' => sub {
 
 post '/api/password-reset-tokens' => sub {
     my $email = param 'email';
-    my $teacher = rset('Teacher')->find({ email => $email });
-    if (not $teacher) {
-        return res 400 => {
-            error => "No such account found for that email",
-        };
-    }
+    my $teacher = find_teacher($email)
+        or return res 400 => {error => "No such account found for that email"};
     eval {
         my $token = $teacher->password_reset_tokens->create({
             id => gen_uuid(),
@@ -122,7 +124,9 @@ post '/api/teachers' => sub {
             error => 'The password must be at least 4 characters long'
         };
     }
-    my $teacher = eval {
+    my $teacher = find_teacher($email)
+        and return res 400 => { error => 'That email already exists' };
+    $teacher = eval {
         rset('Teacher')->create({
             id      => gen_uuid(),
             name    => $name,
