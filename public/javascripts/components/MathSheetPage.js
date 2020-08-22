@@ -178,7 +178,10 @@ const MathSheetPage = ({ student_id, sheet_id }) => {
     setIsTargeting(!isTargeting);
   };
 
+  const isAllSolved = Object.values(problemsById).every(p => p.guess == p.answer);
+
   const pu2Clicked = () => {
+    if (powerup2 <= 0 || isAllSolved) return;
     const newProblemsById = {};
     problems.forEach((id) => {
       const problem = problemsById[id];
@@ -193,7 +196,7 @@ const MathSheetPage = ({ student_id, sheet_id }) => {
     document.querySelectorAll('div.problem').forEach(p => killWithFire(p));
   };
 
-  const showNextLink = !!problems.length && Object.values(problemsById).every(p => p.guess == p.answer);
+  const showNextLink = !!problems.length && isAllSolved;
 
   if (!student) {
     return errorDiv ? errorDiv : (

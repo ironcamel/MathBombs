@@ -8,7 +8,7 @@ get '/login' => sub { template 'login' };
 get '/logout' => sub {
     my $email = session 'teacher';
     if ($email) {
-        my $teacher = rset('Teacher')->find({ email => $email });
+        my ($teacher) = rset('Teacher')->search(\[ 'lower(email) = ?', lc $email ]);
         $teacher->auth_tokens->delete if $teacher;
     }
     session teacher => undef;

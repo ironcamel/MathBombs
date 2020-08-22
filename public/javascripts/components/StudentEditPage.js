@@ -254,7 +254,7 @@ const StudentEditPage = ({ student_id }) => {
   }
 
   const numProblemsOptions = [];
-  for (let i = 1; i <= 12; i++) {
+  for (let i = 1; i <= 20; i++) {
     numProblemsOptions.push(<option key={i} value={i}>{i}</option>);
   }
 

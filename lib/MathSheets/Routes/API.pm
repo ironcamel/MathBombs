@@ -7,6 +7,7 @@ use Dancer::Plugin::Passphrase;
 use Dancer::Plugin::Res;
 use DateTime;
 use Email::Valid;
+use List::Util qw(first);
 use Proc::Simple::Async;
 
 use MathSheets::MathSkills qw(available_skills gen_problems sample_problem);
@@ -15,14 +16,30 @@ use MathSheets::Util qw(gen_uuid irand past_sheets);
 hook before => sub {
     return if var 'auth_token';
 
+    my $token = request->header('x-auth-token');
     my $is_api = request->path_info =~ m{^/api};
-    my $is_public_api =
-        request->path_info =~ m{^/api/auth-tokens}
-        || request->path_info =~ m{^/api/password-reset-tokens}
-        || request->is_post && request->path_info eq '/api/teachers';
+    my $path_info = request->path_info;
+    debug "path_info: $path_info";
+    debug "token: $token";
+    my $method = request->method;
 
-    if ($is_api and not $is_public_api) {
-        my $token = request->header('x-auth-token');
+    my @public_routes = (
+        [ POST  => '/api/auth-tokens' ],
+        [ POST  => '/api/password-reset-tokens' ],
+        [ POST  => '/api/password-reset-tokens/\w+' ],
+        [ POST  => '/api/teachers' ],
+        [ GET   => '/api/students' ],
+        [ GET   => '/api/students/\w+' ],
+        [ GET   => '/api/skills' ],
+        [ GET   => '/api/powerups' ],
+        [ PATCH => '/api/powerups' ],
+        [ POST  => '/api/problems' ],
+        [ PATCH => '/api/problems/\d+' ],
+    );
+    my $is_public = first { $_->[0] eq $method and $path_info =~ /$_->[1]/ }
+        @public_routes;
+
+    if ($is_api and not $is_public) {
         my $auth_token = rset('AuthToken')->find({
             token      => $token,
             is_deleted => 0,
@@ -56,10 +73,6 @@ post '/api/auth-tokens' => sub {
             unless passphrase($password)->matches($teacher->pw_hash);
     }
     session teacher => $email;
-    my $token = passphrase->generate_random({
-        length  => 64,
-        charset => ['a'..'z', 0 .. 9],
-    });
     my $auth_token = _create_auth_token($teacher);
     return { data => $auth_token };
 };
@@ -103,7 +116,6 @@ post '/api/password-reset-tokens/:token_id' => sub {
 };
 
 post '/api/teachers' => sub {
-    # TODO: I really should use a validation framework to do all this
     my $name = param 'name';
     if  (!$name or $name !~ /^\w[\w\s\.]*\w$/) {
         return res 400 => { error => 'Name is invalid' };
@@ -170,7 +182,11 @@ patch '/api/teachers/:teacher_id' => sub {
 };
 
 get '/api/students' => sub {
-    my @students = sort { $a->name cmp $b->name } _teacher()->students->all;
+    my $teacher_id = param 'teacher_id'
+        or return res 400 => { error => 'The teacher_id param is required.' };
+    my $teacher = rset('Teacher')->find($teacher_id)
+        or return res 400 => { error => 'Invalid teacher_id.' };
+    my @students = sort { $a->name cmp $b->name } $teacher->students->all;
     return { data => \@students };
 };
 
@@ -195,7 +211,7 @@ post '/api/students' => sub {
 
 get '/api/students/:student_id' => sub {
     my $student_id = param 'student_id';
-    my $student = _teacher()->students->find({ id => $student_id })
+    my $student = find_student($student_id)
         or return res 404 => { error => "No such student." };
     return { data => $student };
 };
@@ -298,7 +314,7 @@ del '/api/rewards/:reward_id' => sub {
 get '/api/powerups' => sub {
     my $student_id = param 'student_id'
         or return res 400 => { error => 'The student_id param is required.' };
-    my $student = _teacher()->students->find($student_id)
+    my $student = find_student($student_id)
         or return res 400 => { error => 'No such student.' };
     my @powerups = $student->powerups->all;
     return { data => \@powerups };
@@ -315,7 +331,7 @@ patch '/api/powerups' => sub {
         unless defined $cnt;
     return res 400 => { error => 'The powerups count must be an integer.' }
         unless $cnt =~ /^\d+$/;
-    my $student = _teacher()->students->find($student_id)
+    my $student = find_student($student_id)
         or return res 400 => { error => 'No such student.' };
     my $powerup = $student->powerups->find({
         id         => $powerup_id,
@@ -331,7 +347,7 @@ post '/api/problems' => sub {
         or return res 400 => { error => 'The student_id param is required.' };
     my $sheet_id = param 'sheet_id'
         or return res 400 => { error => 'The sheet_id param is required.' };
-    my $student = _teacher()->students->find($student_id)
+    my $student = find_student($student_id)
         or return res 400 => { error => 'No such student.' };
     my $problems;
     if (my $sheet = $student->sheets->find({ id => $sheet_id })) {
@@ -361,7 +377,7 @@ patch '/api/problems/:pid' => sub {
         or return res 400 => { error => 'The student_id param is required.' };
     my $sheet_id = param 'sheet_id'
         or return res 400 => { error => 'The sheet_id param is required.' };
-    my $student = _teacher()->students->find($student_id)
+    my $student = find_student($student_id)
         or return res 400 => { error => 'No such student.' };
     my $problem = rset('Problem')->find({
         id      => $pid,
@@ -484,8 +500,11 @@ sub _teacher {
     return $auth_token->teacher;
 }
 
+sub find_student { rset('Student')->find(shift) }
+
 sub _create_auth_token {
     my ($teacher) = @_;
+    #debug "creating auth token for " . $teacher->email;
     my $token = passphrase->generate_random({
         length  => 64,
         charset => ['a'..'z', 0 .. 9],
@@ -497,3 +516,5 @@ sub _create_auth_token {
 }
 
 1;
+
+# vi: fdm=indent fdn=1
