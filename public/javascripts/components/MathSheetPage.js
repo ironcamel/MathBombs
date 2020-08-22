@@ -175,7 +175,11 @@ const MathSheetPage = ({ student_id, sheet_id }) => {
   ) : null;
 
   const pu1Clicked = () => {
-    setIsTargeting(!isTargeting);
+    if (powerup1 <= 0) {
+      setIsTargeting(false);
+    } else {
+      setIsTargeting(!isTargeting);
+    }
   };
 
   const isAllSolved = Object.values(problemsById).every(p => p.guess == p.answer);

@@ -12,6 +12,9 @@ const StudentEditPage = ({ student_id }) => {
   const [rewards, setRewards] = React.useState([]);
   const [powerup1, setPowerup1] = React.useState('');
   const [powerup2, setPowerup2] = React.useState('');
+  const [isUpdatingPowerup1, setIsUpdatingPowerup1] = React.useState(false);
+  const [isUpdatingPowerup2, setIsUpdatingPowerup2] = React.useState(false);
+  const [updatedPowerup, setUpdatedPowerup] = React.useState(false);
 
   const rewardRef = React.createRef();
   const sheetRef = React.createRef();
@@ -159,6 +162,11 @@ const StudentEditPage = ({ student_id }) => {
   };
 
   const updatePowerup = ({ powerup_id, cnt }) => {
+    if (powerup_id == 1) {
+      setIsUpdatingPowerup1(true);
+    } else if (powerup_id == 2) {
+      setIsUpdatingPowerup2(true);
+    }
     cnt = parseInt(cnt);
     fetch('/api/powerups', {
       method: 'PATCH',
@@ -175,6 +183,10 @@ const StudentEditPage = ({ student_id }) => {
     .then(res => res.json())
     .then(data => {
       console.log(data);
+      setIsUpdatingPowerup1(false);
+      setIsUpdatingPowerup2(false);
+      setUpdatedPowerup(true);
+      setTimeout(() => setUpdatedPowerup(false), 3000);
       if (data.error) {
         setErrMsg(data.error);
         window.scrollTo(0, 0);
@@ -275,6 +287,8 @@ const StudentEditPage = ({ student_id }) => {
 
   const pu1Changed = (e) => setPowerup1(e.target.value);
   const pu2Changed = (e) => setPowerup2(e.target.value);
+
+  const isUpdatingPowerups = isUpdatingPowerup1 || isUpdatingPowerup2;
 
   return (
     <React.Fragment>
@@ -414,13 +428,20 @@ const StudentEditPage = ({ student_id }) => {
                     defaultValue={student.powerups[2].cnt}
                   />
                 </p>
-                <button type="button" onClick={updatePowerups}>Update power-ups</button>
+                <button type="button" onClick={updatePowerups} disabled={isUpdatingPowerups}>
+                  Update power-ups
+                </button>{' '}
+                { updatedPowerup && <span style={{ color: 'green' }}>Updated power-up</span> }
+                { isUpdatingPowerups &&
+                <img src="/images/spinner.gif" style={{ width: '100px', marginLeft: '30px', marginTop: '-50px' }} />
+                }
               </div>
               }
             </fieldset>
           </form>
         </div>
       </div>
+
     </React.Fragment>
   );
 };
