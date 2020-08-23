@@ -1,7 +1,0 @@
-<div id="teacher-main-page"></div>
-
-<script type="text/babel" src="/javascripts/components/TeacherMainPage.js"></script>
-
-<script type="text/babel">
-  ReactDOM.render(<TeacherMainPage />, document.getElementById('teacher-main-page'));
-</script>

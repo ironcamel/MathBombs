@@ -19,8 +19,6 @@ hook before => sub {
     my $token = request->header('x-auth-token');
     my $is_api = request->path_info =~ m{^/api};
     my $path_info = request->path_info;
-    debug "path_info: $path_info";
-    debug "token: $token";
     my $method = request->method;
 
     my @public_routes = (
@@ -187,7 +185,7 @@ get '/api/students' => sub {
     my $teacher = rset('Teacher')->find($teacher_id)
         or return res 400 => { error => 'Invalid teacher_id.' };
     my @students = sort { $a->name cmp $b->name } $teacher->students->all;
-    return { data => \@students };
+    return { data => \@students, meta => { teacher => $teacher } };
 };
 
 post '/api/students' => sub {

@@ -1,5 +1,5 @@
 
-const HomePage = ({ student_id }) => {
+const HomePage = () => {
   return (
     <React.Fragment>
 

@@ -1,8 +1,0 @@
-
-<div id="home-page"></div>
-
-<script type="text/babel" src="/javascripts/components/HomePage.js"></script>
-
-<script type="text/babel">
-  ReactDOM.render(<HomePage/>, document.getElementById('home-page'));
-</script>

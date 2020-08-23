@@ -1,10 +1,9 @@
-
-<div id="login-page"></div>
-
-<script type="text/babel">
-const LoginPage = () => {
+const LoginPage = ({ teacher, setTeacher }) => {
+  const { Link, Redirect } = ReactRouterDOM;
   const [errMsg, setErrMsg] = React.useState(null);
   const [isLoggingIn, setIsLoggingIn] = React.useState(false);
+  const [loggedIn, setLoggedIn] = React.useState(false);
+  const [isAdmin, setIsAdmin] = React.useState(false);
   const [isCreatingTeacher, setIsCreatingTeacher] = React.useState(false);
   const emailRef = React.createRef();
   const newEmailRef = React.createRef();
@@ -30,16 +29,24 @@ const LoginPage = () => {
       if (data.error) {
         setErrMsg(data.error);
       } else {
+        const teacher = data.data.teacher;
         window.localStorage.setItem('auth-token', data.data.token);
-        window.localStorage.setItem('teacher', JSON.stringify(data.data.teacher));
+        window.localStorage.setItem('teacher', JSON.stringify(teacher));
         if (email === 'admin@mathbombs.org') {
-          location.href = location.href.replace(/login.*/, 'admin');
+          setIsAdmin(true);
         } else {
-          location.href = location.href.replace(/login.*/, 'teacher/students');
+          setTeacher(teacher);
+          setLoggedIn(true);
         }
       }
     });
   };
+
+  //return <Redirect to="/help" />;
+  if (loggedIn && teacher) {
+    return <Redirect to="/teacher/students" />;
+  }
+  if (isAdmin) return <Redirect to="/admin" />;
 
   const createTeacher = () => {
     setErrMsg('');
@@ -76,7 +83,8 @@ const LoginPage = () => {
       } else {
         window.localStorage.setItem('auth-token', data.meta.auth_token);
         window.localStorage.setItem('teacher', JSON.stringify(data.data));
-        location.href = location.href.replace(/login.*/, 'teacher/students');
+        setTeacher(data.data);
+        setLoggedIn(true);
       }
     });
   };
@@ -159,6 +167,3 @@ const LoginPage = () => {
     </React.Fragment>
   );
 };
-
-ReactDOM.render(<LoginPage />, document.getElementById('login-page'));
-</script>

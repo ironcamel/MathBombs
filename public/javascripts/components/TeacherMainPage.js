@@ -1,5 +1,6 @@
 
 const TeacherMainPage = () => {
+  const { Link } = ReactRouterDOM;
   const [students, setStudents] = React.useState([]);
   const [showPasswords, setShowPasswords] = React.useState(false);
   const [errMsg, setErrMsg] = React.useState(null);
@@ -103,7 +104,7 @@ const TeacherMainPage = () => {
         <div className="span12">
 
           <h2 className="offset1">
-            {teacher.name}'s Students <small>[<a href={portalUrl}>student portal</a>]</small>
+            {teacher.name}'s Students <small>[<Link to={portalUrl}>student portal</Link>]</small>
           </h2>
 
           <table id="students_tbl" className="table table-hover">
@@ -147,6 +148,7 @@ const TeacherMainPage = () => {
 };
 
 const StudentRow = ({ student, showPasswords, deleteStudent, setErrMsg }) => {
+  const { Link } = ReactRouterDOM;
   const authToken = window.localStorage.getItem('auth-token');
   const studentUrl = `/students/${student.id}`;
   const reportUrl = `/students/${student.id}/report`;
@@ -188,9 +190,9 @@ const StudentRow = ({ student, showPasswords, deleteStudent, setErrMsg }) => {
       <td>
         <div>{student.name}</div>
         <div>
-          <a href={editStudentUrl} title="Click to edit this student's settings">
+          <Link to={editStudentUrl} title="Click to edit this student's settings">
             manage { /*<i className="icon-pencil" title="Edit student settings"></i>*/ }
-          </a>
+          </Link>
         </div>
         <div>
           <a href={studentUrl} title="Right click to copy private link for student">

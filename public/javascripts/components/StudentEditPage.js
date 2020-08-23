@@ -1,5 +1,5 @@
 
-const StudentEditPage = ({ student_id }) => {
+const StudentEditPage = () => {
   const [student, setStudent] = React.useState(null);
   const [errMsg, setErrMsg] = React.useState(null);
   const [skills, setSkills] = React.useState([]);
@@ -15,6 +15,8 @@ const StudentEditPage = ({ student_id }) => {
   const [isUpdatingPowerup1, setIsUpdatingPowerup1] = React.useState(false);
   const [isUpdatingPowerup2, setIsUpdatingPowerup2] = React.useState(false);
   const [updatedPowerup, setUpdatedPowerup] = React.useState(false);
+
+  const { student_id } = ReactRouterDOM.useParams();
 
   const rewardRef = React.createRef();
   const sheetRef = React.createRef();
@@ -381,7 +383,9 @@ const StudentEditPage = ({ student_id }) => {
                   <textarea id="reward_ta" rows="3" ref={rewardRef}
                     placeholder="Great Job! Your reward is ..."
                   />
-                  <button type="button" onClick={createReward}>Add Reward</button>
+                  <div>
+                    <button type="button" onClick={createReward}>Add Reward</button>
+                  </div>
                 </div>
 
                 <div className="span8">
