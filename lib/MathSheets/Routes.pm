@@ -8,6 +8,7 @@ my @routes = qw(
     /login
     /portals/:teacher_id
     /students/:student_id/sheets/:sheet_id
+    /students/:student_id/report
     /teacher/students
     /teacher/students/:student_id
     /teacher/profile

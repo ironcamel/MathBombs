@@ -81,6 +81,9 @@ const Routes = ({ teacher, setTeacher }) => {
       <Route path="/students/:student_id/sheets/:sheet_id">
         <MathSheetPage />
       </Route>
+      <Route path="/students/:student_id/report">
+        <ReportPage />
+      </Route>
       <Route path="/teacher/students/:student_id">
         { teacher
           ? <StudentEditPage />
@@ -123,3 +126,4 @@ const Routes = ({ teacher, setTeacher }) => {
     </Switch>
   );
 };
+

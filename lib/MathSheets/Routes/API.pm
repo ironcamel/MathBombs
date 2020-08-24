@@ -260,6 +260,24 @@ del '/api/students/:student_id' => sub {
     return {};
 };
 
+get '/api/reports/:student_id' => sub {
+    my $student_id = param 'student_id';
+    my @sheets = rset('Sheet')->search({
+        student  => $student_id,
+        finished => { '>' => DateTime->today->subtract(days => 30)->ymd }
+    });
+    my %data = map { DateTime->today->subtract(days => $_)->ymd => 0 } 0 .. 30;
+    for my $sheet (@sheets) {
+        $data{$sheet->finished}++;
+    }
+    return {
+        data => [
+            [ 'Day', 'Sheets' ],
+            map [ $_, $data{$_} ], reverse sort keys %data
+        ]
+    };
+};
+
 post '/api/students/:student_id/sample-problem' => sub {
     my $student_id = param 'student_id';
     my $student = _teacher()->students->find({ id => $student_id })

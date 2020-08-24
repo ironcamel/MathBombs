@@ -150,11 +150,8 @@ const StudentRow = ({ student, showPasswords, deleteStudent, setErrMsg }) => {
   const { Link } = ReactRouterDOM;
   const authToken = window.localStorage.getItem('auth-token');
   const studentUrl = `/students/${student.id}`;
-  const reportUrl = `/students/${student.id}/report`;
   const editStudentUrl = `/teacher/students/${student.id}`;
   const skill = student.math_skill.replace(/(?<=.)([A-Z])/g, ' $1');
-  const weekPercent = student.past_week / 7 * 100;
-  const monthPercent = student.past_month / 30 * 100;
 
   const [isUpdatingStudent, setIsUpdatingStudent] = React.useState(false);
 

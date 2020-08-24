@@ -135,17 +135,6 @@ post '/ajax/used_powerup' => sub {
     return 1;
 };
 
-get '/students/:student_id/report' => sub {
-    my $student_id = param 'student_id';
-    my $student = schema->resultset('Student')->find($student_id)
-        or return res 404, "No such student";
-    template report => {
-        student    => $student,
-        past_week  => past_week(),
-        past_month => past_month(),
-    }
-};
-
 any '/ajax/add_powerup' => sub {
     my $student_id = param 'student_id';
     my $powerup_id = param 'powerup_id';
@@ -160,22 +149,6 @@ any '/ajax/add_powerup' => sub {
     my $count = $powerups->cnt;
     $powerups->update({ cnt => ++$count });
     return { powerups => $count };
-};
-
-get '/ajax/report' => sub {
-    my $student_id = param 'student_id';
-    my @sheets = schema->resultset('Sheet')->search({
-        student  => $student_id,
-        finished => { '>' => DateTime->today->subtract(days => 30)->ymd }
-    });
-    my %data = map { DateTime->today->subtract(days => $_)->ymd => 0 } 0 .. 30;
-    for my $sheet (@sheets) {
-        $data{$sheet->finished}++;
-    }
-    return to_json [
-        [ 'Day', 'Sheets' ],
-        map [ $_, $data{$_} ], reverse sort keys %data
-    ];
 };
 
 post '/ajax/get_worksheet_link' => sub {

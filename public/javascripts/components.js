@@ -1,5 +1,6 @@
 
 const StudentProgressTd = ({ student }) => {
+  const { Link } = ReactRouterDOM;
   const reportUrl = `/students/${student.id}/report`;
   const weekPercent = student.past_week / 7 * 100;
   const monthPercent = student.past_month / 30 * 100;
@@ -7,20 +8,20 @@ const StudentProgressTd = ({ student }) => {
   return (
     <td>
       <div>
-        <a href={reportUrl}>
+        <Link to={reportUrl}>
           <div className="progress pull-left">
             <div className="bar bar-success" style={{width: weekPercent + '%'}}></div>
           </div>
           {student.past_week} / 7
-        </a>
+        </Link>
       </div>
       <div style={{clear: 'both'}}>
-        <a href={reportUrl}>
+        <Link to={reportUrl}>
           <div className="progress pull-left">
             <div className="bar bar-success" style={{width: monthPercent + '%'}}></div>
           </div>
           {student.past_month} / 30
-        </a>
+        </Link>
       </div>
     </td>
   );

@@ -28,6 +28,8 @@
 -->
 <script type="text/javascript" src="/mathjax/MathJax.js?config=TeX-AMS_HTML"></script>
 
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+
 <script type="text/babel" src="/javascripts/components.js"></script>
 <script type="text/babel" src="/javascripts/components/App.js"></script>
 <script type="text/babel" src="/javascripts/components/ForgotPasswordPage.js"></script>
@@ -36,6 +38,7 @@
 <script type="text/babel" src="/javascripts/components/LoginPage.js"></script>
 <script type="text/babel" src="/javascripts/components/MathSheetPage.js"></script>
 <script type="text/babel" src="/javascripts/components/PasswordResetPage.js"></script>
+<script type="text/babel" src="/javascripts/components/ReportPage.js"></script>
 <script type="text/babel" src="/javascripts/components/StudentEditPage.js"></script>
 <script type="text/babel" src="/javascripts/components/StudentPortalPage.js"></script>
 <script type="text/babel" src="/javascripts/components/TeacherMainPage.js"></script>
