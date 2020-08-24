@@ -1,5 +1,5 @@
 
-const TeacherMainPage = () => {
+const TeacherMainPage = ({ teacher }) => {
   const { Link } = ReactRouterDOM;
   const [students, setStudents] = React.useState([]);
   const [showPasswords, setShowPasswords] = React.useState(false);
@@ -8,7 +8,6 @@ const TeacherMainPage = () => {
 
   const newStudentName = React.createRef();
 
-  const teacher = JSON.parse(window.localStorage.getItem('teacher'));
   const authToken = window.localStorage.getItem('auth-token');
   const portalUrl = "/portals/" + teacher.id;
 
@@ -203,12 +202,12 @@ const StudentRow = ({ student, showPasswords, deleteStudent, setErrMsg }) => {
       { showPasswords &&
       <td>
         <div className="input-append">
-          <input className="input-mini" type="text" defaultValue={student.password} ref={passwordRef} />
-          { isUpdatingStudent ||
-          <button className="btn pw_btn" type="button" onClick={updatePassword}>Update</button>
+          <input className="input-mini" type="text" defaultValue={student.password} ref={passwordRef} />{' '}
+          { isUpdatingStudent 
+            ? 'Updating ...'
+            : <button className="btn pw_btn" type="button" onClick={updatePassword}>Update</button>
           }
         </div>
-        { isUpdatingStudent && 'Updating ...' }
       </td>
       }
       <td>
