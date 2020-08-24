@@ -17,8 +17,6 @@ const App = () => {
     //e.preventDefault();
   }
 
-  const homePage = teacher ? <Redirect to="/teacher/students" /> : <HomePage />;
-
   return (
     <BrowserRouter>
       <div className="container well" id="page">
@@ -61,9 +59,12 @@ const App = () => {
         </div>
 
         <Switch>
+          <Route path="/students/:student_id/sheets/:sheet_id">
+            <MathSheetPage />
+          </Route>
           <Route path="/teacher/students/:student_id">
             { teacher
-              ?  <StudentEditPage />
+              ? <StudentEditPage />
               : <Redirect to="/login" />
             }
           </Route>
@@ -79,6 +80,12 @@ const App = () => {
               : <Redirect to="/login" />
             }
           </Route>
+          <Route path="/forgot-password">
+            <ForgotPasswordPage />
+          </Route>
+          <Route path="/password-reset">
+            <PasswordResetPage />
+          </Route>
           <Route path="/portals/:teacher_id">
             <StudentPortalPage />
           </Route>
@@ -89,7 +96,10 @@ const App = () => {
             <LoginPage teacher={teacher} setTeacher={setTeacher} />
           </Route>
           <Route path="/">
-            {homePage}
+            { teacher
+              ? <Redirect to="/teacher/students" />
+              : <HomePage />
+            }
           </Route>
         </Switch>
 
@@ -98,24 +108,3 @@ const App = () => {
     </BrowserRouter>
   );
 };
-
-const HelpPage = () => {
-  return (
-    <div>
-      <p>
-      If you have any questions or technical issues,
-      you can send an email to <a href="mailto:admin@mathbombs.org">admin@mathbombs.org</a>
-      </p>
-
-      <p>
-      If you find any bugs or have any feature requests,
-      you can create tickets for them on <a href="https://github.com/ironcamel/MathSheets/issues">github</a>.
-      </p>
-
-      <div style={{ height: '400px' }}>
-        
-      </div>
-    </div>
-  );
-};
-

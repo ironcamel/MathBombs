@@ -2,17 +2,22 @@ package MathSheets::Routes;
 use Dancer ':syntax';
 use Dancer::Plugin::DBIC qw(rset);
 
-my $app = sub { template 'app', {}, { layout => undef } };
+my @routes = qw(
+    /
+    /help
+    /login
+    /portals/:teacher_id
+    /students/:student_id/sheets/:sheet_id
+    /teacher/students
+    /teacher/students/:student_id
+    /teacher/profile
+    /forgot-password
+    /password-reset
+);
 
-get '/' => $app;
-get '/help' => $app;
-get '/login' => $app;
-get '/portals/:teacher_id' => $app;
-get '/teacher/students' => $app;
-get '/teacher/students/:student_id' => $app;
-get '/teacher/profile' => $app;
-get '/forgot-password' => sub { template 'forgot_password' };
-get '/password-reset' => sub { template 'password_reset' };
+for my $route (@routes) {
+    get $route => sub { template 'app', {}, { layout => undef } };
+}
 
 get '/logout' => sub {
     my $email = session 'teacher';

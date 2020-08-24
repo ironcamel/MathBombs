@@ -1,9 +1,6 @@
 
-<div id="password-reset-page"></div>
-
-<script type="text/babel">
-
-const PasswordReset = () => {
+const PasswordResetPage = () => {
+  const { Link } = ReactRouterDOM;
   const [password1, setPassword1] = React.useState('');
   const [password2, setPassword2] = React.useState('');
   const [errMsg, setErrMsg] = React.useState(null);
@@ -95,7 +92,7 @@ const PasswordReset = () => {
 
       { isDone &&
       <p>
-        Your password has been reset. Click here to <a href="login">login</a>.
+        Your password has been reset. Click here to <Link to="/login">login</Link>.
       </p>
       }
 
@@ -104,7 +101,4 @@ const PasswordReset = () => {
     </div>
   );
 };
-
-ReactDOM.render(<PasswordReset />, document.getElementById('password-reset-page'));
-</script>
 

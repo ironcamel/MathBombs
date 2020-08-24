@@ -1,9 +1,5 @@
 
-<div id="forgot-password-page"></div>
-
-<script type="text/babel">
-
-const ForgotPassword = () => {
+const ForgotPasswordPage = () => {
   const [email, setEmail] = React.useState('');
   const [errMsg, setErrMsg] = React.useState(null);
   const [statusMsg, setStatusMsg] = React.useState('');
@@ -59,8 +55,3 @@ const ForgotPassword = () => {
     </React.Fragment>
   );
 };
-
-ReactDOM.render(<ForgotPassword />, document.getElementById('forgot-password-page'));
-
-</script>
-

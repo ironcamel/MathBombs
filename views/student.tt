@@ -1,9 +1,0 @@
-
-<div id="student-edit-page"></div>
-
-<script type="text/babel" src="/javascripts/components/StudentEditPage.js"></script>
-
-<script type="text/babel">
-  const student_id = '[% student_id %]';
-  ReactDOM.render(<StudentEditPage student_id={student_id} />, document.getElementById('student-edit-page'));
-</script>

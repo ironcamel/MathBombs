@@ -18,7 +18,7 @@ get '/students/:student_id' => sub {
     redirect "/students/$student_id/sheets/$sheet_id";
 };
 
-get '/students/:student_id/sheets/:sheet_id' => sub {
+get '/students/:student_id/sheets2/:sheet_id' => sub {
     my $student_id = param 'student_id';
     my $sheet_id = param 'sheet_id';
     template 'sheet2' => {

@@ -1,8 +1,0 @@
-
-<div id="teacher-profile-page"></div>
-
-<script type="text/babel" src="/javascripts/components/TeacherProfilePage.js"></script>
-
-<script type="text/babel">
-  ReactDOM.render(<TeacherProfilePage/>, document.getElementById('teacher-profile-page'));
-</script>

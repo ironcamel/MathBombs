@@ -42,7 +42,6 @@ const LoginPage = ({ teacher, setTeacher }) => {
     });
   };
 
-  //return <Redirect to="/help" />;
   if (loggedIn && teacher) {
     return <Redirect to="/teacher/students" />;
   }
@@ -117,7 +116,7 @@ const LoginPage = ({ teacher, setTeacher }) => {
       </form>
 
       <p>
-        <a href="forgot-password">Forgot Password?</a>
+        <Link to="forgot-password">Forgot Password?</Link>
       </p>
 
       <br />

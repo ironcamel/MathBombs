@@ -1,5 +1,6 @@
 
-const MathSheetPage = ({ student_id, sheet_id }) => {
+const MathSheetPage = () => {
+  const { Link } = ReactRouterDOM;
   const [student, setStudent] = React.useState(null);
   const [errMsg, setErrMsg] = React.useState(null);
   const [skills, setSkills] = React.useState([]);
@@ -15,6 +16,10 @@ const MathSheetPage = ({ student_id, sheet_id }) => {
   const [powerup1, setPowerup1] = React.useState(0);
   const [powerup2, setPowerup2] = React.useState(0);
   const [isTargeting, setIsTargeting] = React.useState(false);
+
+  let { student_id, sheet_id } = ReactRouterDOM.useParams();
+
+  sheet_id = parseInt(sheet_id);
 
   React.useEffect(() => {
     getStudent();
