@@ -58,7 +58,7 @@ const StudentEditPage = () => {
         setErrMsg(data.error);
         window.scrollTo(0, 0);
       } else {
-        setSampleProblem('$' + data.data.question + '$');
+        setSampleProblem(data.data.question);
       }
     });
   };
@@ -256,8 +256,6 @@ const StudentEditPage = () => {
     getSampleProblem();
   }, []);
 
-  React.useEffect(() => MathJax.Hub.Typeset(), [sampleProblem]);
-
   const skillOptions = skills.map(s => <option key={s.type} value={s.type}>{s.name}</option>);
 
   const sheetOptions = [];
@@ -348,8 +346,11 @@ const StudentEditPage = () => {
                   <p> Sample problem </p>
                   { sampleProblem &&
                   <div>
-                    <div style={{fontSize: '2em'}}>{sampleProblem}</div>
-                    <br/>
+                    <p style={{fontSize: '2em'}}>
+                      <ReactMathJax.Provider>
+                        <ReactMathJax.Node inline formula={sampleProblem} />
+                      </ReactMathJax.Provider>
+                    </p>
                     <button type="button" onClick={getSampleProblem}>Refresh</button>
                   </div>
                   }

@@ -217,8 +217,8 @@ const MathSheetPage = () => {
         </h1>
       </div>
 
-      <div id="problems" className="row">
-        <div className="span10">
+      <div className="row">
+        <div className="span10 problems">
           <ReactMathJax.Provider>{problemBlocks}</ReactMathJax.Provider>
         </div>
 

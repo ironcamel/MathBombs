@@ -16,16 +16,17 @@ div.thumbnail {
     border: none;
 }
 
+div.problems {
+    display: flex;
+    flex-wrap: wrap;
+}
 div.problem {
     /*
     border: 3px solid #888;
     */
     margin: 20px;
-    float: left;
-    position: relative;
     padding: 15px;
     background-color: #fff;
-    height: 120px;
 }
 
 div.eqn {

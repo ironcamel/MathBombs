@@ -7,6 +7,5 @@ our $VERSION = '0.0001';
 use MathSheets::Routes;
 use MathSheets::Routes::Admin;
 use MathSheets::Routes::API;
-use MathSheets::Routes::Students;
 
 1;
