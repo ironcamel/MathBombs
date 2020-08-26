@@ -20,16 +20,19 @@
 
 <script src="[% request.uri_base %]/bootstrap/js/bootstrap.min.js"></script>
 
+<!--
 <script type="text/x-mathjax-config">
     MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
 </script>
-<!--
 <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
 -->
 <script type="text/javascript" src="/mathjax/MathJax.js?config=TeX-AMS_HTML"></script>
 
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 
+<!--
+-->
+<script type="text/babel" src="/javascripts/bundle.js"></script>
 <script type="text/babel" src="/javascripts/components.js"></script>
 <script type="text/babel" src="/javascripts/components/App.js"></script>
 <script type="text/babel" src="/javascripts/components/ForgotPasswordPage.js"></script>

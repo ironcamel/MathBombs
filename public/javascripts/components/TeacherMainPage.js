@@ -103,7 +103,7 @@ const TeacherMainPage = ({ teacher }) => {
         <div className="span12">
 
           <h2 className="offset1">
-            {teacher.name}'s Students <small>[<Link to={portalUrl}>student portal</Link>]</small>
+            Student Management <small>[<Link to={portalUrl}>student portal</Link>]</small>
           </h2>
 
           <table id="students_tbl" className="table table-hover">

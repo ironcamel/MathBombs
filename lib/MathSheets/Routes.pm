@@ -14,6 +14,7 @@ my @routes = qw(
     /teacher/profile
     /forgot-password
     /password-reset
+    /foo
 );
 
 for my $route (@routes) {

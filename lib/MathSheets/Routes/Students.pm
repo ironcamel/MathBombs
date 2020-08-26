@@ -172,8 +172,8 @@ post '/ajax/get_worksheet_link' => sub {
 };
 
 
-post '/foo' => sub { info 'post foo'; info params->{id}; 1;};
-get  '/foo' => sub { info 'get /foo'; template 'foo' };
+#post '/foo' => sub { info 'post foo'; info params->{id}; 1;};
+#get  '/foo' => sub { info 'get /foo'; template 'foo' };
 get '/uidesign'      => sub { template 'uidesign' };
 get '/uidesign/:num' => sub { template 'uidesign_' . param 'num' };
 

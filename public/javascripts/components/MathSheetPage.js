@@ -18,25 +18,15 @@ const MathSheetPage = () => {
   const [isTargeting, setIsTargeting] = React.useState(false);
 
   let { student_id, sheet_id } = ReactRouterDOM.useParams();
-
   sheet_id = parseInt(sheet_id);
 
   React.useEffect(() => {
     getStudent();
-    getProblems();
   }, []);
 
   React.useEffect(() => {
-    if (problems.length) {
-      queueMathJax(0);
-      queueMathJax(1000);
-      queueMathJax(5000);
-    }
-  }, [problems]);
-
-  const queueMathJax = (ms) => {
-    setTimeout(() => MathJax.Hub.Queue(["Typeset", MathJax.Hub]), ms);
-  };
+    getProblems();
+  }, [sheet_id]);
 
   const authToken = window.localStorage.getItem('auth-token');
 
@@ -229,7 +219,7 @@ const MathSheetPage = () => {
 
       <div id="problems" className="row">
         <div className="span10">
-          {problemBlocks}
+          <ReactMathJax.Provider>{problemBlocks}</ReactMathJax.Provider>
         </div>
 
         { student &&
@@ -267,13 +257,13 @@ const MathSheetPage = () => {
 
           { (sheet_id > 1) &&
           <span className="prev-link">
-            <a className="btn btn-small" href={prevUrl}>&lt;&lt; previous</a>
+            <Link className="btn btn-small" to={prevUrl}>&lt;&lt; previous</Link>
           </span>
           }
 
           { showNextLink &&
           <span className="next-link pull-right">
-            <a className="btn btn-small btn-primary" href={nextUrl}>next &gt;&gt;</a>
+            <Link className="btn btn-small btn-primary" to={nextUrl}>next &gt;&gt;</Link>
           </span>
           }
 
@@ -294,7 +284,9 @@ const ProblemBlock = ({ problem, updateProblem, isTargeting, problemClicked }) =
   return (
     <div className={cls} onClick={problemClicked(problem)}>
       <span className="problem_number">{problem.id})</span>
-      <div className="eqn">${problem.question}$</div>
+      <div className="eqn">
+        <ReactMathJax.Node formula={problem.question} />
+      </div>
       <hr/>
       <input type="text"
         className={problem.guess == problem.answer ? "guess correct-answer" : "guess"}
