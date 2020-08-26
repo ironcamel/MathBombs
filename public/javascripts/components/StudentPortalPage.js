@@ -1,8 +1,10 @@
 
 const StudentPortalPage = () => {
+  const { Redirect } = ReactRouterDOM;
   const [students, setStudents] = React.useState([]);
+  const [loggedInStudent, setLoggedInStudent] = React.useState();
   const [teacher, setTeacher] = React.useState();
-  const [errMsg, setErrMsg] = React.useState(null);
+  const [errMsg, setErrMsg] = React.useState();
 
   const { teacher_id } = ReactRouterDOM.useParams();
 
@@ -32,11 +34,17 @@ const StudentPortalPage = () => {
     var password = prompt('What is your password?');
     if (password == null) return;
     if (student.password === password) {
-      location.href = location.href.replace(/portal.*/, 'students/' + student.id);
+      setLoggedInStudent(student);
     } else {
       alert('Invalid password');
     }
   };
+
+  if (loggedInStudent) {
+    const student = loggedInStudent;
+    const url = `/students/${student.id}/sheets/${student.last_sheet+1}`;
+    return <Redirect to={url} />;
+  }
 
   const studentRows = students.map((student) => (
     <StudentPortalRow key={student.id} student={student} checkPassword={checkPassword} />
@@ -79,10 +87,15 @@ const StudentPortalPage = () => {
 };
 
 const StudentPortalRow = ({ student, checkPassword }) => {
+  const studentClicked = (student) => (e) => {
+    checkPassword(student)
+    e.preventDefault();
+  };
+
   return (
     <tr key={student.id}>
       <td>
-        <a href="#" className="student_link" onClick={() => checkPassword(student)}>{student.name}</a>
+        <a href="#" className="student_link" onClick={studentClicked(student)}>{student.name}</a>
       </td>
       <StudentProgressTd student={student} />
     </tr>

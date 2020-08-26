@@ -46,6 +46,7 @@
 <script type="text/babel" src="/javascripts/components/StudentPortalPage.js"></script>
 <script type="text/babel" src="/javascripts/components/TeacherMainPage.js"></script>
 <script type="text/babel" src="/javascripts/components/TeacherProfilePage.js"></script>
+<script type="text/babel" src="/javascripts/components/WorkbookRedirect.js"></script>
 <script type="text/javascript" src="/javascripts/fire.js"></script>
 <script type="text/javascript" src="/javascripts/mathsheets.js"></script>
 

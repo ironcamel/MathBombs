@@ -191,9 +191,9 @@ const StudentRow = ({ student, showPasswords, deleteStudent, setErrMsg }) => {
           </Link>
         </div>
         <div>
-          <a href={studentUrl} title="Right click to copy private link for student">
+          <Link to={studentUrl} title="Right click to copy private link for student">
             workbook
-          </a>
+          </Link>
         </div>
       </td>
       { showPasswords &&
