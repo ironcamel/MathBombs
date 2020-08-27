@@ -16,6 +16,7 @@ const MathSheetPage = () => {
   const [powerup1, setPowerup1] = React.useState(0);
   const [powerup2, setPowerup2] = React.useState(0);
   const [isTargeting, setIsTargeting] = React.useState(false);
+  const [fetchingProblems, setFetchingProblems] = React.useState(false);
 
   let { student_id, sheet_id } = ReactRouterDOM.useParams();
   sheet_id = parseInt(sheet_id);
@@ -25,6 +26,7 @@ const MathSheetPage = () => {
   }, []);
 
   React.useEffect(() => {
+    window.scrollTo(0, 0);
     getProblems();
   }, [sheet_id]);
 
@@ -54,6 +56,7 @@ const MathSheetPage = () => {
   };
 
   const getProblems = () => {
+    setFetchingProblems(true);
     fetch('/api/problems', {
       method: 'POST',
       headers: {
@@ -65,6 +68,7 @@ const MathSheetPage = () => {
     .then(res => res.json())
     .then(data => {
       //console.log('problems:', data);
+      setFetchingProblems(false);
       if (data.error) {
         setErrMsg(data.error);
         window.scrollTo(0, 0);
@@ -197,7 +201,7 @@ const MathSheetPage = () => {
 
   const showNextLink = !!problems.length && isAllSolved;
 
-  if (!student) {
+  if (!student || fetchingProblems) {
     return errorDiv ? errorDiv : (
       <img src="/images/spinner.gif" style={{ width: '100px' }} />
     );

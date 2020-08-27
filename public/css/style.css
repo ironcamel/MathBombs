@@ -26,12 +26,17 @@ div.problem {
     */
     margin: 20px;
     padding: 15px;
+    position: relative;
     background-color: #fff;
 }
 
 div.eqn {
     font-size: 2em;
     text-align: center;
+}
+
+input.guess {
+    width: auto;
 }
 
 input.correct-answer {
