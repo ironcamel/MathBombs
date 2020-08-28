@@ -29,6 +29,7 @@ hook before => sub {
         [ GET   => '/api/students' ],
         [ GET   => '/api/students/\w+' ],
         [ GET   => '/api/skills' ],
+        [ GET   => '/api/reports' ],
         [ GET   => '/api/powerups' ],
         [ PATCH => '/api/powerups' ],
         [ POST  => '/api/problems' ],
@@ -70,9 +71,13 @@ post '/api/auth-tokens' => sub {
         return res 403 => { error => 'Invalid password' }
             unless passphrase($password)->matches($teacher->pw_hash);
     }
-    session teacher => $email;
     my $auth_token = _create_auth_token($teacher);
     return { data => $auth_token };
+};
+
+del '/api/auth-tokens' => sub {
+    _teacher()->auth_tokens->delete;
+    return {};
 };
 
 post '/api/password-reset-tokens' => sub {
@@ -159,7 +164,6 @@ post '/api/teachers' => sub {
         }
     }
     my $auth_token = _create_auth_token($teacher);
-    session teacher => $email;
     return res 201 => {
         data => $teacher,
         meta => {

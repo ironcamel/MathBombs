@@ -1,8 +1,14 @@
 <html>
 
-<head>
+<html lang="en">
 
 <title>MathBombs</title>
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<!--
+<meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1, minimal-ui user-scalable=no" />
+-->
 
 <link rel="stylesheet" href="/bootstrap/css/bootstrap.css" />
 <link rel="stylesheet" href="/css/style.css" />
@@ -18,15 +24,15 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript"></script>
 
-<script src="[% request.uri_base %]/bootstrap/js/bootstrap.min.js"></script>
+<script src="/bootstrap/js/bootstrap.min.js"></script>
 
 <!--
 <script type="text/x-mathjax-config">
     MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
 </script>
 <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
--->
 <script type="text/javascript" src="/mathjax/MathJax.js?config=TeX-AMS_HTML"></script>
+-->
 
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 
@@ -52,7 +58,7 @@
 
 </head>
 
-<body style="background-image: url('[% request.uri_base %]/images/pleiades.jpg')">
+<body style="background-image: url('/images/pleiades.jpg')">
   <div id="app"></div>
   <script type="text/babel">
     ReactDOM.render(<App/>, document.getElementById('app'));

@@ -203,7 +203,7 @@ const MathSheetPage = () => {
 
   if (!student || fetchingProblems) {
     return errorDiv ? errorDiv : (
-      <img src="/images/spinner.gif" style={{ width: '100px' }} />
+      <img src="/images/spinner.gif" className="spinner" />
     );
   }
 
@@ -211,36 +211,33 @@ const MathSheetPage = () => {
     <div className={ isTargeting ? "targeting" : "" }>
       {errorDiv}
 
-      <div className="row">
+      <div>
         <h1 className="offset1">
-          { student &&
           <div>
           {student.name}'s Workbook <small> sheet {sheet_id} </small>
           </div>
-          }
         </h1>
       </div>
 
-      <div className="row">
-        <div className="span10 problems">
+      <div className="sheet-body">
+        <div className="problems">
           <ReactMathJax.Provider>{problemBlocks}</ReactMathJax.Provider>
         </div>
 
-        { student &&
-        <div className="span2">
+        <div className="sheet-sidebar">
           <h4> Progress </h4>
-            <a href={`/students/${student_id}/report`}>
+            <Link to={`/students/${student_id}/report`}>
               7 day goal: {student.past_week} / 7
               <div className="progress">
                 <div className="bar bar-success" style={{width: (student.past_week / 7 * 100) + '%'}}></div>
               </div>
-            </a>
-            <a href={`/students/${student_id}/report`}>
+            </Link>
+            <Link to={`/students/${student_id}/report`}>
               30 day goal: {student.past_month} / 30
               <div className="progress">
                 <div className="bar bar-success" style={{width: (student.past_month / 30 * 100) + '%'}}></div>
               </div>
-            </a>
+            </Link>
           <hr />
           <h4> Power-Ups </h4>
           <p>
@@ -252,26 +249,23 @@ const MathSheetPage = () => {
             &times; <span>{powerup2}</span>
           </p>
         </div>
-        }
 
       </div>
 
-      <div className="row">
-        <div className="span12 prev-next">
+      <div className="prev-next">
 
-          { (sheet_id > 1) &&
-          <span className="prev-link">
-            <Link className="btn btn-small" to={prevUrl}>&lt;&lt; previous</Link>
-          </span>
-          }
+        { (sheet_id > 1) &&
+        <span className="prev-link">
+          <Link className="btn btn-small" to={prevUrl}>&lt;&lt; previous</Link>
+        </span>
+        }
 
-          { showNextLink &&
-          <span className="next-link pull-right">
-            <Link className="btn btn-small btn-primary" to={nextUrl}>next &gt;&gt;</Link>
-          </span>
-          }
+        { showNextLink &&
+        <span className="next-link pull-right">
+          <Link className="btn btn-small btn-primary" to={nextUrl}>next &gt;&gt;</Link>
+        </span>
+        }
 
-        </div>
       </div>
     </div>
   );

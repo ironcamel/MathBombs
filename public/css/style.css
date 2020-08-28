@@ -10,16 +10,37 @@
     */
     margin-bottom: 40px;
     background-color: white;
+    width: 80%;
+    min-width: 340px;
 }
 
 div.thumbnail {
     border: none;
 }
 
-div.problems {
+div.sheet-body {
     display: flex;
     flex-wrap: wrap;
 }
+
+div.problems {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    flex: 5;
+}
+
+@media (min-width: 500px) {
+  div.problems {
+    justify-content: flex-start;
+  }
+}
+
+div.sheet-sidebar {
+    min-width: 160px;
+    flex: 1;
+}
+
 div.problem {
     /*
     border: 3px solid #888;
@@ -67,19 +88,27 @@ div.prev-next {
     padding-top: 20px;
 }
 
-#students_tbl .progress {
+#students-tbl {
+  width: auto;
+}
+
+#students-tbl .progress {
     width:100px;
     margin-right:20px;
 }
 
-#students_tbl .pw_col {
+#students-tbl .pw_col {
     display: none;
 }
 
-#students_tbl i {
+#students-tbl i {
     margin-left: 10px;
 }
 
 .hidden {
     display: none;
+}
+
+.spinner {
+    width: 100px;
 }

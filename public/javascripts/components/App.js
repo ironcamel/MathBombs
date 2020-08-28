@@ -12,19 +12,12 @@ const App = () => {
     setIsInitializing(false);
   }, []);
 
-  const logoutClicked = (e) => {
-    console.log('Logout was clicked.');
-    window.localStorage.removeItem('auth-token');
-    window.localStorage.removeItem('teacher');
-    //e.preventDefault();
-  }
-
   return (
     <div className="container well" id="page">
       <BrowserRouter>
-        <NavBar teacher={teacher} logoutClicked={logoutClicked} />
+        <NavBar teacher={teacher} setTeacher={setTeacher} />
         { isInitializing
-          ? <img src="/images/spinner.gif" />
+          ? <img src="/images/spinner.gif" className="spinner" />
           : <Routes teacher={teacher} setTeacher={setTeacher} />
         }
       </BrowserRouter>
@@ -32,8 +25,22 @@ const App = () => {
   );
 };
 
-const NavBar = ({ teacher, logoutClicked }) => {
+const NavBar = ({ teacher, setTeacher }) => {
   const { Link } = ReactRouterDOM;
+
+  const authToken = window.localStorage.getItem('auth-token');
+
+  const logoutClicked = (e) => {
+    e.preventDefault();
+    window.localStorage.removeItem('auth-token');
+    window.localStorage.removeItem('teacher');
+    setTeacher(null);
+    fetch('/api/auth-tokens', {
+      method: 'DELETE',
+      headers: { 'x-auth-token': authToken },
+    });
+  }
+
   return (
     <div className="navbar">
       <div className="navbar-inner">
@@ -81,11 +88,11 @@ const Routes = ({ teacher, setTeacher }) => {
       <Route path="/students/:student_id/sheets/:sheet_id">
         <MathSheetPage />
       </Route>
-      <Route path="/students/:student_id">
-        <WorkbookRedirect />
-      </Route>
       <Route path="/students/:student_id/report">
         <ReportPage />
+      </Route>
+      <Route path="/students/:student_id">
+        <WorkbookRedirect />
       </Route>
       <Route path="/teacher/students/:student_id">
         { teacher

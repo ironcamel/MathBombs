@@ -106,7 +106,7 @@ const TeacherMainPage = ({ teacher }) => {
             Student Management <small>[<Link to={portalUrl}>student portal</Link>]</small>
           </h2>
 
-          <table id="students_tbl" className="table table-hover">
+          <table id="students-tbl" className="table table-hover">
             <thead>
               <tr>
                 <th>Name</th>
@@ -130,8 +130,7 @@ const TeacherMainPage = ({ teacher }) => {
         </div>
       </div>
 
-      <div className="row">
-        <div className="span12">
+      <div>
           <form id="add_form" className="form-inline" acceptCharset="utf-8">
             <fieldset>
               <legend>Add Student</legend>
@@ -139,7 +138,6 @@ const TeacherMainPage = ({ teacher }) => {
               <button type="button" className="btn" onClick={createStudent}>Add</button>
             </fieldset>
           </form>
-        </div>
       </div>
 
     </React.Fragment>

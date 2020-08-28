@@ -1,5 +1,5 @@
 
-const ReportPage = ({ }) => {
+const ReportPage = () => {
   const { student_id } = ReactRouterDOM.useParams();
   const [student, setStudent] = React.useState();
   const [errMsg, setErrMsg] = React.useState();
@@ -67,7 +67,7 @@ const ReportPage = ({ }) => {
       </div>
       }
 
-      <div id="chart_div" className="span12" style={{ height: '1000px' }}></div>
+      <div id="chart_div" style={{ height: '1000px' }}></div>
 
     </div>
   );
