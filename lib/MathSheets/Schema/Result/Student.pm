@@ -72,6 +72,16 @@ __PACKAGE__->table("student");
   is_nullable: 1
   size: 100
 
+=head2 created
+
+  data_type: 'timestamp'
+  is_nullable: 1
+
+=head2 updated
+
+  data_type: 'timestamp'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -91,6 +101,10 @@ __PACKAGE__->add_columns(
   { data_type => "int", default_value => 10, is_nullable => 0 },
   "password",
   { data_type => "varchar", is_nullable => 1, size => 100 },
+  "created",
+  { data_type => "timestamp", is_nullable => 1 },
+  "updated",
+  { data_type => "timestamp", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -168,10 +182,17 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-08-16 07:32:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:S1yI6oXoru1nSzCv1rf4HA
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-08-29 03:05:02
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ppLITiQIBjd0Ux6dkXKKNg
 
 use MathSheets::Util qw(past_sheets);
+
+__PACKAGE__->load_components(qw(TimeStamp));
+
+__PACKAGE__->add_columns(
+    '+created' => { set_on_create => 1 },
+    '+updated' => { set_on_create => 1, set_on_update => 1 },
+);
 
 sub TO_JSON {
     my ($self) = @_;

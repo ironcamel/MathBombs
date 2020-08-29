@@ -6,7 +6,6 @@ const MathSheetPage = () => {
   const [skills, setSkills] = React.useState([]);
   const [skill, setSkill] = React.useState('');
   const [problemsPerSheet, setProblemsPerSheet] = React.useState(0);
-  const [problems, setProblems] = React.useState([]);
   const [problemsById, setProblemsById] = React.useState({});
   const [difficulty, setDifficulty] = React.useState(0);
   const [isUpdatingStudent, setIsUpdatingStudent] = React.useState(false);
@@ -17,9 +16,14 @@ const MathSheetPage = () => {
   const [powerup2, setPowerup2] = React.useState(0);
   const [isTargeting, setIsTargeting] = React.useState(false);
   const [fetchingProblems, setFetchingProblems] = React.useState(false);
+  const [wonPowerup, setWonPowerup] = React.useState();
+  const modal1Ref = React.createRef();
+  const modal2Ref = React.createRef();
 
   let { student_id, sheet_id } = ReactRouterDOM.useParams();
   sheet_id = parseInt(sheet_id);
+  const probObjects = Object.values(problemsById);
+  const isAllSolved = probObjects.length && probObjects.every(p => p.guess == p.answer);
 
   React.useEffect(() => {
     getStudent();
@@ -29,6 +33,17 @@ const MathSheetPage = () => {
     window.scrollTo(0, 0);
     getProblems();
   }, [sheet_id]);
+
+  React.useEffect(() => {
+    if (wonPowerup) {
+      setWonPowerup(null);
+      if (wonPowerup.id == 1) {
+        $(modal1Ref.current).modal();
+      } else if (wonPowerup.id == 2) {
+        $(modal2Ref.current).modal();
+      }
+    }
+  }, [wonPowerup]);
 
   const authToken = window.localStorage.getItem('auth-token');
 
@@ -74,7 +89,6 @@ const MathSheetPage = () => {
         window.scrollTo(0, 0);
       } else {
         setProblemsById(data.data.reduce((o,p) => ({...o, [p.id]: p}), {}));
-        setProblems(data.data.map(p => p.id));
       }
     });
   };
@@ -95,8 +109,18 @@ const MathSheetPage = () => {
         setErrMsg(data.error);
         window.scrollTo(0, 0);
       } else {
-          if (data.meta && data.meta.reward) {
-            alert(data.meta.reward);
+          const meta = data.meta || {};
+          const { powerup, reward } = meta;
+          if (powerup) {
+            if (powerup.id == 1) {
+              setPowerup1(powerup.cnt)
+            } else if (powerup.id == 2) {
+              setPowerup2(powerup.cnt)
+            }
+            setWonPowerup(powerup);
+          }
+          if (reward) {
+            alert(reward);
           }
       }
     });
@@ -150,9 +174,7 @@ const MathSheetPage = () => {
     }
   };
 
-  const problemBlocks = problems.map((pId) => {
-    const p = problemsById[pId];
-    return (
+  const problemBlocks = Object.values(problemsById).sort((a, b) => a.id - b.id).map(p => (
       <ProblemBlock
         key={p.id}
         problem={p}
@@ -160,8 +182,7 @@ const MathSheetPage = () => {
         isTargeting={isTargeting}
         problemClicked={problemClicked}
       />
-    );
-  });
+  ));
 
   const prevUrl = `/students/${student_id}/sheets/${sheet_id - 1}`;
   const nextUrl = `/students/${student_id}/sheets/${sheet_id + 1}`;
@@ -181,13 +202,10 @@ const MathSheetPage = () => {
     }
   };
 
-  const isAllSolved = Object.values(problemsById).every(p => p.guess == p.answer);
-
   const pu2Clicked = () => {
     if (powerup2 <= 0 || isAllSolved) return;
     const newProblemsById = {};
-    problems.forEach((id) => {
-      const problem = problemsById[id];
+    Object.values(problemsById).forEach((problem) => {
       const newProblem = { ...problem, guess: problem.answer };
       if (problem.guess !== newProblem.guess) {
         saveProblem(newProblem);
@@ -198,8 +216,6 @@ const MathSheetPage = () => {
     updatePowerup({ powerup_id: 2, cnt: powerup2 - 1 });
     document.querySelectorAll('div.problem').forEach(p => killWithFire(p));
   };
-
-  const showNextLink = !!problems.length && isAllSolved;
 
   if (!student || fetchingProblems) {
     return errorDiv ? errorDiv : (
@@ -260,13 +276,17 @@ const MathSheetPage = () => {
         </span>
         }
 
-        { showNextLink &&
+        { isAllSolved &&
         <span className="next-link pull-right">
           <Link className="btn btn-small btn-primary" to={nextUrl}>next &gt;&gt;</Link>
         </span>
         }
 
       </div>
+
+      <PowerupModal powerup_id={1} ref={modal1Ref} setIsTargeting={setIsTargeting} />
+      <PowerupModal powerup_id={2} ref={modal2Ref} setIsTargeting={setIsTargeting} />
+
     </div>
   );
 
@@ -278,6 +298,7 @@ const ProblemBlock = ({ problem, updateProblem, isTargeting, problemClicked }) =
   };
 
   const cls = isTargeting ? 'problem problem-targetable' : 'problem';
+  const isCorrect = problem.guess == problem.answer;
 
   return (
     <div className={cls} onClick={problemClicked(problem)}>
@@ -287,12 +308,53 @@ const ProblemBlock = ({ problem, updateProblem, isTargeting, problemClicked }) =
       </div>
       <hr/>
       <input type="text"
-        className={problem.guess == problem.answer ? "guess correct-answer" : "guess"}
+        className={isCorrect ? "guess correct-answer" : "guess"}
+        disabled={false && isCorrect}
         onChange={answerChanged(problem)}
         value={problem.guess == null ? '' : problem.guess }
       />
     </div>
   );
 };
+
+const PowerupModal = React.forwardRef(({ powerup_id, setIsTargeting }, ref) => {
+  let name, img;
+  if (powerup_id == 1) {
+    name = 'Bomb';
+    img = 'bomb-128.png';
+  } else {
+    name = 'Super Bomb';
+    img = 'nuclear.gif';
+  }
+  const bombPath = "/uidesign-images/" + img;
+
+  const boomClicked = () => {
+    setIsTargeting(true);
+  };
+
+  return (
+    <div className="modal hide fade" ref={ref} >
+      <div className="modal-header">
+        <button type="button" className="close" data-dismiss="modal"
+            aria-hidden="true">&times;</button>
+        <h3>You got the {name}!</h3>
+      </div>
+      <div className="modal-body">
+        <p style={{textAlign: 'center'}}>
+          <img src={bombPath} />
+        </p>
+      </div>
+      <div className="modal-footer">
+        { powerup_id == 1
+        ? <div>
+          <button type="button" className="btn" data-dismiss="modal">Save for later</button>
+          <button type="button" className="btn btn-primary" data-dismiss="modal" onClick={boomClicked}>Boom!</button>
+        </div>
+        : <button type="button" className="btn btn-primary" data-dismiss="modal">OK</button>
+        }
+      </div>
+    </div>
+  );
+});
 
 // vi: fdm=indent fdn=2 syntax=javascript

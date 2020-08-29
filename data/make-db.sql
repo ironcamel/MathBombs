@@ -3,7 +3,9 @@ CREATE TABLE teacher (
     name    VARCHAR(100) NOT NULL,
     email   VARCHAR(100) NOT NULL UNIQUE,
     pw_hash TEXT,
-    rewards_email VARCHAR(200)
+    rewards_email VARCHAR(200),
+    created TIMESTAMP,
+    updated TIMESTAMP
 );
 
 CREATE TABLE student (
@@ -15,9 +17,12 @@ CREATE TABLE student (
     difficulty INT NOT NULL DEFAULT 1,
     problems_per_sheet INT NOT NULL DEFAULT 10,
     password VARCHAR(100),
+    created TIMESTAMP,
+    updated TIMESTAMP,
     FOREIGN KEY (teacher_id) REFERENCES teacher (id)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
+
 
 CREATE TABLE sheet (
     id INT,

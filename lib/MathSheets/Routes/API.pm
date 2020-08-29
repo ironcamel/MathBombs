@@ -200,7 +200,7 @@ post '/api/students' => sub {
     my $teacher = _teacher();
     return res 400 => { error => "Student $name already exists"}
         if $teacher->students->count({ name => $name });
-    info "Adding student $name";
+    info "Creating student $name";
     my $student = $teacher->students->create({
         id                 => gen_uuid(),
         name               => $name,
@@ -208,6 +208,8 @@ post '/api/students' => sub {
         password           => irand(1000) + 100,
         problems_per_sheet => 6,
     });
+    $student->powerups->create({ id => 1 });
+    $student->powerups->create({ id => 2 });
     return res 201 => { data => $student };
 };
 
@@ -353,13 +355,10 @@ patch '/api/powerups' => sub {
         unless $cnt =~ /^\d+$/;
     my $student = find_student($student_id)
         or return res 400 => { error => 'No such student.' };
-    my $powerup = $student->powerups->find({
-        id         => $powerup_id,
-        student_id => $student_id,
-    }) or return res 404 => { error => 'No such powerup.' };
+    my $powerup = $student->powerups->find({ id => $powerup_id })
+        or return res 404 => { error => 'No such powerup.' };
     $powerup->update({ cnt => int($cnt) });
     return { data => $powerup };
-
 };
 
 post '/api/problems' => sub {
@@ -404,11 +403,34 @@ patch '/api/problems/:pid' => sub {
         sheet   => $sheet_id,
         student => $student_id,
     }) or return res 404 => { error => 'No such problem exists.' };
-    $problem->update({ guess => $guess });
-    my $reward_msg = process_sheet($problem->sheet);
+    my $update = { guess => $guess };
+    my $check_reward = 0;
+    my $powerup;
+    if (not $problem->is_solved and $problem->answer eq $guess) {
+        $update->{is_solved} = 1;
+        $check_reward = 1;
+        my $prob1 = (config->{powerups}{1}{probability} // 10);
+        my $prob2 = (config->{powerups}{2}{probability} //  2);
+        my $rand = irand 100;
+        if ($rand < $prob2) {
+            $powerup = $student->powerups->find({ id => 2 });
+            $powerup->update({ cnt => $powerup->cnt + 1 });
+        } elsif ($rand < $prob1) {
+            $powerup = $student->powerups->find({ id => 1 });
+            $powerup->update({ cnt => $powerup->cnt + 1 });
+        }
+    }
+    $problem->update($update);
+    my $reward_msg;
+    if ($check_reward) {
+        $reward_msg = process_sheet($problem->sheet);
+    }
     return {
         data => $problem,
-        meta => { reward => $reward_msg },
+        meta => {
+            reward  => $reward_msg,
+            powerup => $powerup,
+        },
     };
 };
 

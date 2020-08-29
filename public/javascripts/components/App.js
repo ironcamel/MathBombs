@@ -3,6 +3,7 @@ const App = () => {
   const { BrowserRouter, Link, Redirect } = ReactRouterDOM;
   const [teacher, setTeacher] = React.useState();
   const [isInitializing, setIsInitializing] = React.useState(true);
+  const [loggedOut, setLoggedOut] = React.useState(false);
 
   React.useEffect(() => {
     const teacherJson = window.localStorage.getItem('teacher');
@@ -15,17 +16,17 @@ const App = () => {
   return (
     <div className="container well" id="page">
       <BrowserRouter>
-        <NavBar teacher={teacher} setTeacher={setTeacher} />
+        <NavBar teacher={teacher} setTeacher={setTeacher} setLoggedOut={setLoggedOut} />
         { isInitializing
           ? <img src="/images/spinner.gif" className="spinner" />
-          : <Routes teacher={teacher} setTeacher={setTeacher} />
+          : <Routes teacher={teacher} setTeacher={setTeacher} loggedOut={loggedOut} setLoggedOut={setLoggedOut} />
         }
       </BrowserRouter>
     </div>
   );
 };
 
-const NavBar = ({ teacher, setTeacher }) => {
+const NavBar = ({ teacher, setTeacher, setLoggedOut }) => {
   const { Link } = ReactRouterDOM;
 
   const authToken = window.localStorage.getItem('auth-token');
@@ -34,6 +35,7 @@ const NavBar = ({ teacher, setTeacher }) => {
     e.preventDefault();
     window.localStorage.removeItem('auth-token');
     window.localStorage.removeItem('teacher');
+    setLoggedOut(true);
     setTeacher(null);
     fetch('/api/auth-tokens', {
       method: 'DELETE',
@@ -62,7 +64,7 @@ const NavBar = ({ teacher, setTeacher }) => {
             <a href="#" id="drop1" role="button" className="dropdown-toggle" data-toggle="dropdown">{teacher.email} <b className="caret"></b></a>
             <ul className="dropdown-menu" role="menu" aria-labelledby="drop1">
               <li>
-                <a href="/logout" onClick={logoutClicked}>Logout</a>
+                <Link to="/logout" onClick={logoutClicked}>Logout</Link>
               </li>
               <li>
                 <Link to="/teacher/profile">Edit profile</Link>
@@ -81,8 +83,12 @@ const NavBar = ({ teacher, setTeacher }) => {
   );
 }
 
-const Routes = ({ teacher, setTeacher }) => {
+const Routes = ({ teacher, setTeacher, loggedOut, setLoggedOut }) => {
   const { Route, Switch, Redirect } = ReactRouterDOM;
+  if (loggedOut) {
+    setLoggedOut(false);
+    return <Redirect to="/login" />;
+  }
   return (
     <Switch>
       <Route path="/students/:student_id/sheets/:sheet_id">
