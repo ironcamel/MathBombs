@@ -1,4 +1,4 @@
-const LoginPage = ({ teacher, setTeacher }) => {
+const LoginPage = ({ teacher, setTeacher, setAuthToken }) => {
   const { Link, Redirect } = ReactRouterDOM;
   const [errMsg, setErrMsg] = React.useState(null);
   const [isLoggingIn, setIsLoggingIn] = React.useState(false);
@@ -24,14 +24,15 @@ const LoginPage = ({ teacher, setTeacher }) => {
     })
     .then(res => res.json())
     .then(data => {
-      console.log(data);
+      //console.log('signIn', data);
       setIsLoggingIn(false);
       if (data.error) {
         setErrMsg(data.error);
       } else {
-        const teacher = data.data.teacher;
-        window.localStorage.setItem('auth-token', data.data.token);
+        const { teacher, token } = data.data;
         window.localStorage.setItem('teacher', JSON.stringify(teacher));
+        window.localStorage.setItem('auth-token', token);
+        setAuthToken(token);
         if (email === 'admin@mathbombs.org') {
           setIsAdmin(true);
         } else {
@@ -75,14 +76,15 @@ const LoginPage = ({ teacher, setTeacher }) => {
     })
     .then(res => res.json())
     .then(data => {
-      console.log(data);
+      //console.log("Created teacher: ", data);
       setIsCreatingTeacher(false);
       if (data.error) {
         setErrMsg(data.error);
       } else {
-        window.localStorage.setItem('auth-token', data.meta.auth_token);
-        window.localStorage.setItem('teacher', JSON.stringify(data.data));
-        setTeacher(data.data);
+        const { data: teacher, meta } = data;
+        window.localStorage.setItem('auth-token', meta.auth_token);
+        window.localStorage.setItem('teacher', JSON.stringify(teacher));
+        setTeacher(teacher);
         setLoggedIn(true);
       }
     });

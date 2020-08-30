@@ -6,6 +6,8 @@ const TeacherMainPage = ({ teacher }) => {
   const [errMsg, setErrMsg] = React.useState(null);
   const [isCreatingStudent, setIsCreatingStudent] = React.useState(false);
 
+  const client = React.useContext(ClientContext);
+
   const newStudentName = React.createRef();
 
   const authToken = window.localStorage.getItem('auth-token');
@@ -14,18 +16,13 @@ const TeacherMainPage = ({ teacher }) => {
   React.useEffect(() => getStudents(), []);
 
   const getStudents = () => {
-    fetch('/api/students?teacher_id=' + teacher.id, {
-      method: 'GET',
-      headers: { 'x-auth-token': authToken },
-    })
-    .then(res => res.json())
-    .then(data => {
-      console.log(data);
+    client.getStudents({ teacher }).then(data => {
       if (data.error) {
         setErrMsg(data.error);
         window.scrollTo(0, 0);
       } else {
-        setStudents(data.data);
+        const { students } = data;
+        setStudents(students);
       }
     });
   };
@@ -33,22 +30,14 @@ const TeacherMainPage = ({ teacher }) => {
   const createStudent = () => {
     setErrMsg('');
     setIsCreatingStudent(true);
-    fetch('/api/students', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-auth-token': authToken,
-      },
-      body: JSON.stringify({ name: newStudentName.current.value }),
-    })
-    .then(res => res.json())
-    .then(data => {
+    client.createStudent({ name: newStudentName.current.value }).then(data => {
       setIsCreatingStudent(false);
-      if (data.error) {
-        setErrMsg(data.error);
+      const { student, error } = data;
+      if (error) {
+        setErrMsg(error);
         window.scrollTo(0, 0);
       } else {
-        setStudents([...students, data.data]);
+        setStudents([ ...students, student ]);
       }
     });
   };
@@ -58,12 +47,7 @@ const TeacherMainPage = ({ teacher }) => {
       return;
     setErrMsg('');
     setIsCreatingStudent(true);
-    fetch('/api/students/' + student.id, {
-      method: 'DELETE',
-      headers: { 'x-auth-token': authToken }
-    })
-    .then(res => res.json())
-    .then(data => {
+    client.deleteStudent(student).then(data => {
       setIsCreatingStudent(false);
       if (data.error) {
         setErrMsg(data.error);
@@ -82,7 +66,6 @@ const TeacherMainPage = ({ teacher }) => {
       deleteStudent={deleteStudent}
       setErrMsg={setErrMsg}
     />
-              
   ));
 
   const togglePasswords = (e) => {
@@ -152,25 +135,17 @@ const StudentRow = ({ student, showPasswords, deleteStudent, setErrMsg }) => {
   const skill = student.math_skill.replace(/(?<=.)([A-Z])/g, ' $1');
 
   const [isUpdatingStudent, setIsUpdatingStudent] = React.useState(false);
+  const client = React.useContext(ClientContext);
 
   const passwordRef = React.createRef();
 
   const updatePassword = () => {
     setErrMsg('');
     setIsUpdatingStudent(true);
-    fetch('/api/students/' + student.id, {
-      method: 'PATCH',
-      headers: {
-        'content-type': 'application/json',
-        'x-auth-token': authToken,
-      },
-      body: JSON.stringify({
-        student_id: student.id,
-        password: passwordRef.current.value,
-      }),
-    })
-    .then(res => res.json())
-    .then(data => {
+    client.updateStudent({
+      id: student.id,
+      password: passwordRef.current.value
+    }).then(data => {
       setIsUpdatingStudent(false);
       if (data.error) {
         setErrMsg(data.error);

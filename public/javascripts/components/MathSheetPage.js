@@ -13,6 +13,7 @@ const MathSheetPage = () => {
   const [wonPowerup, setWonPowerup] = React.useState();
   const modal1Ref = React.createRef();
   const modal2Ref = React.createRef();
+  const client = React.useContext(ClientContext);
 
   let { student_id, sheet_id } = ReactRouterDOM.useParams();
   sheet_id = parseInt(sheet_id);
@@ -20,7 +21,6 @@ const MathSheetPage = () => {
   const isAllSolved = probObjects.length && probObjects.every(p => p.guess == p.answer);
   const powerup1 = student ? student.powerups[1].cnt : 0;
   const powerup2 = student ? student.powerups[2].cnt : 0;
-  const client = new MathBombsClient();
 
   React.useEffect(() => {
     getStudent();
@@ -43,10 +43,9 @@ const MathSheetPage = () => {
   }, [wonPowerup]);
 
   const getStudent = () => {
-    client.getStudent({ student_id })
-    .then(data => {
+    client.getStudent({ id: student_id }).then(data => {
       //console.log('student:', data);
-      const { data: student, error } = data;
+      const { student, error } = data;
       if (error) {
         setErrMsg(error);
         window.scrollTo(0, 0);

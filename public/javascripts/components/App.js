@@ -1,9 +1,12 @@
 
+const ClientContext = React.createContext();
+
 const App = () => {
   const { BrowserRouter, Link, Redirect } = ReactRouterDOM;
   const [teacher, setTeacher] = React.useState();
   const [isInitializing, setIsInitializing] = React.useState(true);
-  const [loggedOut, setLoggedOut] = React.useState(false);
+  const [authToken, setAuthToken] = React.useState(window.localStorage.getItem('auth-token'));
+  const [client, setClient] = React.useState(new MathBombsClient({ authToken }));
 
   React.useEffect(() => {
     const teacherJson = window.localStorage.getItem('teacher');
@@ -13,29 +16,36 @@ const App = () => {
     setIsInitializing(false);
   }, []);
 
+  React.useEffect(() => {
+    setClient(new MathBombsClient({ authToken }));
+  }, [authToken]);
+
+  const body = isInitializing 
+    ? <img src="/images/spinner.gif" className="spinner" />
+    : <ClientContext.Provider value={client}>
+      <Routes teacher={teacher} setTeacher={setTeacher} setAuthToken={setAuthToken} />
+    </ClientContext.Provider>;
+
   return (
     <div className="container well" id="page">
       <BrowserRouter>
-        <NavBar teacher={teacher} setTeacher={setTeacher} setLoggedOut={setLoggedOut} />
-        { isInitializing
-          ? <img src="/images/spinner.gif" className="spinner" />
-          : <Routes teacher={teacher} setTeacher={setTeacher} loggedOut={loggedOut} setLoggedOut={setLoggedOut} />
-        }
+        <NavBar teacher={teacher} setTeacher={setTeacher} setAuthToken={setAuthToken} />
+        {body}
       </BrowserRouter>
     </div>
   );
 };
 
-const NavBar = ({ teacher, setTeacher, setLoggedOut }) => {
+const NavBar = ({ teacher, setTeacher, setAuthToken }) => {
   const { Link } = ReactRouterDOM;
 
   const authToken = window.localStorage.getItem('auth-token');
 
   const logoutClicked = (e) => {
-    e.preventDefault();
+    //e.preventDefault();
     window.localStorage.removeItem('auth-token');
     window.localStorage.removeItem('teacher');
-    setLoggedOut(true);
+    setAuthToken(null);
     setTeacher(null);
     fetch('/api/auth-tokens', {
       method: 'DELETE',
@@ -83,14 +93,13 @@ const NavBar = ({ teacher, setTeacher, setLoggedOut }) => {
   );
 }
 
-const Routes = ({ teacher, setTeacher, loggedOut, setLoggedOut }) => {
+const Routes = ({ teacher, setTeacher, setAuthToken }) => {
   const { Route, Switch, Redirect } = ReactRouterDOM;
-  if (loggedOut) {
-    setLoggedOut(false);
-    return <Redirect to="/login" />;
-  }
   return (
     <Switch>
+      <Route path="/logout">
+        <Redirect to="/login" />;
+      </Route>
       <Route path="/students/:student_id/sheets/:sheet_id">
         <MathSheetPage />
       </Route>
@@ -134,7 +143,7 @@ const Routes = ({ teacher, setTeacher, loggedOut, setLoggedOut }) => {
         <Foo />
       </Route>
       <Route path="/login">
-        <LoginPage teacher={teacher} setTeacher={setTeacher} />
+        <LoginPage teacher={teacher} setTeacher={setTeacher} setAuthToken={setAuthToken} />
       </Route>
       <Route path="/">
         { teacher
