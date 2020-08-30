@@ -39,6 +39,7 @@
 <!--
 -->
 <script type="text/babel" src="/javascripts/bundle.js"></script>
+<script type="text/babel" src="/javascripts/util.js"></script>
 <script type="text/babel" src="/javascripts/components.js"></script>
 <script type="text/babel" src="/javascripts/components/App.js"></script>
 <script type="text/babel" src="/javascripts/components/ForgotPasswordPage.js"></script>

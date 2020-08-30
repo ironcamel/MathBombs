@@ -300,8 +300,6 @@ const StudentEditPage = () => {
       </div>
       }
 
-      <div className="row">
-        <div className="span12">
           <form method="post" acceptCharset="utf-8">
             <fieldset>
 
@@ -314,9 +312,9 @@ const StudentEditPage = () => {
                 }
               </legend>
 
-              <div className="row">
+              <div style={{ display: 'flex', flexWrap: 'wrap' }}>
 
-                <div className="span4">
+                <div style={{ marginRight: '30px' }}>
                   <label htmlFor="skill_sel">Math skill</label>
                   <select id="skill_sel" value={skill} onChange={skillChanged}>
                     {skillOptions}
@@ -340,9 +338,9 @@ const StudentEditPage = () => {
                     </label>
                   </p>
 
-                </div> {/* end span4 */}
+                </div>
 
-                <div className="span8">
+                <div>
                   <p> Sample problem </p>
                   { sampleProblem &&
                   <div>
@@ -359,92 +357,84 @@ const StudentEditPage = () => {
                   }
                 </div>
 
-              </div> {/* end row */}
-
-            </fieldset>
-          </form>
-        </div>
-      </div>
-
-
-      <div className="row">
-        <div className="span12">
-          <form id="award_form" acceptCharset="utf-8">
-            <fieldset>
-              <legend> Rewards </legend>
-
-              <div className="row">
-
-                <div className="span4">
-                  <label htmlFor="sheet_sel">Sheet</label>
-                  <select id="sheet_sel" className="input-small" ref={sheetRef}>
-                    {sheetOptions}
-                  </select>
-                  <label htmlFor="reward_ta">Reward</label>
-                  <textarea id="reward_ta" rows="3" ref={rewardRef}
-                    placeholder="Great Job! Your reward is ..."
-                  />
-                  <div>
-                    <button type="button" onClick={createReward}>Add Reward</button>
-                  </div>
-                </div>
-
-                <div className="span8">
-                  <table className="table table-hover">
-                    <thead>
-                      <tr>
-                        <th>Condition</th>
-                        <th>Reward</th>
-                        <th>Awarded</th>
-                        <th></th>
-                      </tr>
-                    </thead>
-                    <tbody>{rewardRows}</tbody>
-                  </table>
-                </div>
-
-              </div> {/* end row */}
-
-            </fieldset>
-          </form>
-        </div>
-      </div>
-
-      <div className="row">
-        <div className="span12">
-          <form id="award_form" acceptCharset="utf-8">
-            <fieldset>
-              <legend> Power-ups </legend>
-              { student &&
-              <div>
-                <p>
-                  <img src="/images/bomb-64.png" />
-                  &times;{' '}
-                  <input className="input-mini" type="text"
-                    onChange={pu1Changed}
-                    defaultValue={student.powerups[1].cnt}
-                  />
-                </p>
-                <p>
-                  <img src="/images/nuclear.gif" style={{width: '64px'}} />
-                  &times;{' '}
-                  <input className="input-mini" type="text"
-                    onChange={pu2Changed}
-                    defaultValue={student.powerups[2].cnt}
-                  />
-                </p>
-                <button type="button" onClick={updatePowerups} disabled={isUpdatingPowerups}>
-                  Update power-ups
-                </button>{' '}
-                { updatedPowerup && <span style={{ color: 'green' }}>Updated power-up</span> }
-                { isUpdatingPowerups &&
-                <img src="/images/spinner.gif" style={{ width: '100px', marginLeft: '30px', marginTop: '-50px' }} />
-                }
               </div>
-              }
+
             </fieldset>
           </form>
-        </div>
+
+
+      <form id="award_form" acceptCharset="utf-8">
+        <fieldset>
+          <legend> Rewards </legend>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+
+            <div style={{ marginRight: '30px' }}>
+              <label htmlFor="sheet_sel">Sheet</label>
+              <select id="sheet_sel" className="input-small" ref={sheetRef}>
+                {sheetOptions}
+              </select>
+              <label htmlFor="reward_ta">Reward</label>
+              <textarea id="reward_ta" rows="3" ref={rewardRef}
+                placeholder="Great Job! Your reward is ..."
+              />
+              <div>
+                <button type="button" onClick={createReward}>Add Reward</button>
+              </div>
+            </div>
+
+            <div>
+              <table className="table table-hover" style={{ width: 'auto' }}>
+                <thead>
+                  <tr>
+                    <th>Condition</th>
+                    <th>Reward</th>
+                    <th>Awarded</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>{rewardRows}</tbody>
+              </table>
+            </div>
+
+          </div>
+
+        </fieldset>
+      </form>
+
+      <div>
+        <form id="award_form" acceptCharset="utf-8">
+          <fieldset>
+            <legend> Power-ups </legend>
+            { student &&
+            <div>
+              <p>
+                <img src="/images/bomb-64.png" />
+                &times;{' '}
+                <input className="input-mini" type="text"
+                  onChange={pu1Changed}
+                  defaultValue={student.powerups[1].cnt}
+                />
+              </p>
+              <p>
+                <img src="/images/nuclear.gif" style={{width: '64px'}} />
+                &times;{' '}
+                <input className="input-mini" type="text"
+                  onChange={pu2Changed}
+                  defaultValue={student.powerups[2].cnt}
+                />
+              </p>
+              <button type="button" onClick={updatePowerups} disabled={isUpdatingPowerups}>
+                Update power-ups
+              </button>{' '}
+              { updatedPowerup && <span style={{ color: 'green' }}>Updated power-up</span> }
+              { isUpdatingPowerups &&
+              <img src="/images/spinner.gif" style={{ width: '100px', marginLeft: '30px', marginTop: '-50px' }} />
+              }
+            </div>
+            }
+          </fieldset>
+        </form>
       </div>
 
     </React.Fragment>

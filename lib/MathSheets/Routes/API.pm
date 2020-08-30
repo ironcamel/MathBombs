@@ -28,10 +28,10 @@ hook before => sub {
         [ POST  => '/api/teachers' ],
         [ GET   => '/api/students' ],
         [ GET   => '/api/students/\w+' ],
+        [ POST  => '/api/students/[^/]+/actions' ],
         [ GET   => '/api/skills' ],
         [ GET   => '/api/reports' ],
         [ GET   => '/api/powerups' ],
-        [ PATCH => '/api/powerups' ],
         [ POST  => '/api/problems' ],
         [ PATCH => '/api/problems/\d+' ],
     );
@@ -112,7 +112,6 @@ post '/api/password-reset-tokens/:token_id' => sub {
         if !$token or $token->is_deleted;
     my $teacher = $token->teacher;
     my $pw_hash = passphrase($password)->generate . '';
-    debug "setting pw_hash: [$pw_hash]";
     $teacher->update({ pw_hash => $pw_hash });
     $token->update({ is_deleted => 1 });
     return res 200 => { msg => "done" };
@@ -266,6 +265,22 @@ del '/api/students/:student_id' => sub {
     return {};
 };
 
+post '/api/students/:student_id/actions' => sub {
+    my $student_id = param 'student_id';
+    my $action = param 'action'
+        or return res 400 => { error => 'The action param is required.' };
+    return res 400 => { error => 'Invalid action' }
+        unless $action eq 'use-powerup';
+    my $powerup_id = param 'powerup_id'
+        or return res 400 => { error => 'The powerup_id param is required.' };
+    my $student = find_student($student_id)
+        or return res 400 => { error => 'No such student.' };
+    my $powerup = $student->powerups->find({ id => $powerup_id })
+        or return res 404 => { error => 'No such powerup.' };
+    $powerup->update({ cnt => $powerup->cnt - 1 });
+    return { data => $student };
+};
+
 get '/api/reports/:student_id' => sub {
     my $student_id = param 'student_id';
     my @sheets = rset('Sheet')->search({
@@ -370,10 +385,8 @@ post '/api/problems' => sub {
         or return res 400 => { error => 'No such student.' };
     my $problems;
     if (my $sheet = $student->sheets->find({ id => $sheet_id })) {
-        debug "Grabbing problems from db for sheet $sheet_id";
         $problems = [ $sheet->problems->all ];
     } else {
-        debug "Creating new problems for sheet $sheet_id";
         $problems = gen_problems($student);
         my $sheet = $student->sheets->create({
             id         => $sheet_id,
@@ -527,10 +540,7 @@ sub send_email {
     my %args = @_;
     my $from = config->{plugins}{Email}{headers}{from};
     $args{from} = $from ? $from : 'noreply@mathbombs.org';
-    eval {
-        email \%args;
-        debug "Sent email $args{subject}";
-    };
+    eval { email \%args };
     error "Could not send email: $@" if $@;
 }
 
@@ -546,7 +556,6 @@ sub find_student { rset('Student')->find(shift) }
 
 sub _create_auth_token {
     my ($teacher) = @_;
-    #debug "creating auth token for " . $teacher->email;
     my $token = passphrase->generate_random({
         length  => 64,
         charset => ['a'..'z', 0 .. 9],

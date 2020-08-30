@@ -3,17 +3,11 @@ const MathSheetPage = () => {
   const { Link } = ReactRouterDOM;
   const [student, setStudent] = React.useState(null);
   const [errMsg, setErrMsg] = React.useState(null);
-  const [skills, setSkills] = React.useState([]);
-  const [skill, setSkill] = React.useState('');
-  const [problemsPerSheet, setProblemsPerSheet] = React.useState(0);
   const [problemsById, setProblemsById] = React.useState({});
-  const [difficulty, setDifficulty] = React.useState(0);
   const [isUpdatingStudent, setIsUpdatingStudent] = React.useState(false);
   const [isCreatingRewards, setIsCreatingRewards] = React.useState(false);
   const [sampleProblem, setSampleProblem] = React.useState(null);
   const [rewards, setRewards] = React.useState([]);
-  const [powerup1, setPowerup1] = React.useState(0);
-  const [powerup2, setPowerup2] = React.useState(0);
   const [isTargeting, setIsTargeting] = React.useState(false);
   const [fetchingProblems, setFetchingProblems] = React.useState(false);
   const [wonPowerup, setWonPowerup] = React.useState();
@@ -24,6 +18,9 @@ const MathSheetPage = () => {
   sheet_id = parseInt(sheet_id);
   const probObjects = Object.values(problemsById);
   const isAllSolved = probObjects.length && probObjects.every(p => p.guess == p.answer);
+  const powerup1 = student ? student.powerups[1].cnt : 0;
+  const powerup2 = student ? student.powerups[2].cnt : 0;
+  const client = new MathBombsClient();
 
   React.useEffect(() => {
     getStudent();
@@ -45,27 +42,16 @@ const MathSheetPage = () => {
     }
   }, [wonPowerup]);
 
-  const authToken = window.localStorage.getItem('auth-token');
-
   const getStudent = () => {
-    fetch('/api/students/' + student_id, {
-      method: 'GET',
-      headers: { 'x-auth-token': authToken },
-    })
-    .then(res => res.json())
+    client.getStudent({ student_id })
     .then(data => {
       //console.log('student:', data);
-      if (data.error) {
-        setErrMsg(data.error);
+      const { data: student, error } = data;
+      if (error) {
+        setErrMsg(error);
         window.scrollTo(0, 0);
       } else {
-        const s = data.data;
-        setStudent(s);
-        setSkill(s.math_skill);
-        setProblemsPerSheet(s.problems_per_sheet);
-        setDifficulty(s.difficulty);
-        setPowerup1(s.powerups[1].cnt);
-        setPowerup2(s.powerups[2].cnt);
+        setStudent(student);
       }
     });
   };
@@ -76,7 +62,6 @@ const MathSheetPage = () => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-auth-token': authToken,
       },
       body: JSON.stringify({ student_id, sheet_id }),
     })
@@ -98,7 +83,6 @@ const MathSheetPage = () => {
       method: 'PATCH',
       headers: {
         'content-type': 'application/json',
-        'x-auth-token': authToken,
       },
       body: JSON.stringify({ student_id, sheet_id, guess: problem.guess }),
     })
@@ -112,11 +96,10 @@ const MathSheetPage = () => {
           const meta = data.meta || {};
           const { powerup, reward } = meta;
           if (powerup) {
-            if (powerup.id == 1) {
-              setPowerup1(powerup.cnt)
-            } else if (powerup.id == 2) {
-              setPowerup2(powerup.cnt)
-            }
+            setStudent({
+              ...student,
+              powerups: { ...powerups, [powerup.id]: powerup }
+            });
             setWonPowerup(powerup);
           }
           if (reward) {
@@ -126,32 +109,24 @@ const MathSheetPage = () => {
     });
   };
 
-  const updatePowerup = ({ powerup_id, cnt }) => {
-    cnt = parseInt(cnt);
-    fetch('/api/powerups', {
-      method: 'PATCH',
-      headers: {
-        'content-type': 'application/json',
-        'x-auth-token': authToken,
-      },
+  const usePowerup = ({ powerup_id }) => {
+    fetch(`/api/students/${student_id}/actions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
-        student_id: student.id,
+        action: 'use-powerup',
+        student_id,
         powerup_id,
-        cnt,
       }),
     })
     .then(res => res.json())
     .then(data => {
+      //console.log('used powerup student', data);
       if (data.error) {
         setErrMsg(data.error);
         window.scrollTo(0, 0);
       } else {
-        const cnt = data.data.cnt;
-        if (powerup_id == 1) {
-          setPowerup1(cnt)
-        } else if (powerup_id == 2) {
-          setPowerup2(cnt)
-        }
+        setStudent(data.data);
       }
     });
   };
@@ -169,7 +144,7 @@ const MathSheetPage = () => {
     if (isTargeting) {
       setIsTargeting(false);
       updateProblem({ ...problem, guess: problem.answer });
-      updatePowerup({ powerup_id: 1, cnt: powerup1 - 1 });
+      usePowerup({ powerup_id: 1 });
       killWithFire(e.target.closest('div.problem'));
     }
   };
@@ -213,8 +188,10 @@ const MathSheetPage = () => {
       newProblemsById[problem.id] = newProblem;
     });
     setProblemsById(newProblemsById);
-    updatePowerup({ powerup_id: 2, cnt: powerup2 - 1 });
-    document.querySelectorAll('div.problem').forEach(p => killWithFire(p));
+    usePowerup({ powerup_id: 2 });
+    document.querySelectorAll('div.problem').forEach(p => {
+      setTimeout(() => killWithFire(p), Math.random() * 1000);
+    });
   };
 
   if (!student || fetchingProblems) {
