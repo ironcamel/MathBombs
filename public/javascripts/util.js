@@ -45,10 +45,11 @@ class MathBombsClient {
     }).then(res => res.json());
   }
 
-  getStudent({ id }) {
+  getStudent(student) {
+    const id = typeof student === 'object' ? student.id : student;
     return this.get('/api/students/' + id).then(data => {
-      if (this.debug) console.log('MathBombsClient getStudent:', data);
       data.student = data.data;
+      if (this.debug) console.log('MathBombsClient getStudent:', data);
       return data;
     });
   }
@@ -56,8 +57,8 @@ class MathBombsClient {
   getStudents({ teacher, teacher_id }) {
     if (teacher) teacher_id = teacher.id;
     return this.get('/api/students?teacher_id=' + teacher_id).then(data => {
-      if (this.debug) console.log('MathBombsClient getStudents:', data);
       data.students = data.data;
+      if (this.debug) console.log('MathBombsClient getStudents:', data);
       return data;
     });
   }
@@ -71,8 +72,8 @@ class MathBombsClient {
     const headers = { 'content-type': 'application/json' };
     if (this.authToken) headers['x-auth-token'] = this.authToken;
     return this.post('/api/students', { name }).then(data => {
-      if (this.debug) console.log('MathBombsClient createStudent', data);
       data.student = data.data;
+      if (this.debug) console.log('MathBombsClient createStudent', data);
       return data;
     });
   }
@@ -85,10 +86,42 @@ class MathBombsClient {
     });
   }
 
-  updateStudent({ id, ...update }) {
+  updateStudent({ id }, update) {
     return this.patch('/api/students/' + id, update).then(data => {
       if (this.debug) console.log('MathBombsClient updateStudent', data);
       return data;
+    });
+  }
+
+  createProblems({ student_id, sheet_id }) {
+    return this.post('/api/problems', { student_id, sheet_id }).then(data => {
+      data.problems = data.data;
+      if (this.debug) console.log('MathBombsClient createProblems', data);
+      return data;
+    });
+  }
+
+  updateProblem(problem) {
+    return this.patch('/api/problems/' + problem.id, problem).then(data => {
+      if (this.debug) console.log('MathBombsClient updateProblem', data);
+      return data;
+    });
+  }
+
+  usePowerup({ powerup_id, student_id }) {
+    const payload = { action: 'use-powerup', student_id, powerup_id };
+    return this.post(`/api/students/${student_id}/actions`, payload).then(data => {
+      data.student = data.data;
+      if (this.debug) console.log('MathBombsClient usePowerup', data);
+      return data;
+    });
+  };
+
+  createSampleProblem({ student_id }) {
+    return this.post('/api/sample-problems', { student_id }).then(res => {
+      res[res.data.type] = res.data.attributes;
+      if (this.debug) console.log('MathBombsClient createSampleProblem', res);
+      return res;
     });
   }
 

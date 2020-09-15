@@ -123,7 +123,11 @@ __PACKAGE__->belongs_to(
 
 sub TO_JSON {
     my ($self) = @_;
-    return +{ $self->get_columns };
+    return {
+        $self->get_columns,
+        sheet_id   => $self->get_column('sheet'),
+        student_id => $self->student,
+    };
 }
 
 1;

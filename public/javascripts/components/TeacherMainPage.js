@@ -10,7 +10,6 @@ const TeacherMainPage = ({ teacher }) => {
 
   const newStudentName = React.createRef();
 
-  const authToken = window.localStorage.getItem('auth-token');
   const portalUrl = "/portals/" + teacher.id;
 
   React.useEffect(() => getStudents(), []);
@@ -129,7 +128,6 @@ const TeacherMainPage = ({ teacher }) => {
 
 const StudentRow = ({ student, showPasswords, deleteStudent, setErrMsg }) => {
   const { Link } = ReactRouterDOM;
-  const authToken = window.localStorage.getItem('auth-token');
   const studentUrl = `/students/${student.id}`;
   const editStudentUrl = `/teacher/students/${student.id}`;
   const skill = student.math_skill.replace(/(?<=.)([A-Z])/g, ' $1');
@@ -142,10 +140,8 @@ const StudentRow = ({ student, showPasswords, deleteStudent, setErrMsg }) => {
   const updatePassword = () => {
     setErrMsg('');
     setIsUpdatingStudent(true);
-    client.updateStudent({
-      id: student.id,
-      password: passwordRef.current.value
-    }).then(data => {
+    client.updateStudent(student, { password: passwordRef.current.value })
+    .then(data => {
       setIsUpdatingStudent(false);
       if (data.error) {
         setErrMsg(data.error);

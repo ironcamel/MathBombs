@@ -57,36 +57,20 @@ const MathSheetPage = () => {
 
   const getProblems = () => {
     setFetchingProblems(true);
-    fetch('/api/problems', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({ student_id, sheet_id }),
-    })
-    .then(res => res.json())
-    .then(data => {
+    client.createProblems({ student_id, sheet_id }).then(data => {
       //console.log('problems:', data);
       setFetchingProblems(false);
       if (data.error) {
         setErrMsg(data.error);
         window.scrollTo(0, 0);
       } else {
-        setProblemsById(data.data.reduce((o,p) => ({...o, [p.id]: p}), {}));
+        setProblemsById(data.problems.reduce((o,p) => ({...o, [p.id]: p}), {}));
       }
     });
   };
 
   const saveProblem = (problem) => {
-    fetch('/api/problems/' + problem.id, {
-      method: 'PATCH',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({ student_id, sheet_id, guess: problem.guess }),
-    })
-    .then(res => res.json())
-    .then(data => {
+    client.updateProblem(problem).then(data => {
       //console.log('saved:', data);
       if (data.error) {
         setErrMsg(data.error);
@@ -97,7 +81,7 @@ const MathSheetPage = () => {
           if (powerup) {
             setStudent({
               ...student,
-              powerups: { ...powerups, [powerup.id]: powerup }
+              powerups: { ...student.powerups, [powerup.id]: powerup }
             });
             setWonPowerup(powerup);
           }
@@ -109,23 +93,13 @@ const MathSheetPage = () => {
   };
 
   const usePowerup = ({ powerup_id }) => {
-    fetch(`/api/students/${student_id}/actions`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        action: 'use-powerup',
-        student_id,
-        powerup_id,
-      }),
-    })
-    .then(res => res.json())
-    .then(data => {
+    client.usePowerup({ powerup_id, student_id }).then(data => {
       //console.log('used powerup student', data);
       if (data.error) {
         setErrMsg(data.error);
         window.scrollTo(0, 0);
       } else {
-        setStudent(data.data);
+        setStudent(data.student);
       }
     });
   };

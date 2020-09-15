@@ -15,22 +15,22 @@ const StudentEditPage = () => {
   const [isUpdatingPowerup1, setIsUpdatingPowerup1] = React.useState(false);
   const [isUpdatingPowerup2, setIsUpdatingPowerup2] = React.useState(false);
   const [updatedPowerup, setUpdatedPowerup] = React.useState(false);
+  const [conditionType, setConditionType] = React.useState('sheet');
+
+  const client = React.useContext(ClientContext);
 
   const { student_id } = ReactRouterDOM.useParams();
 
   const rewardRef = React.createRef();
   const sheetRef = React.createRef();
+  const weekGoalRef = React.createRef();
+  const monthGoalRef = React.createRef();
 
   const authToken = window.localStorage.getItem('auth-token');
 
   const getStudent = () => {
-    fetch('/api/students/' + student_id, {
-      method: 'GET',
-      headers: { 'x-auth-token': authToken },
-    })
-    .then(res => res.json())
-    .then(data => {
-      console.log('student:', data);
+    client.getStudent(student_id).then(data => {
+      //console.log('student:', data);
       if (data.error) {
         setErrMsg(data.error);
         window.scrollTo(0, 0);
@@ -48,17 +48,12 @@ const StudentEditPage = () => {
   };
 
   const getSampleProblem = () => {
-    fetch('/api/students/' + student_id + '/sample-problem', {
-      method: 'POST',
-      headers: { 'x-auth-token': authToken },
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.error) {
-        setErrMsg(data.error);
+    client.createSampleProblem({ student_id }).then(res => {
+      if (res.error) {
+        setErrMsg(res.error);
         window.scrollTo(0, 0);
       } else {
-        setSampleProblem(data.data.question);
+        setSampleProblem(res.problem.question);
       }
     });
   };
@@ -70,7 +65,7 @@ const StudentEditPage = () => {
     })
     .then(res => res.json())
     .then(data => {
-      console.log(data);
+      //console.log(data);
       setSkills(data.data);
     });
   };
@@ -86,7 +81,7 @@ const StudentEditPage = () => {
     }
     setErrMsg('');
     setIsUpdatingStudent(true);
-    console.log('updating skill to: ' + skill);
+    //console.log('updating skill to: ' + skill);
     fetch('/api/students/' + student.id, {
       method: 'PATCH',
       headers: {
@@ -97,7 +92,7 @@ const StudentEditPage = () => {
     })
     .then(res => res.json())
     .then(data => {
-      console.log(data);
+      //console.log(data);
       setIsUpdatingStudent(false);
       if (data.error) {
         setErrMsg(data.error);
@@ -119,7 +114,7 @@ const StudentEditPage = () => {
     })
     .then(res => res.json())
     .then(data => {
-      console.log('rewards:', data);
+      //console.log('rewards:', data);
       if (data.error) {
         setErrMsg(data.error);
         window.scrollTo(0, 0);
@@ -132,21 +127,32 @@ const StudentEditPage = () => {
   const createReward = () => {
     setErrMsg('');
     setIsCreatingRewards(true);
+
+    const payload = {
+      reward: rewardRef.current.value.trim(),
+      student_id: student.id,
+    };
+    if (conditionType === 'sheet') {
+      payload.sheet_id = parseInt(sheetRef.current.value);
+    } else if (conditionType === 'weekGoal') {
+      payload.week_goal = parseInt(weekGoalRef.current.value);
+    } else if (conditionType === 'monthGoal') {
+      payload.month_goal = parseInt(monthGoalRef.current.value);
+    } else {
+      return;
+    }
+
     fetch('/api/rewards', {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
         'x-auth-token': authToken,
       },
-      body: JSON.stringify({
-        reward: rewardRef.current.value,
-        student_id: student.id,
-        sheet_id: parseInt(sheetRef.current.value),
-      }),
+      body: JSON.stringify(payload),
     })
     .then(res => res.json())
     .then(data => {
-      console.log(data);
+      //console.log(data);
       setIsCreatingRewards(false);
       if (data.error) {
         setErrMsg(data.error);
@@ -184,7 +190,7 @@ const StudentEditPage = () => {
     })
     .then(res => res.json())
     .then(data => {
-      console.log(data);
+      //console.log(data);
       setIsUpdatingPowerup1(false);
       setIsUpdatingPowerup2(false);
       setUpdatedPowerup(true);
@@ -217,7 +223,7 @@ const StudentEditPage = () => {
     })
     .then(res => res.json())
     .then(data => {
-      console.log(data);
+      //console.log(data);
       if (data.error) {
         setErrMsg(data.error);
         window.scrollTo(0, 0);
@@ -259,10 +265,19 @@ const StudentEditPage = () => {
   const skillOptions = skills.map(s => <option key={s.type} value={s.type}>{s.name}</option>);
 
   const sheetOptions = [];
-  for (let i = 1; i <= 50; i++) {
-    if (!student) break;
+  for (let i = 1; i <= 50 && student; i++) {
     const val = student.last_sheet + i;
     sheetOptions[val] = <option key={val} value={val}>{val}</option>;
+  }
+
+  const weekGoalOptions = [];
+  for (let i = 1; i <= 50 && student; i++) {
+    weekGoalOptions[i] = <option key={i} value={i}>{i}</option>;
+  }
+
+  const monthGoalOptions = [];
+  for (let i = 1; i <= 100 && student; i++) {
+    monthGoalOptions[i] = <option key={i} value={i}>{i}</option>;
   }
 
   const numProblemsOptions = [];
@@ -289,6 +304,10 @@ const StudentEditPage = () => {
   const pu2Changed = (e) => setPowerup2(e.target.value);
 
   const isUpdatingPowerups = isUpdatingPowerup1 || isUpdatingPowerup2;
+
+  const condChanged = (e) => {
+    setConditionType(e.target.value);
+  }
 
   return (
     <React.Fragment>
@@ -370,16 +389,34 @@ const StudentEditPage = () => {
           <div style={{ display: 'flex', flexWrap: 'wrap' }}>
 
             <div style={{ marginRight: '30px' }}>
-              <label htmlFor="sheet_sel">Sheet</label>
-              <select id="sheet_sel" className="input-small" ref={sheetRef}>
-                {sheetOptions}
-              </select>
-              <label htmlFor="reward_ta">Reward</label>
+              <strong>Give reward when the student:</strong>
+
+              <label className="radio">
+                <input type="radio" value="sheet" checked={conditionType === 'sheet'} onChange={condChanged} />
+                completes sheet number
+              </label>
+              <select style={{width: 'auto'}} className="input-small" ref={sheetRef}>{sheetOptions}</select>
+
+              <label className="radio">
+                <input type="radio" value="weekGoal" checked={conditionType === 'weekGoal'} onChange={condChanged} />
+                completes X sheets in a week
+              </label>
+              <select className="input-mini" defaultValue="10" ref={weekGoalRef}>{weekGoalOptions}</select>
+
+              <label className="radio">
+                <input type="radio" value="monthGoal" checked={conditionType === 'monthGoal'} onChange={condChanged} />
+                completes X sheets in a month
+              </label>
+              <select className="input-mini" defaultValue="10" ref={monthGoalRef}>{monthGoalOptions}</select>
+
+              <label htmlFor="reward_ta">
+                <strong>Reward</strong>
+              </label>
               <textarea id="reward_ta" rows="3" ref={rewardRef}
                 placeholder="Great Job! Your reward is ..."
               />
               <div>
-                <button type="button" onClick={createReward}>Add Reward</button>
+                <button type="button" onClick={createReward}>Add reward</button>
               </div>
             </div>
 

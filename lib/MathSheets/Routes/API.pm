@@ -299,11 +299,31 @@ get '/api/reports/:student_id' => sub {
     };
 };
 
-post '/api/students/:student_id/sample-problem' => sub {
-    my $student_id = param 'student_id';
-    my $student = _teacher()->students->find({ id => $student_id })
+sub to_json_api {
+    my ($row, $type) = @_;
+    return {
+        data => {
+            type => $type,
+            id => $row->id,
+            attributes => $row,
+        }
+    };
+}
+
+post '/api/sample-problems' => sub {
+    my $student_id = param 'student_id'
+        or return res 400 => { error => 'The student_id param is required.' };
+    my $student = find_student($student_id)
         or return res 404 => { error => "No such student." };
-    return { data => sample_problem($student) };
+    #return { data => sample_problem($student) };
+    #return to_json_api(sample_problem($student));
+    return {
+        data => {
+            id => irand(1e9),
+            type => 'problem',
+            attributes => sample_problem($student),
+        }
+    };
 };
 
 get '/api/skills' => sub {
@@ -322,16 +342,24 @@ get '/api/rewards' => sub {
 post '/api/rewards' => sub {
     my $student_id = param 'student_id'
         or return res 400 => { error => 'The student_id param is required.' };
-    my $sheet_id = param 'sheet_id'
-        or return res 400 => { error => 'The sheet_id param is required.' };
     my $reward_msg = param 'reward'
         or return res 400 => { error => 'The reward param is required.' };
     my $student = _teacher()->students->find($student_id)
         or return res 400 => { error => 'No such student.' };
+    my $sheet_id = param 'sheet_id';
+    my $week_goal = param 'week_goal';
+    my $month_goal = param 'month_goal';
+    if (not ($sheet_id or defined($week_goal) or defined($month_goal))) {
+        return res 400 => {
+            error => 'sheet_id or week_goal or month_goal is required'
+        };
+    }
     my $reward = $student->rewards->update_or_create({
-        id       => gen_uuid(),
-        sheet_id => $sheet_id,
-        reward   => $reward_msg,
+        id         => gen_uuid(),
+        sheet_id   => $sheet_id,
+        week_goal  => $week_goal,
+        month_goal => $month_goal,
+        reward     => $reward_msg,
     });
     return { data => $reward };
 };
@@ -383,21 +411,19 @@ post '/api/problems' => sub {
         or return res 400 => { error => 'The sheet_id param is required.' };
     my $student = find_student($student_id)
         or return res 400 => { error => 'No such student.' };
-    my $problems;
-    if (my $sheet = $student->sheets->find({ id => $sheet_id })) {
-        $problems = [ $sheet->problems->all ];
-    } else {
-        $problems = gen_problems($student);
-        my $sheet = $student->sheets->create({
+    my $sheet = $student->sheets->find({ id => $sheet_id });
+    if (not $sheet) {
+        $sheet = $student->sheets->create({
             id         => $sheet_id,
             math_skill => $student->math_skill,
             difficulty => $student->difficulty,
         });
+        my $problems = gen_problems($student);
         for my $p (@$problems) {
             $sheet->problems->create($p);
         }
     }
-    return { data => $problems };
+    return { data => [ $sheet->problems->all ] };
 };
 
 patch '/api/problems/:pid' => sub {
