@@ -12,17 +12,22 @@ const LoginPage = ({ teacher, setTeacher, setAuthToken }) => {
   const password2Ref = React.createRef();
   const nameRef = React.createRef();
 
+  const client = React.useContext(ClientContext);
+
   const signIn = () => {
     setErrMsg('');
     setIsLoggingIn(true);
     const email = emailRef.current.value;
     const password = passwordRef.current.value;
-    fetch('/api/auth-tokens', {
+    //fetch('/api/auth-tokens', {
+    /*
+    fetch('/api/v1/auth-tokens', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     })
-    .then(res => res.json())
+    */
+    client.createAuthToken({ email, password })
     .then(data => {
       //console.log('signIn', data);
       setIsLoggingIn(false);

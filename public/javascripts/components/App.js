@@ -112,19 +112,19 @@ const Routes = ({ teacher, setTeacher, setAuthToken }) => {
       <Route path="/teacher/students/:student_id">
         { teacher
           ? <StudentEditPage />
-          : <Redirect to="/login" />
+          : <Redirect push to="/login" />
         }
       </Route>
       <Route path="/teacher/students">
         { teacher
           ? <TeacherMainPage teacher={teacher} />
-          : <Redirect to="/login" />
+          : <Redirect push to="/login" />
         }
       </Route>
       <Route path="/teacher/profile">
         { teacher
           ? <TeacherProfilePage />
-          : <Redirect to="/login" />
+          : <Redirect push to="/login" />
         }
       </Route>
       <Route path="/forgot-password">
@@ -147,7 +147,7 @@ const Routes = ({ teacher, setTeacher, setAuthToken }) => {
       </Route>
       <Route path="/">
         { teacher
-          ? <Redirect to="/teacher/students" />
+          ? <Redirect push to="/teacher/students" />
           : <HomePage />
         }
       </Route>

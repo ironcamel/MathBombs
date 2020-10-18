@@ -12,6 +12,7 @@ use Proc::Simple::Async;
 
 use MathSheets::MathSkills qw(available_skills gen_problems sample_problem);
 use MathSheets::Util qw(gen_uuid irand past_sheets);
+use String::Util qw(trim);
 
 hook before => sub {
     return if var 'auth_token';
@@ -119,7 +120,7 @@ post '/api/password-reset-tokens/:token_id' => sub {
 
 post '/api/teachers' => sub {
     my $name = param 'name';
-    if  (!$name or $name !~ /^\w[\w\s\.]*\w$/) {
+    if  (!$name or $name !~ /^\w[\w\s\.-]*\w$/) {
         return res 400 => { error => 'Name is invalid' };
     }
     my $email = param 'email';
@@ -176,9 +177,11 @@ patch '/api/teachers/:teacher_id' => sub {
     my $teacher = _teacher();
     return res 403 => { error => "Not allowed to update this teacher." }
         unless $teacher_id eq $teacher->id;
-    my $rewards_email = param 'rewards_email'
-        or return res 400 => {error => 'The rewards_email param is required.'};
-    $teacher->update({ rewards_email => $rewards_email });
+    my $rewards_email = param 'rewards_email';
+    if (defined $rewards_email) {
+        $rewards_email = trim $rewards_email;
+        $teacher->update({ rewards_email => $rewards_email });
+    }
     return { data => $teacher };
 };
 

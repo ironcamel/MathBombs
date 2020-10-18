@@ -8,18 +8,12 @@ const StudentPortalPage = () => {
 
   const { teacher_id } = ReactRouterDOM.useParams();
 
-  const authToken = window.localStorage.getItem('auth-token');
+  const client = React.useContext(ClientContext);
 
   React.useEffect(() => getStudents(), []);
 
   const getStudents = () => {
-    fetch('/api/students?teacher_id=' + teacher_id, {
-      method: 'GET',
-      headers: { 'x-auth-token': authToken },
-    })
-    .then(res => res.json())
-    .then(data => {
-      console.log(data);
+    client.getStudents({ teacher_id }).then(data => {
       if (data.error) {
         setErrMsg(data.error);
         window.scrollTo(0, 0);
@@ -43,7 +37,7 @@ const StudentPortalPage = () => {
   if (loggedInStudent) {
     const student = loggedInStudent;
     const url = `/students/${student.id}/sheets/${student.last_sheet+1}`;
-    return <Redirect to={url} />;
+    return <Redirect push to={url} />;
   }
 
   const studentRows = students.map((student) => (
@@ -67,7 +61,7 @@ const StudentPortalPage = () => {
           <h2 className="offset1"> {teacher.name}'s Students </h2>
           }
 
-          <table id="students_tbl" className="table table-hover">
+          <table id="students-tbl" className="table table-hover">
             <thead>
               <tr>
                 <th>Name</th>
@@ -87,15 +81,16 @@ const StudentPortalPage = () => {
 };
 
 const StudentPortalRow = ({ student, checkPassword }) => {
+  const { Link } = ReactRouterDOM;
   const studentClicked = (student) => (e) => {
-    checkPassword(student)
     e.preventDefault();
+    checkPassword(student)
   };
 
   return (
     <tr key={student.id}>
       <td>
-        <a href="#" className="student_link" onClick={studentClicked(student)}>{student.name}</a>
+        <Link to="#" onClick={studentClicked(student)}>{student.name}</Link>
       </td>
       <StudentProgressTd student={student} />
     </tr>

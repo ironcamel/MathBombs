@@ -236,13 +236,13 @@ const StudentEditPage = () => {
   const rewardRows = rewards.map((reward) => {
     let condition;
     if (reward.sheet_id) {
-      condition = `Sheet ${reward.sheet_id}`;
+      condition = `sheet ${reward.sheet_id}`;
     }
     if (reward.week_goal) {
-      condition = `Week goal >= ${reward.week_goal}`;
+      condition = `sheets / week >= ${reward.week_goal}`;
     }
     if (reward.month_goal) {
-      condition = `Month goal >= ${reward.month_goal}`;
+      condition = `sheets / month >= ${reward.month_goal}`;
     }
     return (
       <tr key={reward.id}>

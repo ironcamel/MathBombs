@@ -1,19 +1,19 @@
 package MathSheets::Util;
 use Exporter qw(import);
-our @EXPORT_OK = qw(past_sheets get_powerups irand gen_uuid);
-
 use Dancer ':syntax';
-use Dancer::Plugin::DBIC qw(schema);
+use Dancer::Plugin::DBIC qw(rset);
 use Data::UUID;
 use DateTime;
+
+our @EXPORT_OK = qw(past_sheets get_powerups irand gen_uuid);
 
 sub past_sheets {
     my ($days, $student_id) = @_;
     $student_id ||= param 'student_id';
     my $now = DateTime->now();
-    return schema->resultset('Sheet')->count({
+    return rset('Sheet')->count({
         student  => $student_id,
-        finished => { '>' => $now->subtract(days => $days)->ymd }
+        finished => { '>=' => $now->subtract(days => $days)->ymd }
     });
 }
 

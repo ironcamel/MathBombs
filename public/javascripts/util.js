@@ -45,6 +45,15 @@ class MathBombsClient {
     }).then(res => res.json());
   }
 
+  createAuthToken({ email, password }) {
+    if (!email) return this.err('The email is required');
+    if (!password) return this.err('The password is required');
+    return this.post('/api/v1/auth-tokens', { email, password }).then(data => {
+      if (this.debug) console.log('MathBombsClient createAuthToken', data);
+      return data;
+    });
+  }
+
   getStudent(student) {
     const id = typeof student === 'object' ? student.id : student;
     return this.get('/api/students/' + id).then(data => {
@@ -56,7 +65,7 @@ class MathBombsClient {
 
   getStudents({ teacher, teacher_id }) {
     if (teacher) teacher_id = teacher.id;
-    return this.get('/api/students?teacher_id=' + teacher_id).then(data => {
+    return this.get('/api/v1/students?teacher_id=' + teacher_id).then(data => {
       data.students = data.data;
       if (this.debug) console.log('MathBombsClient getStudents:', data);
       return data;
@@ -64,13 +73,11 @@ class MathBombsClient {
   }
 
   err(msg) {
-    return new Promise((resolve) => resolve({ error: msg }));
+    return new Promise((resolve) => resolve({ error: msg, errors: [msg] }));
   }
 
   createStudent({ name }) {
     if (!name) return this.err('The student name is required');
-    const headers = { 'content-type': 'application/json' };
-    if (this.authToken) headers['x-auth-token'] = this.authToken;
     return this.post('/api/students', { name }).then(data => {
       data.student = data.data;
       if (this.debug) console.log('MathBombsClient createStudent', data);
