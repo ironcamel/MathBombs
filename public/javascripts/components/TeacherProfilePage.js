@@ -7,22 +7,13 @@ const TeacherProfilePage = () => {
 
   const teacher = JSON.parse(window.localStorage.getItem('teacher'));
   const authToken = window.localStorage.getItem('auth-token');
+  const client = React.useContext(ClientContext);
 
   const updateTeacher = () => {
     setErrMsg('');
     setIsUpdatingTeacher(true);
-    fetch('/api/teachers/' + teacher.id, {
-      method: 'PATCH',
-      headers: {
-        'content-type': 'application/json',
-        'x-auth-token': authToken,
-      },
-      body: JSON.stringify({
-        rewards_email: printerRef.current.value
-      }),
-    })
-    .then(res => res.json())
-    .then(data => {
+    const update = { rewards_email: printerRef.current.value };
+    client.updateTeacher(teacher, update).then(data => {
       setIsUpdatingTeacher(false);
       if (data.error) {
         setErrMsg(data.error);

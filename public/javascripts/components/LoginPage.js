@@ -19,17 +19,7 @@ const LoginPage = ({ teacher, setTeacher, setAuthToken }) => {
     setIsLoggingIn(true);
     const email = emailRef.current.value;
     const password = passwordRef.current.value;
-    //fetch('/api/auth-tokens', {
-    /*
-    fetch('/api/v1/auth-tokens', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
-    */
-    client.createAuthToken({ email, password })
-    .then(data => {
-      //console.log('signIn', data);
+    client.createAuthToken({ email, password }).then(data => {
       setIsLoggingIn(false);
       if (data.error) {
         setErrMsg(data.error);

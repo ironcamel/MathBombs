@@ -23,25 +23,25 @@ router.get('/config', function(req, res, next) {
 
 router.post('/auth-tokens', async function(req, res, next) {
   const { email, password } = req.body;
-  if (!email) return next(createError(400, 'The email param is required'));
-  if (!password) return next(createError(400, 'The password param is required'));
+  if (!email) return next(createError(400, 'The email param is required.'));
+  if (!password) return next(createError(400, 'The password param is required.'));
   let data;
   try {
     const [ teacher ] = await knex('teacher').select().where({ email });
     if (!teacher) {
-      return next(createError(403, 'No such email exists'));
+      return next(createError(403, 'No such email exists.'));
     }
     const hash = teacher.pw_hash.replace(/^\{CRYPT\}/, '');
     if (email === config.admin_email) {
       if (password !== config.admin_password) {
-        return next(createError(403, 'Invalid password'));
+        return next(createError(403, 'Invalid password.'));
       } else {
         return res.send({ msg: 'admin flow is not implemented yet' });
       }
     } else {
       const match = await bcrypt.compare(password, hash);
       if (!match) {
-        return next(createError(403, 'Invalid password'));
+        return next(createError(403, 'Invalid password.'));
       }
     }
     delete teacher.pw_hash;
@@ -53,6 +53,26 @@ router.post('/auth-tokens', async function(req, res, next) {
   res.send({ data });
 });
 
+router.patch('/teachers/:teacher_id', async function(req, res, next) {
+  const teacher_id = req.params.teacher_id;
+  const token = req.get('x-auth-token');
+  const [ authToken ] = await knex('auth_token').select().where({ token });
+  if (!authToken) {
+    return next(createError(403, 'Invalid x-auth-token header.'));
+  }
+  let teacher;
+  try {
+    if ('rewards_email' in req.body) {
+      const { rewards_email } = req.body;
+      await knex('teacher').where({ id: teacher_id }).update({ rewards_email });
+    }
+    [ teacher ] = await knex('teacher').select().where({ id: teacher_id });
+  } catch (e) {
+    return next(createError(500, e));
+  }
+  res.send({ data: teacher });
+});
+
 async function create_auth_token({ teacher_id }) {
   const now = dayjs();
   const fmt = 'YYYY-MM-DD HH:mm:ss';
@@ -61,7 +81,7 @@ async function create_auth_token({ teacher_id }) {
   const token = crypto.randomBytes(16).toString("hex");
   const id = uuid.v4();
   const data = { id, token, teacher_id, created, updated };
-  const result = await knex('auth_token').insert(data);
+  await knex('auth_token').insert(data);
   return data;
 }
 
@@ -87,8 +107,7 @@ router.get('/students', async function(req, res, next) {
   }
   let students, teacher;
   try {
-    const teachers = await knex('teacher').select().where({ id: teacher_id });
-    teacher = teachers[0];
+    const [ teacher ] = await knex('teacher').select().where({ id: teacher_id });
     if (!teacher) {
       return next(createError(400, 'Invalid teacher_id.'));
     }
