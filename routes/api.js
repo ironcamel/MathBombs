@@ -15,10 +15,44 @@ const knex = require('knex')({
     filename: "/opt/MathSheets/data/math.db", // production db
   },
   useNullAsDefault: true,
+  //debug: true,
+});
+
+router.use(async (req, res, next) => {
+  const publicRoutes = [
+    [ 'POST' , '/auth-tokens' ],
+    [ 'POST' , '/password-reset-tokens' ],
+    [ 'POST' , '/password-reset-tokens/\\w+' ],
+    [ 'POST' , '/teachers' ],
+    [ 'GET'  , '/students' ],
+    [ 'GET'  , '/students/\\w+' ],
+    [ 'POST' , '/students/[^/]+/actions' ],
+    [ 'GET'  , '/skills' ],
+    [ 'GET'  , '/reports' ],
+    [ 'GET'  , '/powerups' ],
+    [ 'POST' , '/problems' ],
+    [ 'PATCH', '/problems/\\d+' ],
+  ];
+  const isPublic = publicRoutes.find(([ m, p ]) => {
+    return req.method === m && req.path.match(new RegExp(`^${p}$`));
+  });
+  if (!isPublic) {
+    const { teacher_id } = req.params;
+    const token = req.get('x-auth-token');
+    if (!token) {
+      return next(createError(403, 'Missing x-auth-token header.'));
+    }
+    const [ authToken ] = await knex('auth_token').where({ token });
+    if (!authToken) {
+      return next(createError(403, 'Invalid x-auth-token header.'));
+    }
+    res.locals.teacher = await knex('teacher').where({ id: authToken.teacher_id });
+  }
+  next();
 });
 
 router.get('/config', function(req, res, next) {
-  res.send(config);
+  res.send({...config, admin_password: '...'});
 });
 
 router.post('/auth-tokens', async function(req, res, next) {
@@ -27,7 +61,7 @@ router.post('/auth-tokens', async function(req, res, next) {
   if (!password) return next(createError(400, 'The password param is required.'));
   let data;
   try {
-    const [ teacher ] = await knex('teacher').select().where({ email });
+    const [ teacher ] = await knex('teacher').where({ email });
     if (!teacher) {
       return next(createError(403, 'No such email exists.'));
     }
@@ -53,12 +87,13 @@ router.post('/auth-tokens', async function(req, res, next) {
   res.send({ data });
 });
 
+router.delete('/auth-tokens', async function(req, res, next) {
+});
+
 router.patch('/teachers/:teacher_id', async function(req, res, next) {
-  const teacher_id = req.params.teacher_id;
-  const token = req.get('x-auth-token');
-  const [ authToken ] = await knex('auth_token').select().where({ token });
-  if (!authToken) {
-    return next(createError(403, 'Invalid x-auth-token header.'));
+  const { teacher_id } = req.params;
+  if (teacher_id !== res.locals.teacher.id) {
+    return next(createError(403, 'Not allowed to update this teacher.'));
   }
   let teacher;
   try {
@@ -87,10 +122,9 @@ async function create_auth_token({ teacher_id }) {
 
 router.get('/students/:id', function(req, res, next) {
   const id = req.params.id;
-  knex('student').select().where({ id })
-  .then(rows => {
+  knex('student').where({ id }).then(rows => {
     debug(rows.length);
-    const row = rows[0];
+    const [ row ] = rows;
     if (row) {
       res.send({ data: row });
     } else {
@@ -107,12 +141,12 @@ router.get('/students', async function(req, res, next) {
   }
   let students, teacher;
   try {
-    const [ teacher ] = await knex('teacher').select().where({ id: teacher_id });
+    const [ teacher ] = await knex('teacher').where({ id: teacher_id });
     if (!teacher) {
       return next(createError(400, 'Invalid teacher_id.'));
     }
     delete teacher.pw_hash;
-    students = await knex('student').select().where({ teacher_id });
+    students = await knex('student').where({ teacher_id });
     await Promise.all(students.map(async (s) => {
       s.past_week = await calcNumSheets({ student_id: s.id, days: 7 });
       s.past_month = await calcNumSheets({ student_id: s.id, days: 30 });
