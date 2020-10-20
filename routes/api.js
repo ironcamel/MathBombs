@@ -46,7 +46,8 @@ router.use(async (req, res, next) => {
     if (!authToken) {
       return next(createError(403, 'Invalid x-auth-token header.'));
     }
-    res.locals.teacher = await knex('teacher').where({ id: authToken.teacher_id });
+    [ res.locals.teacher ] = await knex('teacher').where({ id: authToken.teacher_id });
+    res.locals.teacher_id = res.locals.teacher.id;
   }
   next();
 });
@@ -88,6 +89,9 @@ router.post('/auth-tokens', async function(req, res, next) {
 });
 
 router.delete('/auth-tokens', async function(req, res, next) {
+  const { teacher_id } = res.locals;
+  if (teacher_id) await knex('auth_token').where({ teacher_id }).del();
+  res.send({});
 });
 
 router.patch('/teachers/:teacher_id', async function(req, res, next) {
@@ -101,7 +105,7 @@ router.patch('/teachers/:teacher_id', async function(req, res, next) {
       const { rewards_email } = req.body;
       await knex('teacher').where({ id: teacher_id }).update({ rewards_email });
     }
-    [ teacher ] = await knex('teacher').select().where({ id: teacher_id });
+    [ teacher ] = await knex('teacher').where({ id: teacher_id });
   } catch (e) {
     return next(createError(500, e));
   }

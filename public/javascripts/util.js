@@ -8,6 +8,7 @@ class MathBombsClient {
 
   uriMap = {
     teacher: ({ id }) => '/api/teachers/' + id,
+    auth_tokens: () => '/api/v1/auth-tokens',
   };
 
   baseHeaders() {
@@ -141,6 +142,10 @@ class MathBombsClient {
   updateTeacher(teacher, update) {
     const uri = this.uriFor('teacher', teacher);
     return this.patch(uri, update);
+  }
+
+  deleteAuthTokens() {
+    return this.del(this.uriFor('auth_tokens'));
   }
 
   uriFor(type, obj) {

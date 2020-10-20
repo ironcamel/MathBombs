@@ -22,15 +22,15 @@ const App = () => {
 
   const body = isInitializing 
     ? <img src="/images/spinner.gif" className="spinner" />
-    : <ClientContext.Provider value={client}>
-      <Routes teacher={teacher} setTeacher={setTeacher} setAuthToken={setAuthToken} />
-    </ClientContext.Provider>;
+    : <Routes teacher={teacher} setTeacher={setTeacher} setAuthToken={setAuthToken} />;
 
   return (
     <div className="container well" id="page">
       <BrowserRouter>
-        <NavBar teacher={teacher} setTeacher={setTeacher} setAuthToken={setAuthToken} />
-        {body}
+        <ClientContext.Provider value={client}>
+          <NavBar teacher={teacher} setTeacher={setTeacher} setAuthToken={setAuthToken} />
+          {body}
+        </ClientContext.Provider>
       </BrowserRouter>
     </div>
   );
@@ -38,8 +38,7 @@ const App = () => {
 
 const NavBar = ({ teacher, setTeacher, setAuthToken }) => {
   const { Link } = ReactRouterDOM;
-
-  const authToken = window.localStorage.getItem('auth-token');
+  const client = React.useContext(ClientContext);
 
   const logoutClicked = (e) => {
     //e.preventDefault();
@@ -47,10 +46,7 @@ const NavBar = ({ teacher, setTeacher, setAuthToken }) => {
     window.localStorage.removeItem('teacher');
     setAuthToken(null);
     setTeacher(null);
-    fetch('/api/auth-tokens', {
-      method: 'DELETE',
-      headers: { 'x-auth-token': authToken },
-    });
+    client.deleteAuthTokens();
   }
 
   return (
