@@ -24,7 +24,7 @@ router.use(async (req, res, next) => {
   const publicRoutes = [
     [ 'POST' , '/auth-tokens' ],
     [ 'POST' , '/password-reset-tokens' ],
-    [ 'POST' , '/password-reset-tokens/\\w+' ],
+    [ 'POST' , '/password-reset-tokens/[\\w-]+' ],
     [ 'POST' , '/teachers' ],
     [ 'GET'  , '/students' ],
     [ 'GET'  , '/students/\\w+' ],
@@ -93,15 +93,11 @@ router.post('/auth-tokens', async function(req, res, next) {
   res.send({ data });
 });
 
-router.delete('/auth-tokens', async function(req, res, next) {
+router.delete('/auth-tokens', aw(async function(req, res, next) {
   const { teacher_id } = res.locals;
-  try {
-    if (teacher_id) await knex('auth_token').where({ teacher_id }).del();
-  } catch (e) {
-    return next(createError(500, e));
-  }
+  if (teacher_id) await knex('auth_token').where({ teacher_id }).del();
   res.send({});
-});
+}));
 
 router.get('/test', async function(req, res, next) {
 });
@@ -126,6 +122,19 @@ router.post('/password-reset-tokens', aw(async function(req, res, next) {
     subject: 'MathBombs password',
     text,
   });
+  res.send({});
+}));
+
+router.post('/password-reset-tokens/:token_id', aw(async function(req, res, next) {
+  const { token_id } = req.params;
+  const { password } = req.body;
+  if (!password) return next(createError(400, 'The password param is required.'));
+  const [ pwToken ] = await knex('password_reset_token').where({ id: token_id });
+  if (!pwToken) return next(createError(404, 'This token does not exist.'));
+  const teacher_id = pwToken.teacher_id;
+  const pw_hash = await bcrypt.hash(password, 10);
+  await knex('teacher').where({ id: teacher_id }).update({ pw_hash });
+  await knex('password_reset_token').where({ id: token_id }).update({ is_deleted: 1 });
   res.send({});
 }));
 

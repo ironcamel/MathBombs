@@ -71,9 +71,20 @@ class MathBombsClient {
   }
 
   createAuthToken({ email, password }) {
-    if (!email) return this.err('The email is required');
+    if (!email) return this.err('The email is required.');
     if (!password) return this.err('The password is required');
     return this.post('/api/v1/auth-tokens', { email, password });
+  }
+
+  createPasswordResetToken({ email }) {
+    if (!email) return this.err('The email is required.');
+    return this.post('/api/v1/password-reset-tokens', { email });
+  }
+
+  resetPassword({ token, password }) {
+    if (!token) return this.err('The token is required.');
+    if (!password) return this.err('The password is required');
+    return this.post('/api/v1/password-reset-tokens/' + token, { password });
   }
 
   getStudent(student) {

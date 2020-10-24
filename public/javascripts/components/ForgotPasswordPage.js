@@ -5,16 +5,12 @@ const ForgotPasswordPage = () => {
   const [statusMsg, setStatusMsg] = React.useState('');
   const [isDone, setIsDone] = React.useState(false);
 
+  const client = React.useContext(ClientContext);
+
   const checkEmail = () => {
     setStatusMsg('Checking email ...');
     setErrMsg('');
-    fetch('/api/password-reset-tokens', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({email}),
-    })
-    .then(res => res.json())
-    .then(data => {
+    client.createPasswordResetToken({ email }).then(data => {
       if (data.err) {
         setStatusMsg('');
         setErrMsg(data.err);

@@ -7,6 +7,8 @@ const PasswordResetPage = () => {
   const [isDone, setIsDone] = React.useState(false);
   const [isResetting, setIsResetting] = React.useState(false);
 
+  const client = React.useContext(ClientContext);
+
   const resetPassword = () => {
     setErrMsg('');
     const query = new URLSearchParams(window.location.search);
@@ -20,13 +22,7 @@ const PasswordResetPage = () => {
       return;
     }
     setIsResetting(true);
-    fetch('/api/password-reset-tokens/' + token, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({password: password1}),
-    })
-    .then(res => res.json())
-    .then(data => {
+    client.resetPassword({ token, password: password1 }).then(data => {
       setIsResetting(false);
       if (data.err) {
         setErrMsg(data.err);
