@@ -6,6 +6,8 @@ const crypto = require('crypto');
 const uuid = require('uuid');
 const config = require('../config.js');
 const express = require('express');
+const nodemailer = require('nodemailer');
+
 const router = express.Router();
 
 const knex = require('knex')({
@@ -32,6 +34,9 @@ router.use(async (req, res, next) => {
     [ 'GET'  , '/powerups' ],
     [ 'POST' , '/problems' ],
     [ 'PATCH', '/problems/\\d+' ],
+    [ 'GET'  , '/test' ],
+    [ 'GET'  , '/test1' ],
+    [ 'GET'  , '/test2' ],
   ];
   const isPublic = publicRoutes.find(([ m, p ]) => {
     return req.method === m && req.path.match(new RegExp(`^${p}$`));
@@ -90,9 +95,39 @@ router.post('/auth-tokens', async function(req, res, next) {
 
 router.delete('/auth-tokens', async function(req, res, next) {
   const { teacher_id } = res.locals;
-  if (teacher_id) await knex('auth_token').where({ teacher_id }).del();
+  try {
+    if (teacher_id) await knex('auth_token').where({ teacher_id }).del();
+  } catch (e) {
+    return next(createError(500, e));
+  }
   res.send({});
 });
+
+router.get('/test', async function(req, res, next) {
+});
+
+router.post('/password-reset-tokens', aw(async function(req, res, next) {
+  const { email } = req.body;
+  if (!email) return next(createError(400, 'The email param is required.'));
+  const [ teacher ] = await knex('teacher').where({ email });
+  if (!teacher) return next(createError(400, 'No such account found for that email'));
+  const now = dayjs();
+  const fmt = 'YYYY-MM-DD HH:mm:ss';
+  const created = now.format(fmt);
+  const updated = created;
+  const id = uuid.v4();
+  const data = { id, created, updated, teacher_id: teacher.id };
+  await knex('password_reset_token').insert(data);
+  let text = require('../views/password-reset-email.js')({ token: id });
+  let transport = nodemailer.createTransport(config.email);
+  transport.sendMail({
+    from: 'notifications@mathbombs.org',
+    to: email,
+    subject: 'MathBombs password',
+    text,
+  });
+  res.send({});
+}));
 
 router.patch('/teachers/:teacher_id', async function(req, res, next) {
   const { teacher_id } = req.params;
@@ -112,18 +147,6 @@ router.patch('/teachers/:teacher_id', async function(req, res, next) {
   res.send({ data: teacher });
 });
 
-async function create_auth_token({ teacher_id }) {
-  const now = dayjs();
-  const fmt = 'YYYY-MM-DD HH:mm:ss';
-  const created = now.format(fmt);
-  const updated = created;
-  const token = crypto.randomBytes(16).toString("hex");
-  const id = uuid.v4();
-  const data = { id, token, teacher_id, created, updated };
-  await knex('auth_token').insert(data);
-  return data;
-}
-
 router.get('/students/:id', function(req, res, next) {
   const id = req.params.id;
   knex('student').where({ id }).then(rows => {
@@ -138,7 +161,7 @@ router.get('/students/:id', function(req, res, next) {
   .catch(err => next(err));
 });
 
-router.get('/students', async function(req, res, next) {
+router.get('/students', aw(async function(req, res, next) {
   const { teacher_id } = req.query;
   if (!teacher_id) {
     return next(createError(400, 'The teacher_id param is required.'));
@@ -159,7 +182,7 @@ router.get('/students', async function(req, res, next) {
     return next(createError(500, e));
   }
   res.send({ data: students, meta: { teacher } });
-});
+}));
 
 async function calcNumSheets({ student_id, days }) {
   const where = { student: student_id };
@@ -169,6 +192,25 @@ async function calcNumSheets({ student_id, days }) {
   const rows = await knex('sheet').count({ cnt: '*' })
     .where(where).andWhere('finished', '>=', past);
   return rows[0].cnt;
+}
+
+// async wrapper
+function aw (fun) {
+  return function (req, res, next) {
+    fun(req, res, next).catch(next);
+  };
+}
+
+async function create_auth_token({ teacher_id }) {
+  const now = dayjs();
+  const fmt = 'YYYY-MM-DD HH:mm:ss';
+  const created = now.format(fmt);
+  const updated = created;
+  const token = crypto.randomBytes(16).toString("hex");
+  const id = uuid.v4();
+  const data = { id, token, teacher_id, created, updated };
+  await knex('auth_token').insert(data);
+  return data;
 }
 
 module.exports = router;
