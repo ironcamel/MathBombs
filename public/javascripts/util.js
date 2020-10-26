@@ -87,6 +87,13 @@ class MathBombsClient {
     return this.post('/api/v1/password-reset-tokens/' + token, { password });
   }
 
+  createTeacher({ name, email, password }) {
+    if (!name) return this.err('The name is required.');
+    if (!email) return this.err('The email is required.');
+    if (!password) return this.err('The password is required.');
+    return this.post('/api/v1/teachers', { name, email, password });
+  }
+
   getStudent(student) {
     const id = typeof student === 'object' ? student.id : student;
     return this.get('/api/students/' + id).then(data => {

@@ -35,8 +35,6 @@ router.use(async (req, res, next) => {
     [ 'POST' , '/problems' ],
     [ 'PATCH', '/problems/\\d+' ],
     [ 'GET'  , '/test' ],
-    [ 'GET'  , '/test1' ],
-    [ 'GET'  , '/test2' ],
   ];
   const isPublic = publicRoutes.find(([ m, p ]) => {
     return req.method === m && req.path.match(new RegExp(`^${p}$`));
@@ -55,10 +53,6 @@ router.use(async (req, res, next) => {
     res.locals.teacher_id = res.locals.teacher.id;
   }
   next();
-});
-
-router.get('/config', function(req, res, next) {
-  res.send({...config, admin_password: '...'});
 });
 
 router.post('/auth-tokens', async function(req, res, next) {
@@ -85,7 +79,7 @@ router.post('/auth-tokens', async function(req, res, next) {
       }
     }
     delete teacher.pw_hash;
-    data = await create_auth_token({ teacher_id: teacher.id });
+    data = await createAuthToken(teacher);
     data.teacher = teacher;
   } catch (e) {
     return next(createError(500, e));
@@ -107,9 +101,7 @@ router.post('/password-reset-tokens', aw(async function(req, res, next) {
   if (!email) return next(createError(400, 'The email param is required.'));
   const [ teacher ] = await knex('teacher').where({ email });
   if (!teacher) return next(createError(400, 'No such account found for that email'));
-  const now = dayjs();
-  const fmt = 'YYYY-MM-DD HH:mm:ss';
-  const created = now.format(fmt);
+  const created = dbDateTime();
   const updated = created;
   const id = uuid.v4();
   const data = { id, created, updated, teacher_id: teacher.id };
@@ -132,10 +124,37 @@ router.post('/password-reset-tokens/:token_id', aw(async function(req, res, next
   const [ pwToken ] = await knex('password_reset_token').where({ id: token_id });
   if (!pwToken) return next(createError(404, 'This token does not exist.'));
   const teacher_id = pwToken.teacher_id;
-  const pw_hash = await bcrypt.hash(password, 10);
+  const pw_hash = await hashPassword(password);
   await knex('teacher').where({ id: teacher_id }).update({ pw_hash });
   await knex('password_reset_token').where({ id: token_id }).update({ is_deleted: 1 });
   res.send({});
+}));
+
+router.post('/teachers', aw(async function(req, res, next) {
+  let { name, email, password } = req.body;
+  if (!name) return next(createError(400, 'The name param is required.'));
+  if  (!name.match(/^\w[\w\s\.-]*\w$/)) {
+    return next(createError(400, 'The name is invalid.'));
+  }
+  if (!password) return next(createError(400, 'The password param is required.'));
+  password = password.trim();
+  if (password.length < 4) {
+    return next(createError(400, 'The password must be at least 4 characters long.'));
+  }
+  if (!email) return next(createError(400, 'The email param is required.'));
+  if (!validateEmail(email)) return next(createError(400, 'The email is invalid.'));
+  let teacher = await findTeacher({ email });
+  if (teacher) return next(createError(400, 'That email already exists.'));
+  const now = dbDateTime();
+  const pw_hash = await hashPassword(password);
+  const id = uuid.v4();
+  await knex('teacher').insert({ id, name, email, pw_hash, created: now, updated: now });
+  teacher = await findTeacher({ id });
+  const authToken = await createAuthToken(teacher);
+  res.send({
+    data: teacher,
+    meta: { auth_token: authToken.token }
+  });
 }));
 
 router.patch('/teachers/:teacher_id', async function(req, res, next) {
@@ -159,7 +178,6 @@ router.patch('/teachers/:teacher_id', async function(req, res, next) {
 router.get('/students/:id', function(req, res, next) {
   const id = req.params.id;
   knex('student').where({ id }).then(rows => {
-    debug(rows.length);
     const [ row ] = rows;
     if (row) {
       res.send({ data: row });
@@ -210,16 +228,33 @@ function aw (fun) {
   };
 }
 
-async function create_auth_token({ teacher_id }) {
-  const now = dayjs();
-  const fmt = 'YYYY-MM-DD HH:mm:ss';
-  const created = now.format(fmt);
+async function findTeacher(query) {
+  const [ teacher ] = await knex('teacher').where(query);
+  return teacher;
+}
+
+async function createAuthToken(teacher) {
+  const created = dbDateTime();
   const updated = created;
   const token = crypto.randomBytes(16).toString("hex");
   const id = uuid.v4();
-  const data = { id, token, teacher_id, created, updated };
+  const data = { id, token, teacher_id: teacher.id, created, updated };
   await knex('auth_token').insert(data);
   return data;
+}
+
+function dbDateTime() {
+  const now = dayjs();
+  const fmt = 'YYYY-MM-DD HH:mm:ss';
+  return now.format(fmt);
+}
+
+function validateEmail(email) {
+  return /^\S+@\S+\.\S+$/.test(email);
+}
+
+function hashPassword(password) {
+  return bcrypt.hash(password, 10);
 }
 
 module.exports = router;

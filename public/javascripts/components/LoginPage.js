@@ -64,14 +64,7 @@ const LoginPage = ({ teacher, setTeacher, setAuthToken }) => {
     }
 
     setIsCreatingTeacher(true);
-    fetch('/api/teachers', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password }),
-    })
-    .then(res => res.json())
-    .then(data => {
-      //console.log("Created teacher: ", data);
+    client.createTeacher({ name, email, password }).then(data => {
       setIsCreatingTeacher(false);
       if (data.error) {
         setErrMsg(data.error);
