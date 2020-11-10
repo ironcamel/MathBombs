@@ -27,7 +27,7 @@ router.use(async (req, res, next) => {
     [ 'POST' , '/password-reset-tokens/[\\w-]+' ],
     [ 'POST' , '/teachers' ],
     [ 'GET'  , '/students' ],
-    [ 'GET'  , '/students/\\w+' ],
+    [ 'GET'  , '/students/[\\w-]+' ],
     [ 'POST' , '/students/[^/]+/actions' ],
     [ 'GET'  , '/skills' ],
     [ 'GET'  , '/reports' ],
@@ -180,21 +180,11 @@ router.get('/students', aw(async function(req, res, next) {
   if (!teacher_id) {
     return next(createError(400, 'The teacher_id param is required.'));
   }
-  let students, teacher;
-  try {
-    const [ teacher ] = await knex('teacher').where({ id: teacher_id });
-    if (!teacher) {
-      return next(createError(400, 'Invalid teacher_id.'));
-    }
-    delete teacher.pw_hash;
-    students = await knex('student').where({ teacher_id });
-    await Promise.all(students.map(async (s) => {
-      s.past_week = await calcNumSheets({ student_id: s.id, days: 7 });
-      s.past_month = await calcNumSheets({ student_id: s.id, days: 30 });
-    }));
-  } catch (e) {
-    return next(createError(500, e));
-  }
+  const [ teacher ] = await knex('teacher').where({ id: teacher_id });
+  if (!teacher) return next(createError(400, 'Invalid teacher_id.'));
+  delete teacher.pw_hash;
+  const students = await knex('student').where({ teacher_id });
+  await Promise.all(students.map(async (s) => setGoalData(s)));
   res.send({ data: students, meta: { teacher } });
 }));
 
@@ -228,25 +218,29 @@ router.post('/students', aw(async function(req, res, next) {
     past_week: 0,
     past_month: 0,
     powerups: {
-      1: {id: 1, cnt: 0 },
-      2: {id: 2, cnt: 0 },
+      1: { id: 1, cnt: 0 },
+      2: { id: 2, cnt: 0 },
     },
   };
   res.status(201).send({ data: student });
 }));
 
-router.get('/students/:id', function(req, res, next) {
-  const id = req.params.id;
-  knex('student').where({ id }).then(rows => {
-    const [ row ] = rows;
-    if (row) {
-      res.send({ data: row });
-    } else {
-      next(createError(404));
-    }
-  })
-  .catch(err => next(err));
-});
+router.get('/students/:id', aw(async function(req, res, next) {
+  const { id } = req.params;
+  const [ student ] = await knex('student').where({ id });
+  if (!student) return next(createError(404, 'This student does not exist.'));
+  await setGoalData(student);
+  const [ powerup1 ] = await knex('powerup').where({ id: 1, student: student.id });
+  const [ powerup2 ] = await knex('powerup').where({ id: 2, student: student.id });
+  student.powerups = { 1: powerup1, 2: powerup2 };
+  res.send({ data: student });
+}));
+
+async function setGoalData(student) {
+  student.past_week = await calcNumSheets({ student_id: student.id, days: 7 });
+  student.past_month = await calcNumSheets({ student_id: student.id, days: 30 });
+  return student;
+}
 
 async function calcNumSheets({ student_id, days }) {
   const where = { student: student_id };

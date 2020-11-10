@@ -96,7 +96,7 @@ class MathBombsClient {
 
   getStudent(student) {
     const id = typeof student === 'object' ? student.id : student;
-    return this.get('/api/students/' + id).then(data => {
+    return this.get('/api/v1/students/' + id).then(data => {
       data.student = data.data;
       return data;
     });
@@ -116,7 +116,7 @@ class MathBombsClient {
 
   createStudent({ name }) {
     if (!name) return this.err('The student name is required');
-    return this.post('/api/students', { name }).then(data => {
+    return this.post('/api/v1/students', { name }).then(data => {
       data.student = data.data;
       return data;
     });
