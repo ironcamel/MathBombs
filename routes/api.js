@@ -133,7 +133,7 @@ router.post('/password-reset-tokens/:token_id', aw(async function(req, res, next
 router.post('/teachers', aw(async function(req, res, next) {
   let { name, email, password } = req.body;
   if (!name) return next(createError(400, 'The name param is required.'));
-  if  (!name.match(/^\w[\w\s\.-]*\w$/)) {
+  if (!name.match(/^\w[\w\s\.-]*\w$/)) {
     return next(createError(400, 'The name is invalid.'));
   }
   if (!password) return next(createError(400, 'The password param is required.'));
@@ -175,19 +175,6 @@ router.patch('/teachers/:teacher_id', async function(req, res, next) {
   res.send({ data: teacher });
 });
 
-router.get('/students/:id', function(req, res, next) {
-  const id = req.params.id;
-  knex('student').where({ id }).then(rows => {
-    const [ row ] = rows;
-    if (row) {
-      res.send({ data: row });
-    } else {
-      next(createError(404));
-    }
-  })
-  .catch(err => next(err));
-});
-
 router.get('/students', aw(async function(req, res, next) {
   const { teacher_id } = req.query;
   if (!teacher_id) {
@@ -210,6 +197,56 @@ router.get('/students', aw(async function(req, res, next) {
   }
   res.send({ data: students, meta: { teacher } });
 }));
+
+router.post('/students', aw(async function(req, res, next) {
+  let { name } = req.body;
+  if (!name) return next(createError(400, 'The name param is required.'));
+  if (!name.match(/^\w[\w\s\.-]*\w$/)) {
+    return next(createError(400, 'The name is invalid.'));
+  }
+  const { teacher_id } = res.locals;
+  const [{ cnt }] = await knex('student').count({ cnt: '*' })
+    .where({ teacher_id })
+    .whereRaw('lower(name) = ?', [ name.toLowerCase() ]);
+  if (cnt) return next(createError(400, 'The student name already exists.'));
+  const created = dbDateTime();
+  const student_id = uuid.v4();
+  let student = {
+    id: student_id,
+    teacher_id,
+    name,
+    math_skill: 'Addition',
+    password: irand(1000) + 100,
+    created,
+    updated: created,
+  };
+  await knex('student').insert(student);
+  await knex('powerup').insert({ id: 1, student: student_id });
+  await knex('powerup').insert({ id: 2, student: student_id });
+  student = {
+    ...student,
+    past_week: 0,
+    past_month: 0,
+    powerups: {
+      1: {id: 1, cnt: 0 },
+      2: {id: 2, cnt: 0 },
+    },
+  };
+  res.status(201).send({ data: student });
+}));
+
+router.get('/students/:id', function(req, res, next) {
+  const id = req.params.id;
+  knex('student').where({ id }).then(rows => {
+    const [ row ] = rows;
+    if (row) {
+      res.send({ data: row });
+    } else {
+      next(createError(404));
+    }
+  })
+  .catch(err => next(err));
+});
 
 async function calcNumSheets({ student_id, days }) {
   const where = { student: student_id };
@@ -257,4 +294,10 @@ function hashPassword(password) {
   return bcrypt.hash(password, 10);
 }
 
+function irand(max) {
+  return Math.ceil(Math.random() * max);
+}
+
 module.exports = router;
+
+// vi: fdm=indent fdn=1
