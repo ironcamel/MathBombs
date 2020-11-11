@@ -20,6 +20,20 @@ const knex = require('knex')({
   //debug: true,
 });
 
+const skillsArray = [
+  'Addition',
+  'Subtraction',
+  'Multiplication',
+  'Division',
+  'DecimalMultiplication',
+  'Simplification',
+  'FractionMultiplication',
+  'FractionDivision',
+  'FractionAddition',
+];
+const skillsSet = {};
+skillsArray.forEach(s => skillsSet[s] = 1);
+
 router.use(async (req, res, next) => {
   const publicRoutes = [
     [ 'POST' , '/auth-tokens' ],
@@ -228,7 +242,7 @@ router.post('/students', aw(async function(req, res, next) {
 router.get('/students/:id', aw(async function(req, res, next) {
   const { id } = req.params;
   const [ student ] = await knex('student').where({ id });
-  if (!student) return next(createError(404, 'This student does not exist.'));
+  if (!student) return next(createError(404, 'No such student.'));
   await setGoalData(student);
   const [ powerup1 ] = await knex('powerup').where({ id: 1, student: student.id });
   const [ powerup2 ] = await knex('powerup').where({ id: 2, student: student.id });
@@ -236,9 +250,53 @@ router.get('/students/:id', aw(async function(req, res, next) {
   res.send({ data: student });
 }));
 
+router.patch('/students/:id', aw(async function(req, res, next) {
+  const { id } = req.params;
+  const { teacher_id } = res.locals;
+  let [ student ] = await knex('student').where({ id, teacher_id });
+  if (!student) return next(createError(404, 'No such student.'));
+  const update = {};
+  let { name, password, math_skill, problems_per_sheet, difficulty } = req.body;
+  if (password != null) {
+    if (!password.match(/^\d+$/)) {
+      return next(createError(400, 'The password must only contain digits.'));
+    }
+    if (password.length < 3) {
+      const msg = 'The password must be at least 3 digits long.';
+      return next(createError(400, msg));
+    }
+    update.password = password;
+  }
+  if (math_skill) {
+    if (!skillsSet[math_skill]) {
+      return next(createError(400, 'No such math skill.'));
+    }
+    update.math_skill = math_skill;
+  }
+  if (problems_per_sheet != null) {
+    const msg = 'problems_per_sheet must be a positive integer.';
+    if (!Number.isInteger(problems_per_sheet)) return next(createError(400, msg));
+    if (problems_per_sheet <= 0) return next(createError(400, msg));
+    update.problems_per_sheet = problems_per_sheet;
+  }
+  if (difficulty != null) {
+    const msg = 'difficulty must be an integer between 1 - 3.';
+    if (!Number.isInteger(difficulty)) return next(createError(400, msg));
+    difficulty = parseInt(difficulty);
+    if (difficulty < 1 || difficulty > 3) return next(createError(400, msg));
+    update.difficulty = difficulty;
+  }
+  if (Object.keys(update).length) {
+    await knex('student').where({ id }).update(update);
+    [ student ] = await knex('student').where({ id });
+  }
+  res.send({ data: student });
+}));
+
 async function setGoalData(student) {
-  student.past_week = await calcNumSheets({ student_id: student.id, days: 7 });
-  student.past_month = await calcNumSheets({ student_id: student.id, days: 30 });
+  const student_id = student.id;
+  student.past_week = await calcNumSheets({ student_id, days: 7 });
+  student.past_month = await calcNumSheets({ student_id, days: 30 });
   return student;
 }
 

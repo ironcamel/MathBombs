@@ -128,7 +128,7 @@ class MathBombsClient {
   }
 
   updateStudent({ id }, update) {
-    return this.patch('/api/students/' + id, update);
+    return this.patch('/api/v1/students/' + id, update);
   }
 
   createProblems({ student_id, sheet_id }) {

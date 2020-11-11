@@ -3,20 +3,15 @@ const WorkbookRedirect = () => {
   const { Redirect } = ReactRouterDOM;
   const [student, setStudent] = React.useState(null);
   const [errMsg, setErrMsg] = React.useState(null);
+
   React.useEffect(() => getStudent(), []);
+
+  const client = React.useContext(ClientContext);
 
   let { student_id } = ReactRouterDOM.useParams();
 
-  const authToken = window.localStorage.getItem('auth-token');
-
   const getStudent = () => {
-    fetch('/api/students/' + student_id, {
-      method: 'GET',
-      headers: { 'x-auth-token': authToken },
-    })
-    .then(res => res.json())
-    .then(data => {
-      //console.log('student:', data);
+    client.getStudent(student_id).then(data => {
       if (data.error) {
         setErrMsg(data.error);
         window.scrollTo(0, 0);

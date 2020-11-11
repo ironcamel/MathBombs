@@ -71,28 +71,9 @@ const StudentEditPage = () => {
   };
 
   const updateStudent = (params) => {
-    params = params || {};
-    const data = {
-      student_id: student.id,
-      math_skill: skill,
-      problems_per_sheet: numProblems,
-      difficulty: difficulty,
-      ...params
-    }
     setErrMsg('');
     setIsUpdatingStudent(true);
-    //console.log('updating skill to: ' + skill);
-    fetch('/api/students/' + student.id, {
-      method: 'PATCH',
-      headers: {
-        'content-type': 'application/json',
-        'x-auth-token': authToken,
-      },
-      body: JSON.stringify(data),
-    })
-    .then(res => res.json())
-    .then(data => {
-      //console.log(data);
+    client.updateStudent(student, params).then(data => {
       setIsUpdatingStudent(false);
       if (data.error) {
         setErrMsg(data.error);

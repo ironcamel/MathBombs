@@ -6,16 +6,12 @@ const ReportPage = () => {
 
   React.useEffect(() => getStudent(), []);
 
+  const client = React.useContext(ClientContext);
+
   const authToken = window.localStorage.getItem('auth-token');
 
   const getStudent = () => {
-    fetch('/api/students/' + student_id, {
-      method: 'GET',
-      headers: { 'x-auth-token': authToken },
-    })
-    .then(res => res.json())
-    .then(data => {
-      console.log('student:', data);
+    client.getStudent(student_id).then(data => {
       if (data.error) {
         setErrMsg(data.error);
         window.scrollTo(0, 0);
