@@ -102,6 +102,11 @@ class MathBombsClient {
     });
   }
 
+  getReport(student) {
+    const id = typeof student === 'object' ? student.id : student;
+    return this.get('/api/v1/reports/' + id);
+  }
+
   getStudents({ teacher, teacher_id }) {
     if (teacher) teacher_id = teacher.id;
     return this.get('/api/v1/students?teacher_id=' + teacher_id).then(data => {

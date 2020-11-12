@@ -49,7 +49,7 @@ router.use(async (req, res, next) => {
     [ 'GET'  , '/students/[\\w-]+' ],
     [ 'POST' , '/students/[^/]+/actions' ],
     [ 'GET'  , '/skills' ],
-    [ 'GET'  , '/reports' ],
+    [ 'GET'  , '/reports/.+' ],
     [ 'GET'  , '/powerups' ],
     [ 'POST' , '/problems' ],
     [ 'PATCH', '/problems/\\d+' ],
@@ -328,6 +328,28 @@ router.post('/students/:student_id/actions', aw(async function(req, res, next) {
   res.send({ data: student });
 }));
 
+router.get('/reports/:student_id', aw(async function(req, res, next) {
+  const { student_id } = req.params;
+  debug('reports getting student', student_id);
+  const student = await findStudent(student_id);
+  if (!student) return next(err(404, 'No such student.'));
+  const where = { student: student_id };
+  const now = dayjs();
+  const past = daysAgo(30, now);
+  const sheets = await knex('sheet')
+    .where(where).andWhere('finished', '>=', past);
+  const counts = {};
+  for (let i = 0; i <= 30; i++) {
+    const key = daysAgo(i, now);
+    counts[key] = 0;
+  }
+  sheets.forEach(sheet => counts[sheet.finished]++);
+  const data = [[ 'Day', 'Sheets' ]].concat(
+    Object.keys(counts).sort().reverse().map(k => [k, counts[k]])
+  );
+  res.send({ data });
+}));
+
 async function setGoalData(student) {
   const student_id = student.id;
   student.past_week = await calcNumSheets({ student_id, days: 7 });
@@ -337,11 +359,8 @@ async function setGoalData(student) {
 
 async function calcNumSheets({ student_id, days }) {
   const where = { student: student_id };
-  const now = dayjs();
-  const fmt = 'YYYY-MM-DD';
-  const past = now.subtract(days, 'day').format(fmt);
   const rows = await knex('sheet').count({ cnt: '*' })
-    .where(where).andWhere('finished', '>=', past);
+    .where(where).andWhere('finished', '>=', daysAgo(days));
   return rows[0].cnt;
 }
 
@@ -371,6 +390,12 @@ async function createAuthToken(teacher) {
   const data = { id, token, teacher_id: teacher.id, created, updated };
   await knex('auth_token').insert(data);
   return data;
+}
+
+function daysAgo(days, now) {
+  now = now || dayjs();
+  const fmt = 'YYYY-MM-DD';
+  return now.subtract(days, 'day').format(fmt);
 }
 
 function dbDateTime() {

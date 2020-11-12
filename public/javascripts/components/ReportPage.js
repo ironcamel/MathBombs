@@ -25,12 +25,7 @@ const ReportPage = () => {
   google.setOnLoadCallback(drawChart);
 
   function drawChart() {
-    fetch('/api/reports/' + student_id, {
-      method: 'GET',
-      headers: { 'x-auth-token': authToken },
-    })
-    .then(res => res.json())
-    .then(data => {
+    client.getReport(student_id).then(data => {
       if (data.error) {
         setErrMsg(data.error);
         window.scrollTo(0, 0);
@@ -39,7 +34,7 @@ const ReportPage = () => {
         const chart = new google.visualization.BarChart(document.getElementById('chart_div'));
         chart.draw(chartData, {
           title: 'Math Sheets Completed',
-          vAxis: {title: 'Day',  titleTextStyle: {color: 'black'}}
+          vAxis: { title: 'Day',  titleTextStyle: { color: 'black' } }
         });
       }
     });
