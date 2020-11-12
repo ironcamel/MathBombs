@@ -144,7 +144,7 @@ class MathBombsClient {
 
   usePowerup({ powerup_id, student_id }) {
     const payload = { action: 'use-powerup', student_id, powerup_id };
-    return this.post(`/api/students/${student_id}/actions`, payload).then(data => {
+    return this.post(`/api/v1/students/${student_id}/actions`, payload).then(data => {
       data.student = data.data;
       return data;
     });
