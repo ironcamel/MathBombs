@@ -16,6 +16,11 @@ const knex = require('knex')({
     //filename: "/opt/mathbombs/data/math.db",
     filename: "/opt/MathSheets/data/math.db", // production db
   },
+  pool: {
+    afterCreate: (conn, cb) => {
+      conn.run('pragma foreign_keys = on', cb)
+    }
+  },
   useNullAsDefault: true,
   //debug: true,
 });
@@ -291,6 +296,13 @@ router.patch('/students/:id', aw(async function(req, res, next) {
     [ student ] = await knex('student').where({ id });
   }
   res.send({ data: student });
+}));
+
+router.delete('/students/:id', aw(async function(req, res, next) {
+  const { id } = req.params;
+  const { teacher_id } = res.locals;
+  await knex('student').where({ id, teacher_id }).del();
+  res.send({});
 }));
 
 async function setGoalData(student) {

@@ -124,7 +124,7 @@ class MathBombsClient {
 
   deleteStudent({ id }) {
     const headers = this.authToken ? { 'x-auth-token': this.authToken } : {};
-    return this.del('/api/students/' + id);
+    return this.del('/api/v1/students/' + id);
   }
 
   updateStudent({ id }, update) {
