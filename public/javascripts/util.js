@@ -156,7 +156,7 @@ class MathBombsClient {
   };
 
   createSampleProblem({ student_id }) {
-    return this.post('/api/sample-problems', { student_id }).then(res => {
+    return this.post('/api/v1/sample-problems', { student_id }).then(res => {
       res[res.data.type] = res.data.attributes;
       return res;
     });
