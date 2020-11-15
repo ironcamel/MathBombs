@@ -59,13 +59,7 @@ const StudentEditPage = () => {
   };
 
   const getSkills = () => {
-    fetch('/api/skills', {
-      method: 'GET',
-      headers: { 'x-auth-token': authToken },
-    })
-    .then(res => res.json())
-    .then(data => {
-      //console.log(data);
+    client.getSkills().then(data => {
       setSkills(data.data);
     });
   };

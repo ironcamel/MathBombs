@@ -62,7 +62,7 @@ const skills = {
     }
   },
   Multiplication: {
-    name: 'Integer Multiplication:',
+    name: 'Integer Multiplication',
     genProblem: (difficulty) =>  {
       const max = Math.pow(10, difficulty);
       const n1 = irand(max);
@@ -73,7 +73,7 @@ const skills = {
     }
   },
   Division: {
-    name: 'Integer Division:',
+    name: 'Integer Division',
     genProblem: (difficulty) =>  {
       let divisor_max, quotient_max;
       switch (difficulty) {
@@ -169,7 +169,7 @@ const skills = {
     }
   },
   FractionDivision: {
-    name: 'Fraction Division:',
+    name: 'Fraction Division',
     genProblem: (difficulty) =>  {
       const max = difficulty * 6;
       const [x1, x2, y1, y2] = [...Array(4).keys()].map(x => irand(max));
@@ -536,6 +536,11 @@ router.post('/sample-problems', aw(async function(req, res, next) {
   });
 }));
 
+router.get('/skills', aw(async function(req, res, next) {
+  const data = sortedSkills.map(k => ({ type: k, name: skills[k].name }));
+  res.send({ data });
+}));
+
 async function setGoalData(student) {
   const student_id = student.id;
   student.past_week = await calcNumSheets({ student_id, days: 7 });
@@ -604,7 +609,6 @@ function irand(max) {
 }
 
 function simplifyFraction(n, d) {
-  debug('simplifying:', [n, d]);
   for (let i = n; i >= 2; i--) {
     if (isFactorOf(i, n) && isFactorOf(i, d)) {
       n /= i;

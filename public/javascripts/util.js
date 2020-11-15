@@ -162,6 +162,10 @@ class MathBombsClient {
     });
   }
 
+  getSkills() {
+    return this.get('/api/v1/skills');
+  }
+
   updateTeacher(teacher, update) {
     const uri = this.uriFor('teacher', teacher);
     return this.patch(uri, update);
