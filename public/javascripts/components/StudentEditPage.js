@@ -108,17 +108,7 @@ const StudentEditPage = () => {
       return;
     }
 
-    fetch('/api/rewards', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-auth-token': authToken,
-      },
-      body: JSON.stringify(payload),
-    })
-    .then(res => res.json())
-    .then(data => {
-      //console.log(data);
+    client.createReward(payload).then(data => {
       setIsCreatingRewards(false);
       if (data.error) {
         setErrMsg(data.error);

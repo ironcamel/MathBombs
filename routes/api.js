@@ -365,6 +365,26 @@ router.get('/rewards', aw(async function(req, res, next) {
   res.send({ data });
 }));
 
+router.post('/rewards', aw(async function(req, res, next) {
+  let { student_id, reward, sheet_id, week_goal, month_goal } = req.body;
+  if (!student_id) return next(err(400,'The student_id param is required.'));
+  const { teacher_id } = res.locals;
+  const student = await findStudent({ id: student_id, teacher_id });
+  if (!student) return next(err(400, 'No such student.'));
+  const errMsg = 'The sheet_id, week_goal, or month_goal param is required';
+  if (!(sheet_id || week_goal || month_goal)) return next(err(400, errMsg));
+  const id = uuid.v4();
+  sheet_id = sheet_id || null;
+  week_goal = week_goal || null;
+  month_goal = month_goal || null;
+  const is_given = 0;
+  const data = {
+    id, student_id, reward, is_given, sheet_id, week_goal, month_goal
+  };
+  await knex('reward').insert(data);
+  res.send({ data });
+}));
+
 async function setGoalData(student) {
   const student_id = student.id;
   student.past_week = await calcNumSheets({ student_id, days: 7 });

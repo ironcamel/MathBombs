@@ -9,6 +9,7 @@ class MathBombsClient {
   uriMap = {
     teacher: ({ id }) => '/api/teachers/' + id,
     auth_tokens: () => '/api/v1/auth-tokens',
+    rewards: () => '/api/v1/rewards',
   };
 
   baseHeaders() {
@@ -176,7 +177,13 @@ class MathBombsClient {
   }
 
   getRewards({ student_id }) {
-    return this.get('/api/v1/rewards?student_id=' + student_id);
+    const uri = this.uriFor('rewards');
+    return this.get(uri + '?student_id=' + student_id);
+  }
+
+  createReward(payload) {
+    const uri = this.uriFor('rewards');
+    return this.post(uri, payload);
   }
 
   uriFor(type, obj) {
