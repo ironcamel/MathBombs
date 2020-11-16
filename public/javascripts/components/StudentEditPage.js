@@ -80,16 +80,7 @@ const StudentEditPage = () => {
 
   const getRewards = (student) => {
     setErrMsg('');
-    fetch('/api/rewards?student_id=' + student.id, {
-      method: 'GET',
-      headers: {
-        'content-type': 'application/json',
-        'x-auth-token': authToken,
-      },
-    })
-    .then(res => res.json())
-    .then(data => {
-      //console.log('rewards:', data);
+    client.getRewards({ student_id }).then(data => {
       if (data.error) {
         setErrMsg(data.error);
         window.scrollTo(0, 0);

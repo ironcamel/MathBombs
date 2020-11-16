@@ -525,7 +525,9 @@ router.get('/reports/:student_id', aw(async function(req, res, next) {
 
 router.post('/sample-problems', aw(async function(req, res, next) {
   const { student_id } = req.body;
+  if (!student_id) return next(err(400,'The student_id param is required.'));
   const student = await findStudent(student_id);
+  if (!student) return next(err(400, 'No such student.'));
   const p = skills[student.math_skill];
   res.send({
     data: {
@@ -538,6 +540,16 @@ router.post('/sample-problems', aw(async function(req, res, next) {
 
 router.get('/skills', aw(async function(req, res, next) {
   const data = sortedSkills.map(k => ({ type: k, name: skills[k].name }));
+  res.send({ data });
+}));
+
+router.get('/rewards', aw(async function(req, res, next) {
+  const { student_id } = req.query;
+  if (!student_id) return next(err(400,'The student_id param is required.'));
+  const { teacher_id } = res.locals;
+  const student = await findStudent({ id: student_id, teacher_id });
+  if (!student) return next(err(400, 'No such student.'));
+  const data = await knex('reward').where({ student_id });
   res.send({ data });
 }));
 

@@ -175,6 +175,10 @@ class MathBombsClient {
     return this.del(this.uriFor('auth_tokens'));
   }
 
+  getRewards({ student_id }) {
+    return this.get('/api/v1/rewards?student_id=' + student_id);
+  }
+
   uriFor(type, obj) {
     const fun = this.uriMap[type];
     if (fun) return fun(obj);
