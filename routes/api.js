@@ -385,6 +385,15 @@ router.post('/rewards', aw(async function(req, res, next) {
   res.send({ data });
 }));
 
+router.delete('/rewards/:id', aw(async function(req, res, next) {
+  const { id } = req.params;
+  const where = { id };
+  const [{ cnt }] = await knex('reward').count({ cnt: '*' }).where(where);
+  if (cnt > 1) return next(err(500, `Query returned ${cnt} rewards.`));
+  await knex('reward').where(where).del();
+  res.send({});
+}));
+
 async function setGoalData(student) {
   const student_id = student.id;
   student.past_week = await calcNumSheets({ student_id, days: 7 });

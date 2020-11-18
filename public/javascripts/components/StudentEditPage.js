@@ -167,19 +167,7 @@ const StudentEditPage = () => {
 
   const deleteReward = (reward_id) => {
     setErrMsg('');
-    fetch('/api/rewards/' + reward_id, {
-      method: 'DELETE',
-      headers: {
-        'content-type': 'application/json',
-        'x-auth-token': authToken,
-      },
-      body: JSON.stringify({
-        student_id: student.id,
-      }),
-    })
-    .then(res => res.json())
-    .then(data => {
-      //console.log(data);
+    client.deleteReward({ reward_id }).then(data => {
       if (data.error) {
         setErrMsg(data.error);
         window.scrollTo(0, 0);

@@ -7,8 +7,9 @@ class MathBombsClient {
   }
 
   uriMap = {
-    teacher: ({ id }) => '/api/teachers/' + id,
+    teacher: (id) => '/api/teachers/' + id,
     auth_tokens: () => '/api/v1/auth-tokens',
+    reward: (id) => '/api/v1/rewards/' + id,
     rewards: () => '/api/v1/rewards',
   };
 
@@ -168,7 +169,7 @@ class MathBombsClient {
   }
 
   updateTeacher(teacher, update) {
-    const uri = this.uriFor('teacher', teacher);
+    const uri = this.uriFor('teacher', teacher.id);
     return this.patch(uri, update);
   }
 
@@ -184,6 +185,11 @@ class MathBombsClient {
   createReward(payload) {
     const uri = this.uriFor('rewards');
     return this.post(uri, payload);
+  }
+
+  deleteReward({ reward_id }) {
+    const uri = this.uriFor('reward', reward_id);
+    return this.del(uri);
   }
 
   uriFor(type, obj) {
