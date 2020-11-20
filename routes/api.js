@@ -166,7 +166,7 @@ router.post('/teachers', aw(async function(req, res, next) {
   });
 }));
 
-router.patch('/teachers/:id', async function(req, res, next) {
+router.patch('/teachers/:id', aw(async function(req, res, next) {
   const { id } = req.params;
   if (id !== res.locals.teacher_id) {
     return next(err(403, 'Not allowed to update this teacher.'));
@@ -177,7 +177,7 @@ router.patch('/teachers/:id', async function(req, res, next) {
   }
   const teacher = await findTeacher(id);
   res.send({ data: teacher });
-});
+}));
 
 router.get('/students', aw(async function(req, res, next) {
   const { teacher_id } = req.query;
@@ -392,6 +392,26 @@ router.delete('/rewards/:id', aw(async function(req, res, next) {
   if (cnt > 1) return next(err(500, `Query returned ${cnt} rewards.`));
   await knex('reward').where(where).del();
   res.send({});
+}));
+
+router.patch('/powerups/:id', aw(async function(req, res, next) {
+  const { id } = req.params;
+  const { student_id } = req.query;
+  let msg = 'The student_id query param is required.';
+  if (!student_id) return next(err(400, msg));
+  const { teacher_id } = res.locals;
+  const student = await findStudent({ id: student_id, teacher_id });
+  if (!student) return next(err(400, 'No such student.'));
+  let { cnt } = req.body;
+  if (cnt == null) return next(err(400, 'The cnt param is required.'));
+  msg = 'The cnt param must be a positive integer.';
+  if (!Number.isInteger(cnt) || cnt < 0) return next(err(400, msg));
+  const where = { id, student: student_id };
+  const [ powerup ] = await knex('powerup').where(where);
+  if (!powerup) return next(err(404, 'No such powerup.'));
+  await knex('powerup').where(where).update({ cnt });
+  powerup.cnt = cnt;
+  res.send({ data: powerup });
 }));
 
 async function setGoalData(student) {

@@ -7,10 +7,11 @@ class MathBombsClient {
   }
 
   uriMap = {
-    teacher: (id) => '/api/teachers/' + id,
-    auth_tokens: () => '/api/v1/auth-tokens',
-    reward: (id) => '/api/v1/rewards/' + id,
-    rewards: () => '/api/v1/rewards',
+    auth_tokens: '/api/v1/auth-tokens',
+    powerups: '/api/v1/powerups',
+    rewards: '/api/v1/rewards',
+    skills: '/api/v1/skills',
+    teachers: '/api/v1/teachers',
   };
 
   baseHeaders() {
@@ -165,11 +166,12 @@ class MathBombsClient {
   }
 
   getSkills() {
-    return this.get('/api/v1/skills');
+    const uri = this.uriFor('skills');
+    return this.get(uri);
   }
 
   updateTeacher(teacher, update) {
-    const uri = this.uriFor('teacher', teacher.id);
+    const uri = this.uriFor('teachers', teacher.id);
     return this.patch(uri, update);
   }
 
@@ -188,14 +190,21 @@ class MathBombsClient {
   }
 
   deleteReward({ reward_id }) {
-    const uri = this.uriFor('reward', reward_id);
+    const uri = this.uriFor('rewards', reward_id);
     return this.del(uri);
   }
 
-  uriFor(type, obj) {
-    const fun = this.uriMap[type];
-    if (fun) return fun(obj);
-    throw 'No URI mapping exists for ' + type;
+  updatePowerup({ powerup_id, student_id }, { cnt }) {
+    const uri = this.uriFor('powerups', powerup_id, { student_id });
+    return this.patch(uri, { cnt });
+  }
+
+  uriFor(type, id, query) {
+    let uri = this.uriMap[type];
+    if (!uri) throw 'No URI mapping exists for ' + type;
+    if (id) uri += ('/' + id);
+    if (query) uri += ('?' + new URLSearchParams(query));
+    return uri;
   }
 
 }

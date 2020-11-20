@@ -96,7 +96,7 @@ const StudentEditPage = () => {
 
     const payload = {
       reward: rewardRef.current.value.trim(),
-      student_id: student.id,
+      student_id,
     };
     if (conditionType === 'sheet') {
       payload.sheet_id = parseInt(sheetRef.current.value);
@@ -132,20 +132,12 @@ const StudentEditPage = () => {
       setIsUpdatingPowerup2(true);
     }
     cnt = parseInt(cnt);
-    fetch('/api/powerups', {
-      method: 'PATCH',
-      headers: {
-        'content-type': 'application/json',
-        'x-auth-token': authToken,
-      },
-      body: JSON.stringify({
-        student_id: student.id,
-        powerup_id,
-        cnt,
-      }),
-    })
-    .then(res => res.json())
-    .then(data => {
+    if (!Number.isInteger(cnt) || cnt < 0) {
+      setErrMsg('Power-up count must be an integer >= 0');
+      window.scrollTo(0, 0);
+      return;
+    }
+    client.updatePowerup({ powerup_id, student_id }, { cnt }).then(data => {
       //console.log(data);
       setIsUpdatingPowerup1(false);
       setIsUpdatingPowerup2(false);
@@ -270,7 +262,7 @@ const StudentEditPage = () => {
                 { student &&
                 <div>
                   {student.name} Settings
-                  [<a href={"/students/" + student.id}>workbook</a>]
+                  [<a href={"/students/" + student_id}>workbook</a>]
                 </div>
                 }
               </legend>
