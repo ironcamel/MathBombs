@@ -5,10 +5,9 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const uuid = require('uuid');
 const express = require('express');
-const nodemailer = require('nodemailer');
 const config = require('../config.js');
 const { skills, sortedSkills } = require('../models/skills.js');
-const { irand } = require('../models/util.js');
+const { sendEmail, irand } = require('../models/util.js');
 
 const router = express.Router();
 
@@ -28,7 +27,12 @@ const knex = require('knex')({
 });
 
 router.get('/test', async function(req, res, next) {
-  res.send({});
+  const student = await findStudent('1E0D945C-4CB2-11E8-9BBC-D898F6F4C79F');
+  const sheet_id = 124;
+  const msg = 'good job dude';
+  //await sendProgressEmail({ student, sheet_id });
+  //await sendRewardEmail({ student, sheet_id, msg });
+  res.send({ msg: 'done' });
 });
 
 router.use(async (req, res, next) => {
@@ -115,14 +119,9 @@ router.post('/password-reset-tokens', aw(async function(req, res, next) {
   const id = uuid.v4();
   const data = { id, created, updated, teacher_id: teacher.id };
   await knex('password_reset_token').insert(data);
-  let text = require('../views/password-reset-email.js')({ token: id });
-  let transport = nodemailer.createTransport(config.email);
-  transport.sendMail({
-    from: 'notifications@mathbombs.org',
-    to: email,
-    subject: 'MathBombs password',
-    text,
-  });
+  const link = `${config.base_url}/password-reset?token=${id}`;
+  const text = require('../views/password-reset-email.js')({ link });
+  sendEmail({ to: email, subject: 'MathBombs password', text });
   res.send({});
 }));
 
@@ -231,7 +230,7 @@ router.post('/students', aw(async function(req, res, next) {
 
 router.get('/students/:id', aw(async function(req, res, next) {
   const { id } = req.params;
-  const [ student ] = await knex('student').where({ id });
+  const student = await findStudent(id);
   if (!student) return next(err(404, 'No such student.'));
   await setGoalData(student);
   const [ powerup1 ] = await knex('powerup').where({ id: 1, student: student.id });
@@ -243,7 +242,7 @@ router.get('/students/:id', aw(async function(req, res, next) {
 router.patch('/students/:id', aw(async function(req, res, next) {
   const { id } = req.params;
   const { teacher_id } = res.locals;
-  let [ student ] = await knex('student').where({ id, teacher_id });
+  let student = await findStudent({ id, teacher_id });
   if (!student) return next(err(404, 'No such student.'));
   const update = {};
   let { name, password, math_skill, problems_per_sheet, difficulty } = req.body;
@@ -278,7 +277,7 @@ router.patch('/students/:id', aw(async function(req, res, next) {
   }
   if (Object.keys(update).length) {
     await knex('student').where({ id }).update(update);
-    [ student ] = await knex('student').where({ id });
+    student = await findStudent(id);
   }
   res.send({ data: student });
 }));
@@ -414,6 +413,42 @@ router.patch('/powerups/:id', aw(async function(req, res, next) {
   res.send({ data: powerup });
 }));
 
+router.post('/problems', aw(async function(req, res, next) {
+  const { student_id, sheet_id } = req.body;
+  if (!student_id) return next(err(400, 'The student_id param is required.'));
+  const student = await findStudent(student_id);
+  if (!student) return next(err(400, 'No such student.'));
+  let where = { id: sheet_id, student: student_id };
+  const [{ cnt }] = await knex('sheet').count({ cnt: '*' }).where(where);
+  if (cnt == 0) {
+    const { math_skill, difficulty } = student;
+    await knex('sheet').insert({
+      id: sheet_id,
+      student: student_id,
+      math_skill,
+      difficulty,
+    });
+    const skill = skills[math_skill];
+    if (!skill) return next(err(500, 'No such math skill.'));
+    for (let i = 1; i <= student.problems_per_sheet; i++) {
+      const problem = skill.genProblem(difficulty);
+      await knex('problem').insert({
+        id: i,
+        sheet: sheet_id,
+        student: student_id,
+        ...problem,
+      });
+    }
+  }
+  where = { sheet: sheet_id, student: student_id };
+  const problems = await knex('problem').where(where);
+  problems.forEach(p => {
+    p.sheet_id = p.sheet;
+    p.student_id = p.student;
+  });
+  res.send({ data: problems });
+}));
+
 async function setGoalData(student) {
   const student_id = student.id;
   student.past_week = await calcNumSheets({ student_id, days: 7 });
@@ -444,6 +479,7 @@ async function findTeacher(query) {
 async function findStudent(query) {
   if (typeof query !== 'object') query = { id: query };
   const [ student ] = await knex('student').where(query);
+  await setGoalData(student);
   return student;
 }
 
@@ -475,6 +511,30 @@ function validateEmail(email) {
 
 function hashPassword(password) {
   return bcrypt.hash(password, 10);
+}
+
+async function sendProgressEmail({ student, sheet_id }) {
+  const student_id = student.id;
+  const { name, past_week, past_month } = student;
+  const text = require('../views/progress-email.js')({
+    name, sheet_id, past_week, past_month,
+    sheet_url: config.base_url + `/students/${student_id}/sheets/${sheet_id}`,
+  });
+  const teacher = await findTeacher(student.teacher_id);
+  const subject = `MathBombs: ${name} completed sheet ${sheet_id}` +
+    ` (${past_week}/7 ${past_month}/30)`;
+  sendEmail({ to: teacher.email, subject, text });
+}
+
+async function sendRewardEmail({ student, sheet_id, msg }) {
+  const { name } = student;
+  const text = require('../views/reward-email.js')({ name, sheet_id, msg });
+  const teacher = await findTeacher(student.teacher_id);
+  const subject =
+    `MathBombs: special message for ${name} from sheet #${sheet_id}`;
+  sendEmail({ to: teacher.email, subject, text });
+  const { rewards_email } = teacher;
+  if (rewards_email) sendEmail({ to: rewards_email, subject, text });
 }
 
 module.exports = router;

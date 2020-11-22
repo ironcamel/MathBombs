@@ -140,7 +140,7 @@ class MathBombsClient {
   }
 
   createProblems({ student_id, sheet_id }) {
-    return this.post('/api/problems', { student_id, sheet_id }).then(data => {
+    return this.post('/api/v1/problems', { student_id, sheet_id }).then(data => {
       data.problems = data.data;
       return data;
     });
