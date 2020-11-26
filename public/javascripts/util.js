@@ -147,7 +147,7 @@ class MathBombsClient {
   }
 
   updateProblem(problem) {
-    return this.patch('/api/problems/' + problem.id, problem);
+    return this.patch('/api/v1/problems/' + problem.id, problem);
   }
 
   usePowerup({ powerup_id, student_id }) {

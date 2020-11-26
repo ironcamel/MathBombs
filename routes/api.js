@@ -27,11 +27,6 @@ const knex = require('knex')({
 });
 
 router.get('/test', async function(req, res, next) {
-  const student = await findStudent('1E0D945C-4CB2-11E8-9BBC-D898F6F4C79F');
-  const sheet_id = 124;
-  const msg = 'good job dude';
-  //await sendProgressEmail({ student, sheet_id });
-  //await sendRewardEmail({ student, sheet_id, msg });
   res.send({ msg: 'done' });
 });
 
@@ -314,7 +309,6 @@ router.post('/students/:student_id/actions', aw(async function(req, res, next) {
 
 router.get('/reports/:student_id', aw(async function(req, res, next) {
   const { student_id } = req.params;
-  debug('reports getting student', student_id);
   const student = await findStudent(student_id);
   if (!student) return next(err(404, 'No such student.'));
   const where = { student: student_id };
@@ -415,6 +409,7 @@ router.patch('/powerups/:id', aw(async function(req, res, next) {
 
 router.post('/problems', aw(async function(req, res, next) {
   const { student_id, sheet_id } = req.body;
+  if (!sheet_id) return next(err(400, 'The sheet_id param is required.'));
   if (!student_id) return next(err(400, 'The student_id param is required.'));
   const student = await findStudent(student_id);
   if (!student) return next(err(400, 'No such student.'));
@@ -449,6 +444,96 @@ router.post('/problems', aw(async function(req, res, next) {
   res.send({ data: problems });
 }));
 
+router.patch('/problems/:problem_id', aw(async function(req, res, next) {
+  const { problem_id} = req.params;
+  const { student_id, sheet_id, guess } = req.body;
+  if (guess == null) return next(err(400, 'The guess param is required.'));
+  if (!sheet_id) return next(err(400, 'The sheet_id param is required.'));
+  if (!student_id) return next(err(400, 'The student_id param is required.'));
+  const student = await findStudent(student_id);
+  if (!student) return next(err(400, 'No such student.'));
+  const problemQuery = { id: problem_id, sheet: sheet_id, student: student_id };
+  let [ problem ] = await knex('problem').where(problemQuery);
+  if (!problem) return next(err(404, 'No such problem.'));
+  const problemUpdate = { guess };
+  let powerup, reward;
+  if (problem.is_solved == 0 && problem.answer == guess) {
+    problemUpdate.is_solved = 1;
+    let prob1 = config.powerups[1].probability;
+    if (prob1 == null) prob1 = 10;
+    let prob2 = config.powerups[2].probability;
+    if (prob2 == null) prob2 = 2;
+    const rand = irand(100);
+    if (rand <= prob1 || rand <= prob2) {
+      const where = { student: student_id };
+      where.id = rand <= prob2 ? 2 : 1;
+      [ powerup ] = await knex('powerup').where(where);
+      const cnt = powerup.cnt + 1;
+      await knex('powerup').where(where).update({ cnt });
+      powerup.cnt = cnt;
+    }
+  }
+  await knex('problem').where(problemQuery).update(problemUpdate);
+  if (problemUpdate.is_solved) {
+    reward = await processSheet({ student, sheet_id });
+  }
+  problem = { ...problem, ...problemUpdate };
+  res.send({
+      data: problem,
+      meta: { powerup, reward },
+  });
+}));
+
+async function processSheet({ student, sheet_id }) {
+  const student_id = student.id;
+  const where = { id: sheet_id, student: student_id };
+  const [ sheet ] = await knex('sheet').where(where);
+  if (sheet.finished) return;
+
+  const problemQuery = { sheet: sheet_id, student: student_id };
+  let [{ cnt }] = await knex('problem').count({ cnt: '*' })
+    .where(problemQuery).whereRaw('answer = guess');
+  const numCorrect = cnt;
+  [{ cnt }] = await knex('problem').count({ cnt: '*' })
+    .where(problemQuery);
+  const numProblems = cnt;
+  if (numCorrect != numProblems) return;
+
+  await knex('sheet').where(where).update({ finished: dbDate() });
+  if (sheet_id > student.last_sheet) { // sanity check
+    await knex('student').where({ id: student_id })
+      .update({ last_sheet: sheet_id });
+  }
+  student = await findStudent(student_id); // Refresh the student object
+
+  sendProgressEmail({ student, sheet_id });
+
+  let [ reward ] = await knex('reward')
+    .where({ student_id, is_given: 0 })
+    .andWhere('sheet_id', '<=', sheet_id);
+  if (!reward) {
+    const rewards = await knex('reward').where({ student_id, is_given: 0 })
+      .whereNull('sheet_id');
+    for (r of rewards) {
+      if (
+        (r.week_goal  && student.past_week  >= r.week_goal ) ||
+        (r.month_goal && student.past_month >= r.month_goal)
+      ) {
+        reward = r;
+        break;
+      }
+    }
+  }
+
+  let msg;
+  if (reward) {
+    msg = reward.reward;
+    sendRewardEmail({ student, sheet_id, msg });
+    await knex('reward').where({ id: reward.id }).update({ is_given: 1 });
+  }
+  return msg;
+}
+
 async function setGoalData(student) {
   const student_id = student.id;
   student.past_week = await calcNumSheets({ student_id, days: 7 });
@@ -464,7 +549,7 @@ async function calcNumSheets({ student_id, days }) {
 }
 
 // async wrapper
-function aw (fun) {
+function aw(fun) {
   return function (req, res, next) {
     fun(req, res, next).catch(next);
   };
@@ -502,6 +587,12 @@ function daysAgo(days, now) {
 function dbDateTime() {
   const now = dayjs();
   const fmt = 'YYYY-MM-DD HH:mm:ss';
+  return now.format(fmt);
+}
+
+function dbDate() {
+  const now = dayjs();
+  const fmt = 'YYYY-MM-DD';
   return now.format(fmt);
 }
 
