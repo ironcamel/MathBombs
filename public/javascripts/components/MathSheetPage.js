@@ -44,7 +44,6 @@ const MathSheetPage = () => {
 
   const getStudent = () => {
     client.getStudent({ id: student_id }).then(data => {
-      //console.log('student:', data);
       const { student, error } = data;
       if (error) {
         setErrMsg(error);
@@ -58,7 +57,6 @@ const MathSheetPage = () => {
   const getProblems = () => {
     setFetchingProblems(true);
     client.createProblems({ student_id, sheet_id }).then(data => {
-      //console.log('problems:', data);
       setFetchingProblems(false);
       if (data.error) {
         setErrMsg(data.error);
@@ -71,7 +69,6 @@ const MathSheetPage = () => {
 
   const saveProblem = (problem) => {
     client.updateProblem(problem).then(data => {
-      //console.log('saved:', data);
       if (data.error) {
         setErrMsg(data.error);
         window.scrollTo(0, 0);
@@ -94,7 +91,6 @@ const MathSheetPage = () => {
 
   const usePowerup = ({ powerup_id }) => {
     client.usePowerup({ powerup_id, student_id }).then(data => {
-      //console.log('used powerup student', data);
       if (data.error) {
         setErrMsg(data.error);
         window.scrollTo(0, 0);
