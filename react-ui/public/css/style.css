@@ -1,0 +1,168 @@
+
+#page {
+  /*
+  border: 3px solid #aaa;
+  padding-top: 25px;
+  margin: 40px auto;
+  padding-bottom: 20px;
+  */
+  padding: 15px;
+  margin-bottom: 40px;
+  background-color: white;
+  width: 80%;
+  min-width: 340px;
+}
+
+div.thumbnails {
+  display: flex;
+  flex-wrap: wrap;
+  /*
+  justify-content: space-evenly;
+  */
+
+}
+
+div.thumbnail {
+  width: 300px;
+  padding: 4px;
+  margin-right: 20px;
+  margin-bottom: 20px;
+  /*
+  border: 1px solid #ddd;
+  */
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.055)
+}
+
+div.last-thumbnail {
+  margin-right: 0;
+}
+
+div.thumbnail img {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+div.thumbnail p {
+  font-size: 0.9rem;
+}
+
+div.sheet-body {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+div.problems {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  flex: 5;
+}
+
+@media (min-width: 500px) {
+  div.problems {
+  justify-content: flex-start;
+  }
+}
+
+div.sheet-sidebar {
+  min-width: 160px;
+  flex: 1;
+}
+
+div.problem {
+  /*
+  border: 3px solid #888;
+  */
+  margin: 20px;
+  padding: 15px;
+  position: relative;
+  background-color: #fff;
+}
+
+div.eqn {
+  font-size: 2em;
+  text-align: center;
+}
+
+input.guess {
+  width: auto;
+}
+
+input.correct-answer {
+  background-color: #afa;
+}
+
+#title {
+  text-align:center;
+  font-size:2em;
+  font-weight:bold;
+  font-family:sans;
+  color: #fff;
+}
+
+.problem-targetable:hover {
+  padding: 13px;
+  border: 2px solid #DDD;
+}
+
+.targeting {
+  cursor: url(/images/crosshair.png) 40 40, crosshair;
+}
+
+div.prev-next {
+/*
+  padding: 20px 20px
+*/
+  padding-top: 20px;
+}
+
+#students-tbl .progress {
+  width: 100px;
+  margin-right: 20px;
+}
+
+div.progress {
+  margin-bottom: 20px;
+/*
+  */
+}
+
+#students-tbl .pw_col {
+  display: none;
+}
+
+#students-tbl i {
+  margin-left: 10px;
+}
+
+div.student-details {
+  display: inline-grid;
+  grid-template-columns: auto auto;
+}
+
+div.detail-label {
+  font-weight: bold;
+  text-align: right;
+}
+
+div.detail-value {
+  padding-left: 10px;
+}
+
+.hidden {
+  display: none;
+}
+
+.spinner {
+  width: 100px;
+}
+
+.hero-unit {
+  padding: 60px;
+  margin-top: 20px;
+  margin-bottom: 30px;
+  background-color: #eeeeee;
+  border-radius: 6px;
+}

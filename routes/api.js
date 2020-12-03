@@ -46,10 +46,19 @@ router.use(async (req, res, next) => {
     [ 'GET'  , '/skills' ],
     [ 'POST' , '/sample-problems' ],
     [ 'GET'  , '/test' ],
+    [ 'OPTIONS', '/.*' ],
   ];
   const isPublic = publicRoutes.find(([ m, p ]) => {
     return req.method === m && req.path.match(new RegExp(`^${p}$`));
   });
+  //res.set('access-control-allow-origin', '*');
+  const allowedHosts = { 'mathbombs.org': 1, 'mathsheets.org': 1 };
+  if (allowedHosts[req.hostname]) {
+    res.set('access-control-allow-origin', req.get('origin'));
+  }
+  //res.set('access-control-allow-methods', 'get, post, patch, put, delete, options');
+  res.set('access-control-allow-methods', '*');
+  res.set('access-control-allow-headers', 'content-type, x-auth-token');
   if (!isPublic) {
     const { teacher_id } = req.params;
     const token = req.get('x-auth-token');

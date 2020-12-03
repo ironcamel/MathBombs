@@ -19,10 +19,15 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+//app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'react-ui', 'build')));
 
-app.use('/', indexRouter);
+//app.use('/', indexRouter);
 app.use('/api/v1', apiRouter);
+app.get('/*', function (req, res) {
+ //res.sendFile(path.join(__dirname, 'public', 'index.html'));
+ res.sendFile(path.join(__dirname, 'react-ui', 'build', 'index.html'));
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -31,7 +36,7 @@ app.use(function(req, res, next) {
 
 // error handler
 app.use(function(err, req, res, next) {
-  debug(err);
+  if (err.status != 404) debug(err);
   // set locals, only providing error in development
   res.locals.message = err.message;
   //res.locals.error = req.app.get('env') === 'development' ? err : {};
