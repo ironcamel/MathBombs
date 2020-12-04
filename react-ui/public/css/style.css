@@ -118,15 +118,19 @@ div.prev-next {
   padding-top: 20px;
 }
 
+#students-tbl {
+  width: auto;
+}
+
 #students-tbl .progress {
+/*
+  */
   width: 100px;
   margin-right: 20px;
 }
 
 div.progress {
   margin-bottom: 20px;
-/*
-  */
 }
 
 #students-tbl .pw_col {

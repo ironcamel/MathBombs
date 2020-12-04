@@ -103,6 +103,7 @@ const LoginPage = ({ teacher, setTeacher, setAuthToken }) => {
       </div>
       }
 
+      <hr/>
       <br/>
 
       <h4>Login</h4>
@@ -125,7 +126,9 @@ const LoginPage = ({ teacher, setTeacher, setAuthToken }) => {
         <Link to="forgot-password">Forgot password?</Link>
       </p>
 
-<hr/>
+      <hr/>
+      <br/>
+
       <h4>Create a new account</h4>
 
       <Form.Group controlId="new-name">

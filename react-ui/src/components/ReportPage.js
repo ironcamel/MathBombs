@@ -1,13 +1,18 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { ClientContext } from '../MathBombsClient';
+import Chart from "react-google-charts";
 
 const ReportPage = () => {
   const { student_id } = useParams();
   const [student, setStudent] = React.useState();
   const [errMsg, setErrMsg] = React.useState();
+  const [reportData, setReportData] = React.useState([]);
 
-  React.useEffect(() => getStudent(), []);
+  React.useEffect(() => {
+    getStudent();
+    fetchReportData();
+  }, []);
 
   const client = React.useContext(ClientContext);
 
@@ -24,26 +29,16 @@ const ReportPage = () => {
     });
   };
 
-  //google.load("visualization", "1", { packages: ["corechart"] });
-  //google.setOnLoadCallback(drawChart);
-
-  function drawChart() {
+  const fetchReportData = () => {
     client.getReport(student_id).then(data => {
       if (data.error) {
         setErrMsg(data.error);
         window.scrollTo(0, 0);
       } else {
-      /*
-        const chartData = google.visualization.arrayToDataTable(data.data);
-        const chart = new google.visualization.BarChart(document.getElementById('chart_div'));
-        chart.draw(chartData, {
-          title: 'Math Sheets Completed',
-          vAxis: { title: 'Day',  titleTextStyle: { color: 'black' } }
-        });
-        */
+        setReportData(data.data);
       }
     });
-  }
+  };
 
   return (
     <div>
@@ -63,7 +58,16 @@ const ReportPage = () => {
       </div>
       }
 
-      <div id="chart_div" style={{ height: '1000px' }}></div>
+      <Chart
+        height='1000px'
+        chartType="BarChart"
+        loader={<div>Loading Chart</div>}
+        data={reportData}
+        options={{
+          title: 'Math Sheets Completed',
+          vAxis: { title: 'Day',  titleTextStyle: { color: 'black' } }
+        }}
+      />
 
     </div>
   );
