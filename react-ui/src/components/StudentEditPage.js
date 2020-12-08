@@ -291,18 +291,14 @@ const StudentEditPage = () => {
                     </Form.Control>
                   </Form.Group>
 
-                  <p>
+                  <Form.Group>
                     Difficulty<br/>
-                    <label className="radio inline">
-                      <input type="radio" value="1" checked={difficulty == 1} onChange={difficultyChanged}/> 1
-                    </label>
-                    <label className="radio inline">
-                      <input type="radio" value="2" checked={difficulty == 2} onChange={difficultyChanged}/> 2
-                    </label>
-                    <label className="radio inline">
-                      <input type="radio" value="3" checked={difficulty == 3} onChange={difficultyChanged}/> 3
-                    </label>
-                  </p>
+                    {[1, 2, 3].map((num) => (
+                      <Form.Check type='radio' id={`diff${num}`} label={num} value={num} inline
+                        checked={difficulty == num} onChange={difficultyChanged}
+                      />
+                    ))}
+                  </Form.Group>
 
                 </div>
 
@@ -315,7 +311,7 @@ const StudentEditPage = () => {
                         <MathJax.Node inline formula={sampleProblem} />
                       </MathJax.Provider>
                     </p>
-                    <Button variant="secondary" onClick={getSampleProblem}>Refresh</Button>
+                    <Button variant="secondary" size="sm" onClick={getSampleProblem}>Refresh</Button>
                   </div>
                   }
                   { isUpdatingStudent &&
@@ -328,6 +324,7 @@ const StudentEditPage = () => {
             </fieldset>
           </form>
 
+      <hr/>
 
       <form id="award_form" acceptCharset="utf-8">
         <fieldset>
@@ -340,23 +337,24 @@ const StudentEditPage = () => {
                 <strong>Give reward when the student:</strong>
               </div>
 
-              <input type="radio" value="sheet" checked={conditionType === 'sheet'} onChange={condChanged} />
-              completes sheet number
               <Form.Group>
+                <Form.Check type="radio" id="reward-sheet" label="completes sheet number"
+                  value="sheet" checked={conditionType === 'sheet'} onChange={condChanged}
+                />
                 <Form.Control as="select" ref={sheetRef}>{sheetOptions}</Form.Control>
               </Form.Group>
 
-              <input type="radio" value="weekGoal" checked={conditionType === 'weekGoal'} onChange={condChanged} />
-              completes X sheets in a week
               <Form.Group>
+                <Form.Check type="radio" id="reward-week" label="completes X sheets in a week"
+                  value="weekGoal" checked={conditionType === 'weekGoal'} onChange={condChanged}
+                />
                 <Form.Control as="select" defaultValue="10" ref={weekGoalRef}>{weekGoalOptions}</Form.Control>
               </Form.Group>
 
-              <label className="radio">
-                <input type="radio" value="monthGoal" checked={conditionType === 'monthGoal'} onChange={condChanged} />
-                completes X sheets in a month
-              </label>
               <Form.Group>
+                <Form.Check type="radio" id="reward-month" label="completes X sheets in a month"
+                  value="monthGoal" checked={conditionType === 'monthGoal'} onChange={condChanged}
+                />
                 <Form.Control as="select" defaultValue="10" ref={monthGoalRef}>{monthGoalOptions}</Form.Control>
               </Form.Group>
 
@@ -388,10 +386,9 @@ const StudentEditPage = () => {
         </fieldset>
       </form>
 
-      <div>
-        <form id="award_form" acceptCharset="utf-8">
-          <fieldset>
-            <legend> Power-ups </legend>
+      <hr/>
+
+            <h3>Power-ups</h3>
             { student &&
             <div>
               <p>
@@ -419,9 +416,6 @@ const StudentEditPage = () => {
               }
             </div>
             }
-          </fieldset>
-        </form>
-      </div>
 
     </React.Fragment>
   );

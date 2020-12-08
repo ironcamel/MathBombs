@@ -46,20 +46,21 @@ const TeacherProfilePage = () => {
 
               <Form.Group>
                 <Form.Label>Email</Form.Label>
-                <Form.Control type="email" readOnly defaultValue={teacher.email}></Form.Control>
+                <Form.Control type="email" readOnly defaultValue={teacher.email} />
               </Form.Group>
 
               <Form.Group>
                 <Form.Label>Printer email (for printing reward coupons)</Form.Label>
-                <Form.Control type="text" defaultValue={teacher.rewards_email}></Form.Control>
+                <Form.Control type="text" ref={printerRef} defaultValue={teacher.rewards_email} />
               </Form.Group>
 
-              { isUpdatingTeacher
-                ? <div>
-                  Saving ...
-                  <img src="/images/spinner.gif" style={{ width: '50px', marginLeft: '0px' }} alt=''/>
-                </div>
-                : <Button onClick={updateTeacher}>Save</Button>
+              { isUpdatingTeacher ?
+              <div>
+                Saving ...
+                <img src="/images/spinner.gif" style={{ width: '50px', marginLeft: '0px' }} alt=''/>
+              </div>
+              :
+              <Button onClick={updateTeacher}>Save</Button>
               }
 
             </fieldset>

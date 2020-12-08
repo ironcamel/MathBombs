@@ -62,7 +62,7 @@ const StudentPortalPage = () => {
         <h2 className="offset1"> {teacher.name}'s Students </h2>
         }
 
-        <table id="students-tbl" class="table">
+        <table id="students-tbl" className="table">
           <thead>
             <tr>
               <th>Name</th>

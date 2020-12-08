@@ -220,17 +220,17 @@ const MathSheetPage = () => {
 
       </div>
 
-      <div className="prev-next">
+      <div className={ sheet_id == 1 ? "just-next" : "prev-next" }>
 
         { (sheet_id > 1) &&
         <Link to={prevUrl}>
-          <Button size="small" variant="secondary">&lt;&lt; previous</Button>
+          <Button size="small" variant="primary" size="sm">&lt;&lt; previous</Button>
         </Link>
         }
 
         { isAllSolved &&
         <Link to={nextUrl}>
-          <Button size="small" className="float-right" variant="primary">next &gt;&gt;</Button>
+          <Button size="small" variant="primary" size="sm">next &gt;&gt;</Button>
         </Link>
         }
 
@@ -241,7 +241,6 @@ const MathSheetPage = () => {
 
     </div>
   );
-
 };
 
 const ProblemBlock = ({ problem, updateProblem, isTargeting, problemClicked }) => {

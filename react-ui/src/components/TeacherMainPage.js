@@ -2,13 +2,14 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ClientContext } from '../MathBombsClient';
 import StudentProgressTd from './StudentProgressTd';
+import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 
 const TeacherMainPage = ({ teacher }) => {
   const [students, setStudents] = React.useState([]);
   const [showPasswords, setShowPasswords] = React.useState(false);
-  const [errMsg, setErrMsg] = React.useState(null);
+  const [errMsg, setErrMsg] = React.useState();
   const [isCreatingStudent, setIsCreatingStudent] = React.useState(false);
 
   const client = React.useContext(ClientContext);
@@ -75,15 +76,15 @@ const TeacherMainPage = ({ teacher }) => {
   const togglePasswords = (e) => {
     setShowPasswords(e.target.checked);
   };
+  console.log('errMsg:', errMsg);
 
   return (
     <React.Fragment>
-      
+
       { errMsg &&
-      <div className="alert alert-error">
-        <button type="button" className="close" onClick={() => setErrMsg('')}>×</button>
-        <strong>Error!</strong> {errMsg}
-      </div>
+      <Alert variant="danger" dismissible onClose={() => setErrMsg('')}>
+        <Alert.Heading>Error!</Alert.Heading>{errMsg}
+      </Alert>
       }
 
       <div>
@@ -94,7 +95,7 @@ const TeacherMainPage = ({ teacher }) => {
         <Table id="students-tbl">
           <thead>
             <tr>
-              <th>Name</th>
+              <th>Student</th>
               { showPasswords &&
               <th>Password</th>
               }
