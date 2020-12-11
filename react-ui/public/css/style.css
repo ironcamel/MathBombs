@@ -149,6 +149,22 @@ div.progress {
   margin-left: 10px;
 }
 
+@media (max-width: 767px) {
+  #students-tbl td:nth-child(3),th:nth-child(3) {
+    display: none;
+  }
+  #students-tbl td:nth-child(5),th:nth-child(5) {
+    display: none;
+  }
+}
+@media (min-width: 768px) {
+  div.hero-unit h1 {
+    font-size: 4.5rem;
+    font-weight: 300;
+    line-height: 1.2;
+  }
+}
+
 div.student-details {
   display: inline-grid;
   grid-template-columns: auto auto;

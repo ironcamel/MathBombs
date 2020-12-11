@@ -96,9 +96,7 @@ const TeacherMainPage = ({ teacher }) => {
           <thead>
             <tr>
               <th>Student</th>
-              { showPasswords &&
-              <th>Password</th>
-              }
+              <th className={showPasswords ? '' : 'hidden'}>Password</th>
               <th>Details</th>
               <th>Goal Progress</th>
               <th>Delete</th>
@@ -166,8 +164,7 @@ const StudentRow = ({ student, showPasswords, deleteStudent, setErrMsg }) => {
           </Link>
         </div>
       </td>
-      { showPasswords &&
-      <td>
+      <td className={showPasswords ? '' : 'hidden'}>
         <div className="input-append">
           <input className="input-mini" type="text" defaultValue={student.password} ref={passwordRef} />{' '}
           { isUpdatingStudent 
@@ -176,7 +173,6 @@ const StudentRow = ({ student, showPasswords, deleteStudent, setErrMsg }) => {
           }
         </div>
       </td>
-      }
       <td>
         <div className="student-details">
           <div className="detail-label">Current skill</div>

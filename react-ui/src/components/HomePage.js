@@ -7,7 +7,7 @@ const HomePage = () => {
     <React.Fragment>
 
       <div className="hero-unit">
-        <h1 className="display-3">MathBombs</h1>
+        <h1>MathBombs</h1>
           
         <p>
           Virtual math worksheets for learning and fun!

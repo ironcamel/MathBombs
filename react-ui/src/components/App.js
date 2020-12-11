@@ -71,9 +71,13 @@ const NavbarCont = ({ teacher, setTeacher, setAuthToken }) => {
     client.deleteAuthTokens();
   }
 
+  const profileIcon = <img src="/images/icons/person.svg" alt="" width="32" height="32" title="profile"/>;
+
   return (
-    <Navbar bg="light">
-        <Navbar.Brand>MathBombs</Navbar.Brand>
+    <Navbar bg="light" expand="md">
+      <Navbar.Brand>MathBombs</Navbar.Brand>
+      <Navbar.Toggle aria-controls="basic-navbar-nav" />
+      <Navbar.Collapse id="basic-navbar-nav">
         <Nav className="mr-auto">
           <Nav.Item>
             <Nav.Link as={Link} to="/">Home</Nav.Link>
@@ -87,15 +91,17 @@ const NavbarCont = ({ teacher, setTeacher, setAuthToken }) => {
             <Nav.Link as={Link} to="/help">Help</Nav.Link>
           </Nav.Item>
         </Nav>
-        { teacher
-        ? <NavDropdown title={teacher.email}>
+        { teacher ?
+        <NavDropdown title={teacher.email}>
           <NavDropdown.Item as={Link} to="/logout" onClick={logoutClicked}>Logout</NavDropdown.Item>
           <NavDropdown.Item as={Link} to="/teacher/profile">Edit profile</NavDropdown.Item>
         </NavDropdown>
-        : <Nav.Item>
+        :
+        <Nav.Item>
           <Nav.Link as={Link} to="/login">login</Nav.Link>
         </Nav.Item>
         }
+      </Navbar.Collapse>
     </Navbar>
   );
 }
