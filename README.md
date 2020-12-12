@@ -13,7 +13,7 @@ To install your own instance of MathBombs, first download the latest source.
 and cd to root folder of the project. Then run the following commands:
 
     npm i # Installs the back end API dependencies
-    sqlite3 < ./data/make-db.sql # Creates the database
+    sqlite3 data/math.db < data/make-db.sql # Creates the database
     cd react-ui
     npm i # Installs the front end dependencies
 
