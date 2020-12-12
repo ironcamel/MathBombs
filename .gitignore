@@ -1,4 +1,4 @@
 config.js
-data/math-dump*.sql
+data/backups
 data/math.db
 *.swp
