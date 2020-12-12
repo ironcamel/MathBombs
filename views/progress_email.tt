@@ -1,5 +1,0 @@
-
-[% name %] completed sheet [% sheet_id %]
-past week: [% past_week %] / 7
-past month: [% past_month %] / 30
-[% sheet_url %]

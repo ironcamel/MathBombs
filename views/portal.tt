@@ -1,8 +1,0 @@
-
-<div id="portal-page"></div>
-
-<script type="text/babel" src="/javascripts/components/StudentPortalPage.js"></script>
-
-<script type="text/babel">
-  ReactDOM.render(<StudentPortalPage />, document.getElementById('portal-page'));
-</script>

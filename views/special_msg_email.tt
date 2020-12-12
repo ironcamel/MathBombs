@@ -1,5 +1,0 @@
-
-Congratulations [% name %]!
-Sheet #[% sheet_id %] has a special message for you:
-
-[% msg %]
